@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    id="ionic-plugin-native-ui"
+    version="1.0.8">
+    <name>Ionic Native UI Plugin</name>
+    <description>Ionic Native UI Plugin</description>
+    <license>MIT</license>
+    <keywords>Ionic,native,html5,hybrid</keywords>
+    <repo>https://github.com/driftyco/ionic-plugin-native-ui.git</repo>
+    <issue>https://github.com/driftyco/ionic-plugin-native-ui/issues</issue>
+
+    <!-- ios -->
+    <platform name="ios">
+        <js-module src="www/native-ui.js" name="native-ui">
+            <runs/>
+            <clobbers target="IonicNativeUI" />
+        </js-module>
+        <config-file target="config.xml" parent="/*">
+            <feature name="IonicNativeUI">
+                <param name="ios-package" value="IonicNativeUI" onload="true" />
+            </feature>
+        </config-file>
+
+        <source-file src="src/ios/IonicCommon.swift" />
+    </platform>
+
+    <platform name="android">
+        <js-module src="www/native-ui.js" name="native-ui">
+            <runs/>
+            <clobbers target="IonicNativeUI" />
+        </js-module>
+        <config-file target="config.xml" parent="/*">
+            <feature name="IonicNativeUI">
+                <param name="android-package" value="io.ionic.nativeui.IonicNativeUI" onload="true" />
+            </feature>
+        </config-file>
+        <!--<edit-config file="AndroidManifest.xml" target="/manifest/application/activity" mode="overwrite">
+          <activity android:name="IonicActivity"></activity>
+        </edit-config> -->
+        <source-file src="src/android/IonicCommon.java" target-dir="src/com/ionicframework/common" />
+        <!--<source-file src="src/android/IonicActivity.java" target-dir="src/$PACKAGE_NAME" />-->
+    </platform>
+
+    <dependency id="cordova-plugin-add-swift-support" version="^1.6.0"/>
+</plugin>
