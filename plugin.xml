@@ -1,44 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-    id="ionic-plugin-native-ui"
-    version="1.0.8">
-    <name>Ionic Native UI Plugin</name>
-    <description>Ionic Native UI Plugin</description>
+    id="ionic-cordova-common"
+    version="1.0.0">
+    <name>IonicCordovaCommon</name>
+    <description>Common Cordova functionality for Ionic apps</description>
     <license>MIT</license>
-    <keywords>Ionic,native,html5,hybrid</keywords>
-    <repo>https://github.com/driftyco/ionic-plugin-native-ui.git</repo>
-    <issue>https://github.com/driftyco/ionic-plugin-native-ui/issues</issue>
+    <keywords>Ionic,native,html5,hybrid, cordova</keywords>
+    <repo>https://github.com/driftyco/ionic-cordova-common.git</repo>
+    <issue>https://github.com/driftyco/ionic-cordova-common/issues</issue>
+
+    <js-module src="www/common.js">
+        <runs/>
+        <clobbers target="IonicCordovaCommon" />
+    </js-module>
 
     <!-- ios -->
     <platform name="ios">
-        <js-module src="www/native-ui.js" name="native-ui">
-            <runs/>
-            <clobbers target="IonicNativeUI" />
-        </js-module>
         <config-file target="config.xml" parent="/*">
-            <feature name="IonicNativeUI">
-                <param name="ios-package" value="IonicNativeUI" onload="true" />
+            <feature name="IonicCordovaCommon">
+                <param name="ios-package" value="IonicCordovaCommon" onload="true" />
             </feature>
         </config-file>
 
-        <source-file src="src/ios/IonicCommon.swift" />
+        <source-file src="src/ios/IonicCordovaCommon.swift" />
     </platform>
 
     <platform name="android">
-        <js-module src="www/native-ui.js" name="native-ui">
-            <runs/>
-            <clobbers target="IonicNativeUI" />
-        </js-module>
         <config-file target="config.xml" parent="/*">
-            <feature name="IonicNativeUI">
-                <param name="android-package" value="io.ionic.nativeui.IonicNativeUI" onload="true" />
+            <feature name="IonicCordovaCommon">
+                <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true" />
             </feature>
         </config-file>
         <!--<edit-config file="AndroidManifest.xml" target="/manifest/application/activity" mode="overwrite">
           <activity android:name="IonicActivity"></activity>
         </edit-config> -->
-        <source-file src="src/android/IonicCommon.java" target-dir="src/com/ionicframework/common" />
+        <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common" />
         <!--<source-file src="src/android/IonicActivity.java" target-dir="src/$PACKAGE_NAME" />-->
     </platform>
 
