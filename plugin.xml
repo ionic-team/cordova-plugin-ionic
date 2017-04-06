@@ -23,6 +23,7 @@
             </feature>
         </config-file>
 
+        <framework src="src/ios/CrashReporter.framework" custom="true" />
         <source-file src="src/ios/IonicCordovaCommon.swift" />
     </platform>
 
