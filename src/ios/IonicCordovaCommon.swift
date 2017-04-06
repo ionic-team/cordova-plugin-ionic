@@ -10,6 +10,34 @@
         let _ = [0][1]
     }
 
+    func checkForPendingCrash(_ command: CDVInvokedUrlCommand) -> Void {
+      if let crashReporter = PLCrashReporter.shared() {
+        let hasCrash = crashReporter.hasPendingCrashReport()
+        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: hasCrash)
+        self.commandDelegate!.send(result, callbackId: command.callbackId)
+      }
+    }
+
+    func loadPendingCrash(_ command: CDVInvokedUrlCommand) -> Void {
+      do {
+        let crashData = try PLCrashReporter.shared().loadPendingCrashReportDataAndReturnError()
+        let report = try PLCrashReport(data: crashData)
+        
+        let reportString = PLCrashReportTextFormatter.stringValue(for: report, with:PLCrashReportTextFormatiOS)
+          
+        
+        var info = [String: String]()
+        info["details"] = reportString
+        
+        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: info)
+        self.commandDelegate!.send(result, callbackId: command.callbackId)
+      } catch let error as NSError {
+        print("Failed to capture erorr from PLCrashReporter - \(error.description)")
+        let result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs:"Could not enable crash reporter")
+        self.commandDelegate!.send(result, callbackId: command.callbackId)
+      }
+    }
+
     func enableCrashLogging(_ command: CDVInvokedUrlCommand) -> Void {
       print("Enable crash logging!")
       let result: CDVPluginResult;
