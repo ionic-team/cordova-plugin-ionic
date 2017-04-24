@@ -22,13 +22,13 @@
       do {
         let crashData = try PLCrashReporter.shared().loadPendingCrashReportDataAndReturnError()
         let report = try PLCrashReport(data: crashData)
-        
+
         let reportString = PLCrashReportTextFormatter.stringValue(for: report, with:PLCrashReportTextFormatiOS)
-          
-        
+
+
         var info = [String: String]()
         info["details"] = reportString
-        
+
         let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: info)
         self.commandDelegate!.send(result, callbackId: command.callbackId)
       } catch let error as NSError {
@@ -59,8 +59,11 @@
             let shortVersionString = info["CFBundleShortVersionString"] as? String
             let bundleName = info["CFBundleName"] as? String
             let bundleVersion = info["CFBundleVersion"] as? String
+            let platformVersion = UIDevice.current.systemVersion
 
             var infoDict = [String: String]()
+            infoDict["platform"] = "ios"
+            infoDict["platformVersion"] = platformVersion
             infoDict["version"] = shortVersionString
             infoDict["bundleName"] = bundleName
             infoDict["bundleVersion"] = bundleVersion
