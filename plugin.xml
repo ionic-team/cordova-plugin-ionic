@@ -22,8 +22,6 @@
                 <param name="ios-package" value="IonicCordovaCommon" onload="true" />
             </feature>
         </config-file>
-
-        <framework src="src/ios/CrashReporter.framework" custom="true" />
         <source-file src="src/ios/IonicCordovaCommon.swift" />
     </platform>
 
@@ -40,5 +38,5 @@
         <!--<source-file src="src/android/IonicActivity.java" target-dir="src/$PACKAGE_NAME" />-->
     </platform>
 
-    <dependency id="cordova-plugin-add-swift-support" version="^1.6.0"/>
+    <dependency id="cordova-plugin-add-swift-support" version="^1.6.1"/>
 </plugin>
