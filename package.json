@@ -1,16 +1,16 @@
 {
-  "name": "ionic-plugin-deeplinks",
+  "name": "cordova-plugin-ionic",
   "version": "1.0.11",
   "cordova": {
-    "id": "ionic-plugin-deeplinks",
+    "id": "cordova-plugin-ionic",
     "platforms": [
       "android",
       "ios"
     ]
   },
   "description": "Ionic Deeplinks Plugin",
-  "repository": "https://github.com/driftyco/ionic-plugin-deeplinks.git",
-  "issue": "https://github.com/driftyco/ionic-plugin-deeplinks/issues",
+  "repository": "https://github.com/driftyco/cordova-plugin-ionic.git",
+  "issue": "https://github.com/driftyco/cordova-plugin-ionic/issues",
   "keywords": [
     "ionic",
     "cordova",
