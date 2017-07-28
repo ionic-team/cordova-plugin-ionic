@@ -1,4 +1,4 @@
-package io.ionic.deploy;
+package com.ionicframework.deploy;
 
 import android.app.Activity;
 import android.content.Context;

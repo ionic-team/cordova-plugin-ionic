@@ -23,12 +23,12 @@
     <!-- ios -->
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
-            <feature name="IonicCordovaCommon">
-                <param name="ios-package" value="IonicCordovaCommon" onload="true" />
-            </feature>
-
             <feature name="IonicDeploy">
                 <param name="ios-package" value="IonicDeploy" onload="true" />
+            </feature>
+
+            <feature name="IonicCordovaCommon">
+                <param name="ios-package" value="IonicCordovaCommon" onload="true" />
             </feature>
         </config-file>
 
@@ -131,11 +131,9 @@
             <feature name="IonicCordovaCommon">
                 <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true" />
             </feature>
-        </config-file>
-        
-        <config-file target="res/xml/config.xml" parent="/*">
+
             <feature name="IonicDeploy">
-                <param name="android-package" value="io.ionic.deploy.IonicDeploy"/>
+                <param name="android-package" value="com.ionicframework.deploy.IonicDeploy"/>
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
@@ -148,7 +146,7 @@
         </config-file>
 
         <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common" />
-        <source-file src="src/android/IonicDeploy.java" target-dir="src/io/ionic/deploy" />
+        <source-file src="src/android/IonicDeploy.java" target-dir="src/com/ionicframework/deploy" />
     </platform>
 
     <dependency id="cordova-plugin-add-swift-support" version="^1.6.1"/>
