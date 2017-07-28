@@ -1,4 +1,5 @@
 var exec = require('cordova/exec');
+var deploy = require('./ionicdeploy');
 
 var IonicCordovaCommon = {
   enableCrashLogging: function(success, fail) {
@@ -15,7 +16,8 @@ var IonicCordovaCommon = {
   },
   getAppInfo: function(success, fail) {
     exec(success, fail, "IonicCordovaCommon", "getAppInfo");
-  }
+  },
+  deploy: deploy
 }
 
 module.exports = IonicCordovaCommon;
