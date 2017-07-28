@@ -72,7 +72,7 @@ static NSOperationQueue *delegateQueue;
 
     [self initVersionChecks];
     
-    if (![self.auto_update isEqualToString:@"true"] && [self parseCheckResponse:[self postDeviceDetails]]) {
+    if ([self.auto_update isEqualToString:@"true"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         NSLog(@"UPDATE IS GO");
         [self _download];
     } else {

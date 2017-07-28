@@ -11,8 +11,10 @@
         if ([IonicDeploy isPluginUpdating]) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 1 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
                 if ([IonicDeploy isPluginUpdating]) {
+                    NSLog(@"DEPLOY: Waiting for download");
                     [self setVisible:visible andForce:force];
                 } else {
+                    NSLog(@"DEPLOY: Download complete");
                     [self swizzled_setvisible:visible andForce:force];
                 }
             })));
