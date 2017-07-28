@@ -62,7 +62,7 @@ static NSOperationQueue *delegateQueue;
     }
     self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     self.deploy_server = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
-    self.auto_update = [NSString stringWithFormat @"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAutoUpdate"]]
+    self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAutoUpdate"]];
     self.channel_tag = [prefs stringForKey:@"channel"];
     if (self.channel_tag == nil) {
         self.channel_tag = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
