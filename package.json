@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-ionic",
-  "version": "1.0.11",
+  "version": "1.1.0",
   "cordova": {
     "id": "cordova-plugin-ionic",
     "platforms": [
@@ -8,14 +8,21 @@
       "ios"
     ]
   },
-  "description": "Ionic Deeplinks Plugin",
+  "description": "Ionic Cordova SDK",
+  "engines": {
+    "cordovaDependencies": {
+      "1.1.0": {
+        "cordova-plugin-splashscreen": ">=4.0.0"
+      }
+    }
+  },
   "repository": "https://github.com/driftyco/cordova-plugin-ionic.git",
   "issue": "https://github.com/driftyco/cordova-plugin-ionic/issues",
   "keywords": [
     "ionic",
     "cordova",
-    "deeplink",
-    "deeplinks",
+    "deploy",
+    "liveupdates",
     "mobile",
     "hybrid",
     "ecosystem:cordova",
@@ -28,6 +35,10 @@
     "node-version-compare": ">=1.0.1",
     "plist": ">=1.2.0"
   },
-  "author": "Max Lynch <max@ionic.io>",
+  "author": "Ionic",
+  "contributors": [
+    {"name": "Max Lynch", "email": "max@ionic.io"},
+    {"name": "William Pelrine", "email": "rudy@ionic.io"}
+  ],
   "license": "MIT"
 }

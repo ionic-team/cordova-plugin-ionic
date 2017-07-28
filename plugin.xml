@@ -2,13 +2,13 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="ionic-cordova-common"
-    version="1.0.0">
-    <name>IonicCordovaCommon</name>
+    version="1.1.0">
+    <name>IonicCordova</name>
     <description>Common Cordova functionality for Ionic apps</description>
     <license>MIT</license>
-    <keywords>Ionic,native,html5,hybrid, cordova</keywords>
-    <repo>https://github.com/driftyco/ionic-cordova-common.git</repo>
-    <issue>https://github.com/driftyco/ionic-cordova-common/issues</issue>
+    <keywords>Ionic,native,html5,hybrid,cordova</keywords>
+    <repo>https://github.com/driftyco/cordova-plugin-ionic.git</repo>
+    <issue>https://github.com/driftyco/cordova-plugin-ionic/issues</issue>
 
     <js-module src="www/common.js">
         <runs/>
