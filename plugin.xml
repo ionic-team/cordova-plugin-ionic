@@ -18,7 +18,8 @@
     <preference name="APP_ID" />
     <preference name="CHANNEL_NAME" />
     <preference name="UPDATE_API" default="https://api.ionicjs.com" />
-    <preference name="AUTO_UPDATE" default="true" />
+    <preference name="UPDATE_METHOD" default="auto" />
+    <preference name="MAX_VERSIONS" default="2" />
 
     <!-- ios -->
     <platform name="ios">
@@ -44,8 +45,12 @@
             <string>$UPDATE_API</string>
         </config-file>
 
-        <config-file target="*-Info.plist" parent="IonAutoUpdate">
-            <string>$AUTO_UPDATE</string>
+        <config-file target="*-Info.plist" parent="IonUpdateMethod">
+            <string>$UPDATE_METHOD</string>
+        </config-file>
+
+        <config-file target="*-Info.plist" parent="IonMaxVersions">
+            <string>$MAX_VERSIONS</string>
         </config-file>
 
         <header-file src="src/ios/CDVSplashScreen+IonicDeploy.h" />
@@ -142,7 +147,8 @@
             <string name="ionic_app_id">$APP_ID</string>
             <string name="ionic_channel_name">$CHANNEL_NAME</string>
             <string name="ionic_update_api">$UPDATE_API</string>
-            <string name="ionic_auto_update">$AUTO_UPDATE</string>
+            <string name="ionic_update_method">$UPDATE_METHOD</string>
+            <string name="ionic_max_versions">$MAX_VERSIONS</string>
         </config-file>
 
         <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common" />
