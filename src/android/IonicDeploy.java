@@ -58,7 +58,7 @@ public class IonicDeploy extends CordovaPlugin {
   Context myContext = null;
   String app_id = null;
   String channel = null;
-  boolean autoUpdate = "auto";
+  String autoUpdate = "auto";
   boolean debug = true;
   boolean isLoading = false;
   SharedPreferences prefs = null;

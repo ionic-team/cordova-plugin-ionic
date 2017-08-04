@@ -73,7 +73,11 @@ static NSOperationQueue *delegateQueue;
     [self initVersionChecks];
     
     if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
-        NSLog(@"UPDATE IS GO");
+        if (![self.auto_update isEqualToString:@"auto"]) {
+            [prefs setInteger:2 forKey:@"is_downloading"];
+            [prefs synchronize];
+        }
+
         [self _download];
     } else {
         [prefs setInteger:2 forKey:@"is_downloading"];
