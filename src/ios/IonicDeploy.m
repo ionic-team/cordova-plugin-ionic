@@ -62,7 +62,7 @@ static NSOperationQueue *delegateQueue;
     }
     self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     self.deploy_server = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
-    self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAutoUpdate"]];
+    self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
     self.channel_tag = [prefs stringForKey:@"channel"];
     if (self.channel_tag == nil) {
         self.channel_tag = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
@@ -72,7 +72,7 @@ static NSOperationQueue *delegateQueue;
 
     [self initVersionChecks];
     
-    if ([self.auto_update isEqualToString:@"true"] && [self parseCheckResponse:[self postDeviceDetails]]) {
+    if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         NSLog(@"UPDATE IS GO");
         [self _download];
     } else {
@@ -765,7 +765,9 @@ static NSOperationQueue *delegateQueue;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     } else {
         [self _extract];
-        [self doRedirect];
+        if ([self.auto_update isEqualToString:@"auto"]) {
+            [self doRedirect];
+        }
         NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
         [prefs setInteger:2 forKey:@"is_downloading"];
         [prefs synchronize];
