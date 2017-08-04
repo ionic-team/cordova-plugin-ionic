@@ -49,7 +49,7 @@
         </config-file>
 
         <header-file src="src/ios/CDVSplashScreen+IonicDeploy.h" />
-        <source-file src="src/ios/CDVSplashScreen+IonicDeploy.m" />      
+        <source-file src="src/ios/CDVSplashScreen+IonicDeploy.m" />
         <header-file src="src/ios/IonicConstant.h" />
         <source-file src="src/ios/IonicConstant.m" />
         <header-file src="src/ios/IonicDeploy.h" />
@@ -58,16 +58,7 @@
         <source-file src="src/ios/Download.m" />
         <header-file src="src/ios/DownloadManager.h" />
         <source-file src="src/ios/DownloadManager.m" />
-        <header-file src="src/ios/SSZipArchive.h" />
-        <source-file src="src/ios/SSZipArchive.m" />
         <header-file src="src/ios/ARCHelper/ARCHelper.h" />
-        <header-file src="src/ios/MiniZip/crypt.h" />
-        <header-file src="src/ios/MiniZip/ioapi.h" />
-        <source-file src="src/ios/MiniZip/ioapi.c" />
-        <header-file src="src/ios/MiniZip/unzip.h" />
-        <source-file src="src/ios/MiniZip/unzip.c" />
-        <header-file src="src/ios/MiniZip/zip.h" />
-        <source-file src="src/ios/MiniZip/zip.c" />
         <source-file src="src/ios/ZLib/adler32.c" />
         <source-file src="src/ios/ZLib/compress.c" />
         <source-file src="src/ios/ZLib/crc32.c" />
