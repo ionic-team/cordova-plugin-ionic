@@ -58,7 +58,7 @@ public class IonicDeploy extends CordovaPlugin {
   Context myContext = null;
   String app_id = null;
   String channel = null;
-  boolean autoUpdate = true;
+  boolean autoUpdate = "auto";
   boolean debug = true;
   boolean isLoading = false;
   SharedPreferences prefs = null;
@@ -127,10 +127,7 @@ public class IonicDeploy extends CordovaPlugin {
     this.app_id = prefs.getString("app_id", getStringResourceByName("ionic_app_id"));
     this.server = getStringResourceByName("ionic_update_api");
     this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
-
-    if (!getStringResourceByName("ionic_auto_update").equals("true")) {
-      this.autoUpdate = false;
-    }
+    this.autoUpdate = getStringResourceByName("ionic_update_method");
 
     this.initVersionChecks();
   }
@@ -176,7 +173,7 @@ public class IonicDeploy extends CordovaPlugin {
   }
 
   private void checkAndDownloadNewVersion() {
-    if (this.autoUpdate) {
+    if (!this.autoUpdate.equals("none")) {
       this.isLoading = true;
       final IonicDeploy self = this;
       cordova.getThreadPool().execute(new Runnable() {
@@ -799,7 +796,7 @@ public class IonicDeploy extends CordovaPlugin {
 
     if (callbackContext != null) {
       callbackContext.success("done");
-    } else {
+    } else if (this.autoUpdate.equals("auto")) {
       this.redirect(this.getUUID(""));
     }
   }
