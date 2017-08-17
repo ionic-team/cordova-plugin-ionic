@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-ionic"
-    version="1.1.5">
+    version="1.1.6">
     <name>IonicCordova</name>
     <description>Common Cordova functionality for Ionic apps</description>
     <license>MIT</license>
@@ -18,7 +18,7 @@
     <preference name="APP_ID" />
     <preference name="CHANNEL_NAME" />
     <preference name="UPDATE_API" default="https://api.ionicjs.com" />
-    <preference name="UPDATE_METHOD" default="auto" />
+    <preference name="UPDATE_METHOD" default="background" />
     <preference name="MAX_STORE" default="2" />
 
     <!-- ios -->

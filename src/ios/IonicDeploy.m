@@ -307,6 +307,13 @@ static NSOperationQueue *delegateQueue;
         [prefs synchronize];
         if (self.callbackId) {
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
+        } else {
+            [self _extract];
+            [prefs setInteger:2 forKey:@"is_downloading"];
+            [prefs synchronize];
+            if ([self.auto_update isEqualToString:@"auto"]) {
+                [self doRedirect];
+            }
         }
     } else {
         NSDictionary *result = self.last_update;
@@ -775,12 +782,11 @@ static NSOperationQueue *delegateQueue;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     } else {
         [self _extract];
+        [prefs setInteger:2 forKey:@"is_downloading"];
+        [prefs synchronize];
         if ([self.auto_update isEqualToString:@"auto"]) {
             [self doRedirect];
         }
-        NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-        [prefs setInteger:2 forKey:@"is_downloading"];
-        [prefs synchronize];
     }
 }
 
