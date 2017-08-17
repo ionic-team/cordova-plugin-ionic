@@ -18,7 +18,7 @@
     <preference name="APP_ID" />
     <preference name="CHANNEL_NAME" />
     <preference name="UPDATE_API" default="https://api.ionicjs.com" />
-    <preference name="UPDATE_METHOD" default="auto" />
+    <preference name="UPDATE_METHOD" default="background" />
     <preference name="MAX_STORE" default="2" />
 
     <!-- ios -->
