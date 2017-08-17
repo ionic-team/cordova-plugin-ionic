@@ -62,7 +62,7 @@ static NSOperationQueue *delegateQueue;
     }
     self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     self.deploy_server = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
-    self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAutoUpdate"]];
+    self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
     self.channel_tag = [prefs stringForKey:@"channel"];
     if (self.channel_tag == nil) {
         self.channel_tag = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
@@ -72,8 +72,12 @@ static NSOperationQueue *delegateQueue;
 
     [self initVersionChecks];
     
-    if ([self.auto_update isEqualToString:@"true"] && [self parseCheckResponse:[self postDeviceDetails]]) {
-        NSLog(@"UPDATE IS GO");
+    if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
+        if (![self.auto_update isEqualToString:@"auto"]) {
+            [prefs setInteger:2 forKey:@"is_downloading"];
+            [prefs synchronize];
+        }
+
         [self _download];
     } else {
         [prefs setInteger:2 forKey:@"is_downloading"];
@@ -301,7 +305,9 @@ static NSOperationQueue *delegateQueue;
         // Set the current version to the upstream version (we already have this version)
         [prefs setObject:upstream_uuid forKey:@"uuid"];
         [prefs synchronize];
-        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
+        if (self.callbackId) {
+            [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
+        }
     } else {
         NSDictionary *result = self.last_update;
         NSString *download_url = [result objectForKey:@"url"];
@@ -738,12 +744,16 @@ static NSOperationQueue *delegateQueue;
 
 - (void)didErrorLoadingAllForManager:(DownloadManager *)downloadManager{
     NSLog(@"Download Error");
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 
     if (self.callbackId) {
         CDVPluginResult* pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"download error"];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }
+
+    [prefs setInteger:2 forKey:@"is_downloading"];
+    [prefs synchronize];
 }
 
 - (void)didFinishLoadingAllForManager:(DownloadManager *)downloadManager
@@ -765,7 +775,9 @@ static NSOperationQueue *delegateQueue;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     } else {
         [self _extract];
-        [self doRedirect];
+        if ([self.auto_update isEqualToString:@"auto"]) {
+            [self doRedirect];
+        }
         NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
         [prefs setInteger:2 forKey:@"is_downloading"];
         [prefs synchronize];
