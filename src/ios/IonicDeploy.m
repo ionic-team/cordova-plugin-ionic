@@ -305,7 +305,9 @@ static NSOperationQueue *delegateQueue;
         // Set the current version to the upstream version (we already have this version)
         [prefs setObject:upstream_uuid forKey:@"uuid"];
         [prefs synchronize];
-        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
+        if (self.callbackId) {
+            [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
+        }
     } else {
         NSDictionary *result = self.last_update;
         NSString *download_url = [result objectForKey:@"url"];
@@ -742,12 +744,16 @@ static NSOperationQueue *delegateQueue;
 
 - (void)didErrorLoadingAllForManager:(DownloadManager *)downloadManager{
     NSLog(@"Download Error");
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 
     if (self.callbackId) {
         CDVPluginResult* pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"download error"];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }
+
+    [prefs setInteger:2 forKey:@"is_downloading"];
+    [prefs synchronize];
 }
 
 - (void)didFinishLoadingAllForManager:(DownloadManager *)downloadManager
