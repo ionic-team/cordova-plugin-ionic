@@ -778,7 +778,7 @@ static NSOperationQueue *delegateQueue;
         if ([self.auto_update isEqualToString:@"auto"]) {
             [self doRedirect];
         }
-        NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+
         [prefs setInteger:2 forKey:@"is_downloading"];
         [prefs synchronize];
     }

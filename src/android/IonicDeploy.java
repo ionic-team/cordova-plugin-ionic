@@ -949,9 +949,9 @@ public class IonicDeploy extends CordovaPlugin {
           if (fileLength > 0) {
             float progress = (total / fileLength) * new Float("100.0f");
             logMessage("DOWNLOAD", "Progress: " + (int) progress + "%");
-            PluginResult progressResult = new PluginResult(PluginResult.Status.OK, (int) progress);
-            progressResult.setKeepCallback(true);
             if (this.callbackContext != null) {
+              PluginResult progressResult = new PluginResult(PluginResult.Status.OK, (int) progress);
+              progressResult.setKeepCallback(true);
               this.callbackContext.sendPluginResult(progressResult);
             }
           }
