@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-ionic",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "cordova": {
     "id": "cordova-plugin-ionic",
     "platforms": [
@@ -11,7 +11,7 @@
   "description": "Ionic Cordova SDK",
   "engines": {
     "cordovaDependencies": {
-      "1.1.5": {
+      "1.1.7": {
         "cordova-plugin-splashscreen": ">=4.0.0"
       }
     }

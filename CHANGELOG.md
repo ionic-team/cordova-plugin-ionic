@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 1.1.7
+
+* When the app is a `DEBUG` build, the deploy feature will show a prompt and ask whether to apply updates
+
 ## 1.1.6
 
 * Fixed a bug with `auto` mode when versions were already present.
