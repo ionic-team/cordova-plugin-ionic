@@ -55,13 +55,13 @@ static NSOperationQueue *delegateQueue;
 
 - (void)showDebugDialog {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    if(![prefs boolForKey:@"no_debug"]) {
+    if(![prefs boolForKey:@"no_debug"] && [self parseCheckResponse:[self postDeviceDetails]]) {
 #ifdef __IPHONE_8_0
         if (NSClassFromString(@"UIAlertController")) {
             
             UIAlertController *alertController = [UIAlertController
                                                   alertControllerWithTitle:@"Deploy: Debug"
-                                                  message:@"A live update is available, but this device appears to be running a debug build.  Would you like to apply this live update, or disable live updating while you develop?"
+                                                  message:@"A live update may be available, but this device appears to be running a debug build.  Would you like to apply live updates, or disable live updating while you develop?"
                                                   preferredStyle:UIAlertControllerStyleAlert];
             
             if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {
@@ -90,19 +90,6 @@ static NSOperationQueue *delegateQueue;
                                         handler:^(UIAlertAction * action) {
                                             [prefs setBool:YES forKey:@"no_debug"];
                                             [prefs synchronize];
-                                            
-                                            NSURLComponents *components = [NSURLComponents new];
-                                            components.scheme = @"file";
-                                            components.path = [[NSBundle mainBundle] pathForResource:@"www/index" ofType:@"html"];
-                                            
-                                            NSLog(@"Redirecting to: %@", components.URL.absoluteString);
-                                            dispatch_async(dispatch_get_main_queue(), ^(void){
-                                                NSLog(@"Reloading the web view.");
-                                                SEL reloadSelector = NSSelectorFromString(@"reload");
-                                                ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
-                                                [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:components.URL]];
-                                            });
-                                            
                                         }]];
             
             UIViewController *presentingViewController = self.viewController;
@@ -135,20 +122,19 @@ static NSOperationQueue *delegateQueue;
     }
 
     [self initVersionChecks];
-    
-    if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
 #ifdef DEBUG
-        [prefs setInteger:2 forKey:@"is_downloading"];
-        [prefs synchronize];
+    [prefs setInteger:2 forKey:@"is_downloading"];
+    [prefs synchronize];
 #else
+    if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         if (![self.auto_update isEqualToString:@"auto"]) {
             [prefs setInteger:2 forKey:@"is_downloading"];
             [prefs synchronize];
         }
         
         [self _download];
-#endif
     } else {
+#endif
         [prefs setInteger:2 forKey:@"is_downloading"];
         [prefs synchronize];
         NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
@@ -188,7 +174,9 @@ static NSOperationQueue *delegateQueue;
                 }
             }
         }
+#ifndef DEBUG
     }
+#endif
 }
 
 - (NSString *) getUUID {
