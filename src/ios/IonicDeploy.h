@@ -1,8 +1,11 @@
 #import <Cordova/CDV.h>
+#import <Cordova/CDVPlugin.h>
+#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 #import "DownloadManager.h"
 #import "SSZipArchive.h"
 
-@interface IonicDeploy : CDVPlugin <DownloadManagerDelegate, SSZipArchiveDelegate>
+@interface IonicDeploy : CDVPlugin <DownloadManagerDelegate, SSZipArchiveDelegate, UIAlertViewDelegate>
 
 @property (strong, nonatomic) DownloadManager *downloadManager;
 
@@ -15,6 +18,8 @@
 - (NSArray *) deconstructVersionLabel: (NSString *) label;
 
 - (struct JsonHttpResponse) postDeviceDetails;
+
+- (void) showDebugDialog;
 
 - (void) updateVersionLabel:(NSString *)uuid;
 
