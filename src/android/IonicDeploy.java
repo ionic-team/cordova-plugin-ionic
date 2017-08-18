@@ -1,7 +1,11 @@
 package com.ionicframework.deploy;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -9,6 +13,7 @@ import android.content.res.AssetManager;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.TextView;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -111,6 +116,17 @@ public class IonicDeploy extends CordovaPlugin {
     return activity.getString(resId);
   }
 
+  private Boolean isDebug() {
+    try {
+      if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+        return true;
+      }
+    } catch (NameNotFoundException e){
+      // do nothing
+    }
+    return false;
+  }
+
   /**
    * Sets the context of the Command. This can then be used to do things like
    * get file paths associated with the Activity.
@@ -173,7 +189,7 @@ public class IonicDeploy extends CordovaPlugin {
   }
 
   private void checkAndDownloadNewVersion() {
-    if (!this.autoUpdate.equals("none")) {
+    if (!this.autoUpdate.equals("none") && !this.isDebug()) {
       this.isLoading = true;
       final IonicDeploy self = this;
       cordova.getThreadPool().execute(new Runnable() {
@@ -235,6 +251,9 @@ public class IonicDeploy extends CordovaPlugin {
     final SharedPreferences prefs = this.prefs;
 
     if (action.equals("initialize")) {
+      return true;
+    } else if (action.equals("showDebug")) {
+      this.showDebug();
       return true;
     } else if (action.equals("check")) {
       logMessage("CHECK", "Checking for updates");
@@ -887,6 +906,62 @@ public class IonicDeploy extends CordovaPlugin {
     }
 
     return indexStr;
+  }
+
+  public synchronized void showDebug() {
+    final CordovaInterface cordova = this.cordova;
+    final IonicDeploy weak = this;
+
+    if (this.isDebug() && this.prefs.getInt("no_debug", 0) == 0) {
+      Runnable runnable = new Runnable() {
+        public void run() {
+
+          AlertDialog.Builder dlg = new AlertDialog.Builder(cordova.getActivity(), AlertDialog.THEME_DEVICE_DEFAULT_LIGHT);
+          dlg.setMessage("A live update may be available, but this device appears to be running a debug build.  Would you like to apply live updates, or disable live updating while you develop?");
+          dlg.setTitle("Deploy: Debug");
+          dlg.setCancelable(false);
+
+          dlg.setNegativeButton("Disable",
+            new AlertDialog.OnClickListener() {
+              public void onClick(DialogInterface dialog, int which) {
+                prefs.edit().putInt("no_debug", 1).apply();
+                dialog.dismiss();
+              }
+            });
+
+          dlg.setPositiveButton("Update",
+            new AlertDialog.OnClickListener() {
+              public void onClick(DialogInterface dialog, int which) {
+                weak.autoUpdate = "auto";
+                cordova.getThreadPool().execute(new Runnable() {
+                  public void run() {
+                    if (weak.isUpdateAvailable()) {
+                      try {
+                        String url = weak.last_update.getString("url");
+                        final DownloadTask downloadTask = new DownloadTask(weak.myContext, weak);
+                        downloadTask.execute(url);
+                      } catch (JSONException e) {
+                        logMessage("AUTO_UPDATE", "Update information is not available");
+                      }
+                    }
+                  }
+                });
+                dialog.dismiss();
+              }
+            });
+
+          int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+          dlg.create();
+          AlertDialog dialog =  dlg.show();
+          if (currentapiVersion >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            TextView messageview = (TextView)dialog.findViewById(android.R.id.message);
+            messageview.setTextDirection(android.view.View.TEXT_DIRECTION_LOCALE);
+          }
+        };
+      };
+
+      this.cordova.getActivity().runOnUiThread(runnable);
+    }
   }
 
   private class DownloadTask extends AsyncTask<String, Integer, String> {
