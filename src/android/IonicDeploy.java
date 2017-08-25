@@ -147,7 +147,7 @@ public class IonicDeploy extends CordovaPlugin {
     this.autoUpdate = getStringResourceByName("ionic_update_method");
 
     try {
-      this.maxVersions = Integer.parseInt(IntegergetStringResourceByName("ionic_max_versions"));
+      this.maxVersions = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
     } catch(NumberFormatException e) {
       this.maxVersions = 3;
     }
