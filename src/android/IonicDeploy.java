@@ -67,6 +67,7 @@ public class IonicDeploy extends CordovaPlugin {
   boolean debug = true;
   boolean isLoading = false;
   SharedPreferences prefs = null;
+  int maxVersions = 3;
   CordovaWebView v = null;
   String version_label = null;
   boolean ignore_deploy = false;
@@ -144,6 +145,12 @@ public class IonicDeploy extends CordovaPlugin {
     this.server = getStringResourceByName("ionic_update_api");
     this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
     this.autoUpdate = getStringResourceByName("ionic_update_method");
+
+    try {
+      this.maxVersions = Integer.parseInt(IntegergetStringResourceByName("ionic_max_versions"));
+    } catch(NumberFormatException e) {
+      this.maxVersions = 3;
+    }
 
     this.initVersionChecks();
   }
@@ -540,8 +547,8 @@ public class IonicDeploy extends CordovaPlugin {
     int version_count = prefs.getInt("version_count", 0);
     Set<String> versions = this.getMyVersions();
 
-    if (version_count > 3) {
-      int threshold = version_count - 3;
+    if (version_count > this.maxVersions) {
+      int threshold = version_count - this.maxVersions;
 
       for (Iterator<String> i = versions.iterator(); i.hasNext();) {
         String version = i.next();
