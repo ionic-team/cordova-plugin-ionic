@@ -111,6 +111,7 @@ static NSOperationQueue *delegateQueue;
     if(self.version_label == nil) {
         self.version_label = NO_DEPLOY_LABEL;
     }
+    self.maxVersions = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue];
     self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     self.deploy_server = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
     self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
@@ -733,8 +734,8 @@ static NSOperationQueue *delegateQueue;
 
     int versionCount = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"version_count"];
 
-    if (versionCount && versionCount > 3) {
-        NSInteger threshold = versionCount - 3;
+    if (versionCount && versionCount > self.maxVersions) {
+        NSInteger threshold = versionCount - self.maxVersions;
 
         NSInteger count = [versions count];
         for (NSInteger index = (count - 1); index >= 0; index--) {
