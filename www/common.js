@@ -2,7 +2,7 @@ var exec = require('cordova/exec');
 
 /**
  * LIVE UPDATE API
- * 
+ *
  * The plugin API for the live updates feature.
  */
 var IonicDeploy = {
@@ -11,6 +11,9 @@ var IonicDeploy = {
   },
   debug: function(success, failure) {
     exec(success, failure, 'IonicDeploy', 'showDebug', []);
+  },
+  clearDebug: function(success, failure) {
+    exec(success, failure, 'IonicDeploy', 'clearDebug', []);
   },
   check: function(app_id, channel_tag, success, failure) {
     exec(success, failure, 'IonicDeploy', 'check', [app_id, channel_tag]);
@@ -43,7 +46,7 @@ var IonicDeploy = {
 
 /**
  * BASE API
- * 
+ *
  * All features of the Ionic Cordova plugin are registered here, along with some low level error tracking features used
  * by the monitoring service.
  */
@@ -68,7 +71,7 @@ var IonicCordova = {
 
 /**
  * DEBUG DIALOG
- * 
+ *
  * Right now this is just used for live updates, but all manner of functionality could be added in the case where the
  * app is a debug build.
  */

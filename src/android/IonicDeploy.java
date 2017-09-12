@@ -330,6 +330,7 @@ public class IonicDeploy extends CordovaPlugin {
 
     try {
       json.put("deploy_uuid", this.getUUID());
+      json.put("channel", this.channel);
       json.put("binary_version", this.deconstructVersionLabel(this.version_label)[0]);
     } catch (JSONException e) {
       callbackContext.error("Unable to gather deploy info: " + e.toString());
@@ -845,7 +846,7 @@ public class IonicDeploy extends CordovaPlugin {
         final String indexLocation = newIndexFile.toURI().toString();
         String newIndex = this.updateIndexCordovaReference(getStringFromFile(indexLocation));
 
-        // Create the file and directory, if need be 
+        // Create the file and directory, if need be
         versionDir.mkdirs();
         newIndexFile.createNewFile();
 
@@ -871,7 +872,7 @@ public class IonicDeploy extends CordovaPlugin {
   }
 
   /**
-   * Takes an index.html file parsed as a string and updates any extant references to cordova.js contained within to be 
+   * Takes an index.html file parsed as a string and updates any extant references to cordova.js contained within to be
    * valid for deploy.
    *
    * @param indexStr the string contents of index.html

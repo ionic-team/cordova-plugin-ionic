@@ -58,12 +58,12 @@ static NSOperationQueue *delegateQueue;
     if(![prefs boolForKey:@"no_debug"] && [self parseCheckResponse:[self postDeviceDetails]]) {
 #ifdef __IPHONE_8_0
         if (NSClassFromString(@"UIAlertController")) {
-            
+
             UIAlertController *alertController = [UIAlertController
                                                   alertControllerWithTitle:@"Deploy: Debug"
                                                   message:@"A live update may be available, but this device appears to be running a debug build.  Would you like to apply live updates, or disable live updating while you develop?"
                                                   preferredStyle:UIAlertControllerStyleAlert];
-            
+
             if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {
                 CGRect alertFrame = [UIScreen mainScreen].applicationFrame;
                 if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
@@ -74,9 +74,9 @@ static NSOperationQueue *delegateQueue;
                 }
                 alertController.view.frame =  alertFrame;
             }
-            
+
             __weak IonicDeploy* weakDeploy = self;
-            
+
             [alertController addAction:[UIAlertAction
                                         actionWithTitle:@"Update"
                                         style:UIAlertActionStyleDefault
@@ -91,12 +91,12 @@ static NSOperationQueue *delegateQueue;
                                             [prefs setBool:YES forKey:@"no_debug"];
                                             [prefs synchronize];
                                         }]];
-            
+
             UIViewController *presentingViewController = self.viewController;
             while(presentingViewController.presentedViewController != nil && ![presentingViewController.presentedViewController isBeingDismissed]) {
                 presentingViewController = presentingViewController.presentedViewController;
             }
-            
+
             [presentingViewController presentViewController:alertController animated:YES completion:nil];
         }
 #endif
@@ -132,7 +132,7 @@ static NSOperationQueue *delegateQueue;
             [prefs setInteger:2 forKey:@"is_downloading"];
             [prefs synchronize];
         }
-        
+
         [self _download];
     } else {
 #endif
@@ -143,14 +143,14 @@ static NSOperationQueue *delegateQueue;
         if (ignore == nil) {
             ignore = NOTHING_TO_IGNORE;
         }
-        
+
         if (![uuid isEqualToString:@""] && !self.ignore_deploy && ![uuid isEqualToString:ignore]) {
             if ( uuid != nil && ![self.currentUUID isEqualToString: uuid] ) {
                 // Get target index.html
                 NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
                 NSString *libraryDirectory = [paths objectAtIndex:0];
                 NSString *path = [NSString stringWithFormat:@"%@/%@/index.html", libraryDirectory, uuid];
-                
+
                 SEL wkWebViewSelector = NSSelectorFromString(@"loadFileURL:allowingReadAccessToURL:");
                 if ([self.webView respondsToSelector:wkWebViewSelector]) {
                     // It's a WKWebview
@@ -163,7 +163,7 @@ static NSOperationQueue *delegateQueue;
                              [self doRedirect];
                          }
                      }];
-                    
+
                 } else {
                     // It's a UIWebView
                     NSString *currentIndex = [((UIWebView*)self.webView) stringByEvaluatingJavaScriptFromString:@"window.location.href"];
@@ -253,6 +253,16 @@ static NSOperationQueue *delegateQueue;
 #endif
 }
 
+/**
+ * Clear the debug flag to resume live updating.
+ */
+- (void) clearDebug:(CDVInvokedUrlCommand *)command {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    [prefs setBool:NO forKey:@"no_debug"];
+    [prefs synchronize];
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+}
+
 - (void) check:(CDVInvokedUrlCommand *)command {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     self.appId = [command.arguments objectAtIndex:0];
@@ -309,23 +319,23 @@ static NSOperationQueue *delegateQueue;
 - (Boolean) parseCheckResponse: (JsonHttpResponse)result {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSString *our_version = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
-    
+
     if(result.json != nil) {
         NSLog(@"JSON: %@", result.json);
         NSDictionary *resp = [result.json objectForKey: @"data"];
         NSNumber *compatible = [resp valueForKey:@"compatible"];
         NSNumber *update_available = [resp valueForKey:@"available"];
         NSString *ignore_version = [prefs objectForKey:@"ionicdeploy_version_ignore"];
-        
+
         NSLog(@"compatible: %@", (compatible) ? @"True" : @"False");
         NSLog(@"available: %@", (update_available) ? @"True" : @"False");
-        
+
         if (compatible != [NSNumber numberWithBool:YES]) {
             NSLog(@"Refusing update due to incompatible binary version");
         } else if(update_available == [NSNumber numberWithBool: YES]) {
             NSString *update_uuid = [resp objectForKey:@"snapshot"];
             NSLog(@"update uuid: %@", update_uuid);
-            
+
             if(![update_uuid isEqual:ignore_version] && ![update_uuid isEqual:our_version]) {
                 [prefs setObject: update_uuid forKey: @"upstream_uuid"];
                 [prefs synchronize];
@@ -334,7 +344,7 @@ static NSOperationQueue *delegateQueue;
                 update_available = 0;
             }
         }
-        
+
         if (update_available == [NSNumber numberWithBool:YES] && compatible == [NSNumber numberWithBool:YES]) {
             NSLog(@"update is true");
             return true;
@@ -356,17 +366,17 @@ static NSOperationQueue *delegateQueue;
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"false"];
     }
-    
+
     [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
 }
 
 - (void) _download {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    
+
     NSString *upstream_uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"upstream_uuid"];
-    
+
     NSLog(@"Upstream UUID: %@", upstream_uuid);
-    
+
     if (upstream_uuid != nil && [self hasVersion:upstream_uuid]) {
         // Set the current version to the upstream version (we already have this version)
         [prefs setObject:upstream_uuid forKey:@"uuid"];
@@ -384,17 +394,17 @@ static NSOperationQueue *delegateQueue;
     } else {
         NSDictionary *result = self.last_update;
         NSString *download_url = [result objectForKey:@"url"];
-        
+
         NSLog(@"download url is: %@", download_url);
-        
+
         self.downloadManager = [[DownloadManager alloc] initWithDelegate:self];
-        
+
         NSURL *url = [NSURL URLWithString:download_url];
-        
+
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
         NSString *libraryDirectory = [paths objectAtIndex:0];
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", libraryDirectory,@"www.zip"];
-        
+
         NSLog(@"Queueing Download...");
         [self.downloadManager addDownloadWithFilename:filePath URL:url];
     }
@@ -402,9 +412,9 @@ static NSOperationQueue *delegateQueue;
 
 - (void) _extract {
     self.ignore_deploy = false;
-    
+
     NSString *upstream_uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"upstream_uuid"];
-    
+
     if(upstream_uuid != nil && [self hasVersion:upstream_uuid]) {
         [self updateVersionLabel:NOTHING_TO_IGNORE];
         [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"done"] callbackId:self.callbackId];
@@ -414,16 +424,16 @@ static NSOperationQueue *delegateQueue;
         NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", libraryDirectory, @"www.zip"];
         NSString *extractPath = [NSString stringWithFormat:@"%@/%@/", libraryDirectory, uuid];
-        
+
         NSLog(@"Path for zip file: %@", filePath);
         NSLog(@"Unzipping...");
-        
+
         [SSZipArchive unzipFileAtPath:filePath toDestination:extractPath delegate:self];
         [self saveVersion:upstream_uuid];
         [self excludeVersionFromBackup:uuid];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
         BOOL success = [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
-        
+
         NSLog(@"Unzipped...");
         NSLog(@"Removing www.zip %d", success);
     }
@@ -460,6 +470,7 @@ static NSOperationQueue *delegateQueue;
         uuid = NO_DEPLOY_LABEL;
     }
     [json setObject:uuid forKey:@"deploy_uuid"];
+    [json setObject:self.channel_tag forKey:@"channel"];
     [json setObject:[[self deconstructVersionLabel:self.version_label] firstObject] forKey:@"binary_version"];
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
 }
@@ -841,7 +852,7 @@ static NSOperationQueue *delegateQueue;
 
     NSLog(@"UUID is: %@ and upstream_uuid is: %@", uuid, upstream_uuid);
     NSLog(@"Download Finished...");
-    
+
     if (self.callbackId) {
         CDVPluginResult* pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"];
@@ -866,13 +877,13 @@ static NSOperationQueue *delegateQueue;
         CDVPluginResult* pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:progress];
         [pluginResult setKeepCallbackAsBool:TRUE];
-        
+
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-        
+
         if (progress == 100) {
             CDVPluginResult* pluginResult = nil;
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"done"];
-            
+
             [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
         }
     }
