@@ -24,6 +24,7 @@ typedef struct JsonHttpResponse {
 @property NSString *appId;
 @property NSString *channel_tag;
 @property NSString *auto_update;
+@property int maxVersions;
 @property NSDictionary *last_update;
 @property Boolean ignore_deploy;
 @property NSString *version_label;
@@ -52,6 +53,56 @@ static NSOperationQueue *delegateQueue;
     return false;
 }
 
+- (void)showDebugDialog {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    if(![prefs boolForKey:@"no_debug"] && [self parseCheckResponse:[self postDeviceDetails]]) {
+#ifdef __IPHONE_8_0
+        if (NSClassFromString(@"UIAlertController")) {
+            
+            UIAlertController *alertController = [UIAlertController
+                                                  alertControllerWithTitle:@"Deploy: Debug"
+                                                  message:@"A live update may be available, but this device appears to be running a debug build.  Would you like to apply live updates, or disable live updating while you develop?"
+                                                  preferredStyle:UIAlertControllerStyleAlert];
+            
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {
+                CGRect alertFrame = [UIScreen mainScreen].applicationFrame;
+                if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
+                    // swap the values for the app frame since it is now in landscape
+                    CGFloat temp = alertFrame.size.width;
+                    alertFrame.size.width = alertFrame.size.height;
+                    alertFrame.size.height = temp;
+                }
+                alertController.view.frame =  alertFrame;
+            }
+            
+            __weak IonicDeploy* weakDeploy = self;
+            
+            [alertController addAction:[UIAlertAction
+                                        actionWithTitle:@"Update"
+                                        style:UIAlertActionStyleDefault
+                                        handler:^(UIAlertAction * action) {
+                                            weakDeploy.auto_update = @"auto";
+                                            [weakDeploy _download];
+                                        }]];
+            [alertController addAction:[UIAlertAction
+                                        actionWithTitle:@"Disable"
+                                        style:UIAlertActionStyleDefault
+                                        handler:^(UIAlertAction * action) {
+                                            [prefs setBool:YES forKey:@"no_debug"];
+                                            [prefs synchronize];
+                                        }]];
+            
+            UIViewController *presentingViewController = self.viewController;
+            while(presentingViewController.presentedViewController != nil && ![presentingViewController.presentedViewController isBeingDismissed]) {
+                presentingViewController = presentingViewController.presentedViewController;
+            }
+            
+            [presentingViewController presentViewController:alertController animated:YES completion:nil];
+        }
+#endif
+    }
+}
+
 - (void) pluginInitialize {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     self.cordova_js_resource = [[NSBundle mainBundle] pathForResource:@"www/cordova" ofType:@"js"];
@@ -60,6 +111,7 @@ static NSOperationQueue *delegateQueue;
     if(self.version_label == nil) {
         self.version_label = NO_DEPLOY_LABEL;
     }
+    self.maxVersions = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue];
     self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     self.deploy_server = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
     self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
@@ -71,15 +123,19 @@ static NSOperationQueue *delegateQueue;
     }
 
     [self initVersionChecks];
-    
+#ifdef DEBUG
+    [prefs setInteger:2 forKey:@"is_downloading"];
+    [prefs synchronize];
+#else
     if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         if (![self.auto_update isEqualToString:@"auto"]) {
             [prefs setInteger:2 forKey:@"is_downloading"];
             [prefs synchronize];
         }
-
+        
         [self _download];
     } else {
+#endif
         [prefs setInteger:2 forKey:@"is_downloading"];
         [prefs synchronize];
         NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
@@ -119,7 +175,9 @@ static NSOperationQueue *delegateQueue;
                 }
             }
         }
+#ifndef DEBUG
     }
+#endif
 }
 
 - (NSString *) getUUID {
@@ -185,6 +243,14 @@ static NSOperationQueue *delegateQueue;
 - (void) initialize:(CDVInvokedUrlCommand *)command {
     self.appId = [command.arguments objectAtIndex:0];
     self.deploy_server = [command.arguments objectAtIndex:1];
+}
+
+- (void) showDebug:(CDVInvokedUrlCommand *)command {
+#ifdef DEBUG
+    if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
+        [self showDebugDialog];
+    }
+#endif
 }
 
 - (void) check:(CDVInvokedUrlCommand *)command {
@@ -668,8 +734,8 @@ static NSOperationQueue *delegateQueue;
 
     int versionCount = (int) [[NSUserDefaults standardUserDefaults] integerForKey:@"version_count"];
 
-    if (versionCount && versionCount > 3) {
-        NSInteger threshold = versionCount - 3;
+    if (versionCount && versionCount > self.maxVersions) {
+        NSInteger threshold = versionCount - self.maxVersions;
 
         NSInteger count = [versions count];
         for (NSInteger index = (count - 1); index >= 0; index--) {
