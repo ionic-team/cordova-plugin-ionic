@@ -1,9 +1,14 @@
 Changelog
 ======
 
+## 1.1.9
+
+* Track channel.
+* Add ability to clear debug dialog.
+
 ## 1.1.8
 
-* Hooked up the `MAX_VERSIONS` variable.
+* Hooked up the `MAX_STORE` variable.
 
 ## 1.1.7
 
