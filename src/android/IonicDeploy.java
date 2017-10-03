@@ -253,7 +253,9 @@ public class IonicDeploy extends CordovaPlugin {
 
     this.prefs = getPreferences();
 
-    initApp(this.app_id);
+    if(args.length() > 0) {
+      initApp(args.getString(0));
+    }
 
     final SharedPreferences prefs = this.prefs;
 
