@@ -342,7 +342,7 @@ public class IonicDeploy extends CordovaPlugin {
   private void initApp(String app_id) {
     SharedPreferences prefs = this.prefs;
 
-    prefs.edit().putString("app_id", this.app_id).apply();
+    prefs.edit().putString("app_id", app_id).apply();
     // Used for keeping track of the order versions were downloaded
     int version_count = prefs.getInt("version_count", 0);
     prefs.edit().putInt("version_count", version_count).apply();
