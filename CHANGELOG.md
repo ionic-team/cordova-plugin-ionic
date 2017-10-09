@@ -1,6 +1,10 @@
 Changelog
 ======
 
+# 2.0.0
+
+* **BREAKING** Refactored the deploy plugin API to take a config object at `init`, but no longer needs app ID's/channels in individual calls.
+
 ## 1.1.9
 
 * Track channel.
