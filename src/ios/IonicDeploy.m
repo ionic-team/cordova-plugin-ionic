@@ -241,8 +241,28 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) initialize:(CDVInvokedUrlCommand *)command {
-    self.appId = [command.arguments objectAtIndex:0];
-    self.deploy_server = [command.arguments objectAtIndex:1];
+    NSString *jsonString = [command.arguments objectAtIndex:0];
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *jsonError = nil;
+    NSDictionary *jsonRes = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&jsonError];
+
+    if (jsonError != nil) {
+        NSString *err = [NSString stringWithFormat:@"%@", [jsonError localizedDescription]];
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:err] callbackId:command.callbackId];
+        return;
+    }
+
+    if ([jsonRes valueForKey:@"appId"] != nil) {
+        self.appId = [jsonRes valueForKey:@"appId"];
+    }
+
+    if ([jsonRes valueForKey:@"host"] != nil) {
+        self.deploy_server = [jsonRes valueForKey:@"host"];
+    }
+
+    if ([jsonRes valueForKey:@"channel"] != nil) {
+        self.channel_tag = [jsonRes valueForKey:@"channel"];
+    }
 }
 
 - (void) showDebug:(CDVInvokedUrlCommand *)command {
@@ -265,8 +285,6 @@ static NSOperationQueue *delegateQueue;
 
 - (void) check:(CDVInvokedUrlCommand *)command {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    self.appId = [command.arguments objectAtIndex:0];
-    self.channel_tag = [command.arguments objectAtIndex:1];
     [prefs setObject: self.channel_tag forKey: @"channel"];
     [prefs synchronize];
 
@@ -285,8 +303,7 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) parseUpdate:(CDVInvokedUrlCommand *)command {
-    self.appId = [command.arguments objectAtIndex:0];
-    NSString *jsonString = [command.arguments objectAtIndex:1];
+    NSString *jsonString = [command.arguments objectAtIndex:0];
     NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
 
     if([self.appId isEqual: @"YOUR_APP_ID"]) {
@@ -454,12 +471,8 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) redirect:(CDVInvokedUrlCommand *)command {
-    self.appId = [command.arguments objectAtIndex:0];
-
     CDVPluginResult* pluginResult = nil;
-
     [self doRedirect];
-
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 

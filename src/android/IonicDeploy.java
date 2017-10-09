@@ -258,16 +258,26 @@ public class IonicDeploy extends CordovaPlugin {
     final SharedPreferences prefs = this.prefs;
 
     if (action.equals("initialize")) {
+      JSONObject conf = new JSONObject(args.getString(0));
+      if (conf.has("appId")) {
+        this.app_id = conf.get("appId");
+      }
+
+      if (conf.has("host")) {
+        this.server = conf.get("host");
+      }
+
+      if (conf.has("channel")) {
+        this.channel = conf.get("channel")
+      }
+
+      callbackContext.success();
       return true;
     } else if (action.equals("showDebug")) {
       this.showDebug();
       return true;
     } else if (action.equals("check")) {
       logMessage("CHECK", "Checking for updates");
-      if(!this.channel.equals(args.getString(1))) {
-        this.channel = args.getString(1);
-        this.prefs.edit().putString("channel", this.channel).apply();
-      }
       final String channel_tag = this.channel;
       cordova.getThreadPool().execute(new Runnable() {
         public void run() {
@@ -303,7 +313,7 @@ public class IonicDeploy extends CordovaPlugin {
       callbackContext.success(this.getDeployVersions());
       return true;
     } else if (action.equals("deleteVersion")) {
-      final String uuid = args.getString(1);
+      final String uuid = args.getString(0);
       boolean status = this.removeVersion(uuid);
       if (status) {
         callbackContext.success();
@@ -313,7 +323,7 @@ public class IonicDeploy extends CordovaPlugin {
       return true;
     } else if (action.equals("parseUpdate")) {
       logMessage("PARSEUPDATE", "Checking response for updates");
-      final String response = args.getString(1);
+      final String response = args.getString(0);
       cordova.getThreadPool().execute(new Runnable() {
         public void run() {
           parseUpdate(callbackContext, response);

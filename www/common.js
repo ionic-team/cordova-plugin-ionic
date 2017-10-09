@@ -6,8 +6,11 @@ var exec = require('cordova/exec');
  * The plugin API for the live updates feature.
  */
 var IonicDeploy = {
-  init: function(app_id, server_host, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'initialize', [app_id, server_host]);
+  init: function(config, success, failure) {
+    if (typeof config !== 'string') {
+      config = JSON.stringify(config);
+    }
+    exec(success, failure, 'IonicDeploy', 'initialize', [config]);
   },
   debug: function(success, failure) {
     exec(success, failure, 'IonicDeploy', 'showDebug', []);
@@ -15,32 +18,32 @@ var IonicDeploy = {
   clearDebug: function(success, failure) {
     exec(success, failure, 'IonicDeploy', 'clearDebug', []);
   },
-  check: function(app_id, channel_tag, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'check', [app_id, channel_tag]);
+  check: function(success, failure) {
+    exec(success, failure, 'IonicDeploy', 'check', []);
   },
-  download: function(app_id, success, failure) {
-  	exec(success, failure, 'IonicDeploy', 'download', [app_id]);
+  download: function(success, failure) {
+  	exec(success, failure, 'IonicDeploy', 'download', []);
   },
-  extract: function(app_id, success,failure) {
-    exec(success, failure, 'IonicDeploy', 'extract', [app_id]);
+  extract: function(success,failure) {
+    exec(success, failure, 'IonicDeploy', 'extract', []);
   },
-  redirect: function(app_id, success, failure) {
-  	exec(success, failure, 'IonicDeploy', 'redirect', [app_id]);
+  redirect: function(success, failure) {
+  	exec(success, failure, 'IonicDeploy', 'redirect', []);
   },
-  info: function(app_id, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'info', [app_id]);
+  info: function(success, failure) {
+    exec(success, failure, 'IonicDeploy', 'info', []);
   },
-  getVersions: function(app_id, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'getVersions', [app_id]);
+  getVersions: function(success, failure) {
+    exec(success, failure, 'IonicDeploy', 'getVersions', []);
   },
-  deleteVersion: function(app_id, version, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'deleteVersion', [app_id, version]);
+  deleteVersion: function(version, success, failure) {
+    exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
   },
-  parseUpdate: function(app_id, jsonResponse, success, failure) {
+  parseUpdate: function(jsonResponse, success, failure) {
     if (typeof jsonReponse !== 'string') {
       jsonResponse = JSON.stringify(jsonResponse);
     }
-    exec(success, failure, 'IonicDeploy', 'parseUpdate', [app_id, jsonResponse]);
+    exec(success, failure, 'IonicDeploy', 'parseUpdate', [jsonResponse]);
   },
 };
 
