@@ -46,11 +46,7 @@ static NSOperationQueue *delegateQueue;
 
 + (BOOL) isPluginUpdating {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSInteger isLoading = [prefs integerForKey:@"is_downloading"];
-    if (isLoading == 1) {
-        return true;
-    }
-    return false;
+    return [prefs boolForKey:@"show_splash"];
 }
 
 - (void)showDebugDialog {
@@ -123,20 +119,22 @@ static NSOperationQueue *delegateQueue;
     }
 
     [self initVersionChecks];
+
 #ifdef DEBUG
-    [prefs setInteger:2 forKey:@"is_downloading"];
+    [prefs setBool:NO forKey:@"show_splash"];
     [prefs synchronize];
-#else
+#endif
     if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         if (![self.auto_update isEqualToString:@"auto"]) {
-            [prefs setInteger:2 forKey:@"is_downloading"];
+            [prefs setBool:NO forKey:@"show_splash"];
             [prefs synchronize];
         }
 
+#ifndef DEBUG
         [self _download];
-    } else {
 #endif
-        [prefs setInteger:2 forKey:@"is_downloading"];
+    } else {
+        [prefs setBool:NO forKey:@"show_splash"];
         [prefs synchronize];
         NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
         NSString *ignore = [prefs stringForKey:@"ionicdeploy_version_ignore"];
@@ -175,9 +173,7 @@ static NSOperationQueue *delegateQueue;
                 }
             }
         }
-#ifndef DEBUG
     }
-#endif
 }
 
 - (NSString *) getUUID {
@@ -229,7 +225,7 @@ static NSOperationQueue *delegateQueue;
             self.ignore_deploy = true;
             [self updateVersionLabel:uuid];
             [prefs setObject: @"" forKey: @"uuid"];
-            [prefs setInteger:1 forKey:@"is_downloading"];
+            [prefs setBool:YES forKey:@"show_splash"];
             [prefs synchronize];
         }
     }
@@ -271,6 +267,7 @@ static NSOperationQueue *delegateQueue;
         [self showDebugDialog];
     }
 #endif
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
 }
 
 /**
@@ -402,8 +399,6 @@ static NSOperationQueue *delegateQueue;
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
         } else {
             [self _extract];
-            [prefs setInteger:2 forKey:@"is_downloading"];
-            [prefs synchronize];
             if ([self.auto_update isEqualToString:@"auto"]) {
                 [self doRedirect];
             }
@@ -529,56 +524,20 @@ static NSOperationQueue *delegateQueue;
                                           stringWithFormat:@"<script src=\"%@\"></script>", self.cordova_js_resource];
                 NSError *error = nil;
 
-                // Ensure cordova.js isn't commented out
-                NSRegularExpression *commentedRegex = [NSRegularExpression
-                                                       regularExpressionWithPattern:@"<!--.*<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>.*-->"
-                                                       options:NSRegularExpressionCaseInsensitive
-                                                       error:&error];
-                NSArray *matches = [commentedRegex
-                                    matchesInString:htmlData
-                                    options:0
-                                    range:NSMakeRange(0, [htmlData length])];
+                // Find an existing cordova.js tag
+                NSRegularExpression *cordovaRegex = [NSRegularExpression
+                                                     regularExpressionWithPattern:@"<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>"
+                                                     options:NSRegularExpressionCaseInsensitive
+                                                     error:&error];
+                NSArray *matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];
                 if (matches && matches.count){
-                    // It was commented out, uncomment and update it.
-                    htmlData = [commentedRegex
-                                stringByReplacingMatchesInString:htmlData options:0
+                    // We found the script, update it
+                    htmlData = [cordovaRegex
+                                stringByReplacingMatchesInString:htmlData
+                                options:0
                                 range:NSMakeRange(0, [htmlData length])
                                 withTemplate:newReference];
-                } else {
-                    // We need to inject the script tag and/or update an existing one.
-                    // First, find an existing cordova.js tag
-                    NSRegularExpression *cordovaRegex = [NSRegularExpression
-                                                         regularExpressionWithPattern:@"<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>"
-                                                         options:NSRegularExpressionCaseInsensitive
-                                                         error:&error];
-                    matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];
-                    if (matches && matches.count){
-                        // We found the script, update it
-                        htmlData = [cordovaRegex
-                                    stringByReplacingMatchesInString:htmlData
-                                    options:0
-                                    range:NSMakeRange(0, [htmlData length])
-                                    withTemplate:newReference];
-                    } else {
-                        // cordova.js isn't present, need to inject. We'll just put it after the first <script> tag we find
-                        NSRegularExpression *scriptRegex = [NSRegularExpression
-                                                            regularExpressionWithPattern:@"<script.*>.*</script>"
-                                                            options:NSRegularExpressionCaseInsensitive
-                                                            error:&error];
-                        NSTextCheckingResult *match = [scriptRegex
-                                                       firstMatchInString:htmlData
-                                                       options:NSRegularExpressionCaseInsensitive
-                                                       range:NSMakeRange(0, [htmlData length])];
-
-                        // Add our script after the one we matched
-                        NSString *injectedScript = [NSString stringWithFormat:@"%@\n%@\n", [htmlData substringWithRange:[match rangeAtIndex:0]], newReference];
-                        // Update the index.html string with our script
-                        htmlData = [htmlData
-                                    stringByReplacingOccurrencesOfString:[htmlData substringWithRange:[match rangeAtIndex:0]]
-                                    withString:injectedScript];
-                    }
                 }
-
 
                 // Write new index.html
                 [htmlData writeToFile:components.path atomically:YES encoding:NSUTF8StringEncoding error:nil];
@@ -590,6 +549,12 @@ static NSOperationQueue *delegateQueue;
                     SEL reloadSelector = NSSelectorFromString(@"reload");
                     ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
                     [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:components.URL]];
+                    
+                    // Tell the swizzled splash it can hide after 3 seconds
+                    // TODO: There HAS to be a more elegant way to accomplish this...
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 3 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
+                        [prefs setBool:NO forKey:@"show_splash"];
+                    })));
                 });
             }
         });
@@ -849,7 +814,7 @@ static NSOperationQueue *delegateQueue;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }
 
-    [prefs setInteger:2 forKey:@"is_downloading"];
+    [prefs setBool:NO forKey:@"show_splash"];
     [prefs synchronize];
 }
 
@@ -872,8 +837,6 @@ static NSOperationQueue *delegateQueue;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     } else {
         [self _extract];
-        [prefs setInteger:2 forKey:@"is_downloading"];
-        [prefs synchronize];
         if ([self.auto_update isEqualToString:@"auto"]) {
             [self doRedirect];
         }
