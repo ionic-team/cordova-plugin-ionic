@@ -13,28 +13,28 @@ var IonicDeploy = {
     exec(success, failure, 'IonicDeploy', 'initialize', [config]);
   },
   debug: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'showDebug', []);
+    exec(success, failure, 'IonicDeploy', 'showDebug');
   },
   clearDebug: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'clearDebug', []);
+    exec(success, failure, 'IonicDeploy', 'clearDebug');
   },
   check: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'check', []);
+    exec(success, failure, 'IonicDeploy', 'check');
   },
   download: function(success, failure) {
-  	exec(success, failure, 'IonicDeploy', 'download', []);
+  	exec(success, failure, 'IonicDeploy', 'download');
   },
   extract: function(success,failure) {
-    exec(success, failure, 'IonicDeploy', 'extract', []);
+    exec(success, failure, 'IonicDeploy', 'extract');
   },
   redirect: function(success, failure) {
-  	exec(success, failure, 'IonicDeploy', 'redirect', []);
+  	exec(success, failure, 'IonicDeploy', 'redirect');
   },
   info: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'info', []);
+    exec(success, failure, 'IonicDeploy', 'info');
   },
   getVersions: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'getVersions', []);
+    exec(success, failure, 'IonicDeploy', 'getVersions');
   },
   deleteVersion: function(version, success, failure) {
     exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
