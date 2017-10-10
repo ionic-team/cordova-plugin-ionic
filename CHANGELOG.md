@@ -4,6 +4,7 @@ Changelog
 # 2.0.0
 
 * **BREAKING** Refactored the deploy plugin API to take a config object at `init`, but no longer needs app ID's/channels in individual calls.
+* Fixed a bug where the splashscreen was hiding before the deploy had finished on iOS
 
 ## 1.1.9
 
