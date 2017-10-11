@@ -49,54 +49,57 @@ static NSOperationQueue *delegateQueue;
     return [prefs boolForKey:@"show_splash"];
 }
 
-- (void)showDebugDialog {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    if(![prefs boolForKey:@"no_debug"] && [self parseCheckResponse:[self postDeviceDetails]]) {
-#ifdef __IPHONE_8_0
-        if (NSClassFromString(@"UIAlertController")) {
-
-            UIAlertController *alertController = [UIAlertController
-                                                  alertControllerWithTitle:@"Deploy: Debug"
-                                                  message:@"A live update may be available, but this device appears to be running a debug build.  Would you like to apply live updates, or disable live updating while you develop?"
-                                                  preferredStyle:UIAlertControllerStyleAlert];
-
-            if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {
-                CGRect alertFrame = [UIScreen mainScreen].applicationFrame;
-                if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
-                    // swap the values for the app frame since it is now in landscape
-                    CGFloat temp = alertFrame.size.width;
-                    alertFrame.size.width = alertFrame.size.height;
-                    alertFrame.size.height = temp;
-                }
-                alertController.view.frame =  alertFrame;
-            }
-
-            __weak IonicDeploy* weakDeploy = self;
-
-            [alertController addAction:[UIAlertAction
-                                        actionWithTitle:@"Update"
-                                        style:UIAlertActionStyleDefault
-                                        handler:^(UIAlertAction * action) {
-                                            weakDeploy.auto_update = @"auto";
-                                            [weakDeploy _download];
-                                        }]];
-            [alertController addAction:[UIAlertAction
-                                        actionWithTitle:@"Disable"
-                                        style:UIAlertActionStyleDefault
-                                        handler:^(UIAlertAction * action) {
-                                            [prefs setBool:YES forKey:@"no_debug"];
-                                            [prefs synchronize];
-                                        }]];
-
-            UIViewController *presentingViewController = self.viewController;
-            while(presentingViewController.presentedViewController != nil && ![presentingViewController.presentedViewController isBeingDismissed]) {
-                presentingViewController = presentingViewController.presentedViewController;
-            }
-
-            [presentingViewController presentViewController:alertController animated:YES completion:nil];
-        }
+- (BOOL) isDebug {
+#ifdef DEBUG
+    return YES;
+#else 
+    return NO;
 #endif
+}
+
+- (void)showDebugDialog {
+#ifdef __IPHONE_8_0
+    if (NSClassFromString(@"UIAlertController")) {
+
+        UIAlertController *alertController = [UIAlertController
+                                              alertControllerWithTitle:@"Deploy: Debug"
+                                              message:@"A newer version of this app is available on this device.  Since this is a debug build, would you like to update or stay on the bundled version?"
+                                              preferredStyle:UIAlertControllerStyleAlert];
+
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {
+            CGRect alertFrame = [UIScreen mainScreen].applicationFrame;
+            if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
+                // swap the values for the app frame since it is now in landscape
+                CGFloat temp = alertFrame.size.width;
+                alertFrame.size.width = alertFrame.size.height;
+                alertFrame.size.height = temp;
+            }
+            alertController.view.frame =  alertFrame;
+        }
+
+        __weak IonicDeploy* weakDeploy = self;
+
+        [alertController addAction:[UIAlertAction
+                                    actionWithTitle:@"Update"
+                                    style:UIAlertActionStyleDefault
+                                    handler:^(UIAlertAction * action) {
+                                        [weakDeploy doRedirect];
+                                    }]];
+        [alertController addAction:[UIAlertAction
+                                    actionWithTitle:@"Ignore"
+                                    style:UIAlertActionStyleDefault
+                                    handler:^(UIAlertAction * action) {
+                                        NSLog(@"Skipping redirect");
+                                    }]];
+
+        UIViewController *presentingViewController = self.viewController;
+        while(presentingViewController.presentedViewController != nil && ![presentingViewController.presentedViewController isBeingDismissed]) {
+            presentingViewController = presentingViewController.presentedViewController;
+        }
+
+        [presentingViewController presentViewController:alertController animated:YES completion:nil];
     }
+#endif
 }
 
 - (void) pluginInitialize {
@@ -120,19 +123,12 @@ static NSOperationQueue *delegateQueue;
 
     [self initVersionChecks];
 
-#ifdef DEBUG
-    [prefs setBool:NO forKey:@"show_splash"];
-    [prefs synchronize];
-#endif
     if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         if (![self.auto_update isEqualToString:@"auto"]) {
             [prefs setBool:NO forKey:@"show_splash"];
             [prefs synchronize];
         }
-
-#ifndef DEBUG
         [self _download];
-#endif
     } else {
         [prefs setBool:NO forKey:@"show_splash"];
         [prefs synchronize];
@@ -158,7 +154,11 @@ static NSOperationQueue *delegateQueue;
                          NSArray *indexSplit = [result componentsSeparatedByString:@"?"];
                          NSString *currentIndex = [indexSplit objectAtIndex:0];
                          if (![currentIndex isEqualToString:path]) {
-                             [self doRedirect];
+                             if ([self isDebug]) {
+                                 [self showDebugDialog];
+                             } else {
+                                 [self doRedirect];
+                             }
                          }
                      }];
 
@@ -168,7 +168,11 @@ static NSOperationQueue *delegateQueue;
                     NSArray *indexSplit = [currentIndex componentsSeparatedByString:@"?"];
                     currentIndex = [indexSplit objectAtIndex:0];
                     if (![currentIndex isEqualToString:path]) {
-                        [self doRedirect];
+                        if ([self isDebug]) {
+                            [self showDebugDialog];
+                        } else {
+                            [self doRedirect];
+                        }
                     }
                 }
             }
@@ -231,11 +235,6 @@ static NSOperationQueue *delegateQueue;
     }
 }
 
-- (void) onReset {
-    // redirect to latest deploy
-    [self doRedirect];
-}
-
 - (void) initialize:(CDVInvokedUrlCommand *)command {
     NSString *jsonString = [command.arguments objectAtIndex:0];
     NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
@@ -259,25 +258,6 @@ static NSOperationQueue *delegateQueue;
     if ([jsonRes valueForKey:@"channel"] != nil) {
         self.channel_tag = [jsonRes valueForKey:@"channel"];
     }
-}
-
-- (void) showDebug:(CDVInvokedUrlCommand *)command {
-#ifdef DEBUG
-    if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
-        [self showDebugDialog];
-    }
-#endif
-    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
-}
-
-/**
- * Clear the debug flag to resume live updating.
- */
-- (void) clearDebug:(CDVInvokedUrlCommand *)command {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    [prefs setBool:NO forKey:@"no_debug"];
-    [prefs synchronize];
-    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
 }
 
 - (void) check:(CDVInvokedUrlCommand *)command {
@@ -400,7 +380,13 @@ static NSOperationQueue *delegateQueue;
         } else {
             [self _extract];
             if ([self.auto_update isEqualToString:@"auto"]) {
-                [self doRedirect];
+                if ([self isDebug]) {
+                    [prefs setBool:NO forKey:@"show_splash"];
+                    [prefs synchronize];
+                    [self showDebugDialog];
+                } else {
+                    [self doRedirect];
+                }
             }
         }
     } else {
@@ -467,7 +453,11 @@ static NSOperationQueue *delegateQueue;
 
 - (void) redirect:(CDVInvokedUrlCommand *)command {
     CDVPluginResult* pluginResult = nil;
-    [self doRedirect];
+    if ([self isDebug]) {
+        [self showDebugDialog];
+    } else {
+        [self doRedirect];
+    }
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -554,6 +544,7 @@ static NSOperationQueue *delegateQueue;
                     // TODO: There HAS to be a more elegant way to accomplish this...
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 3 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
                         [prefs setBool:NO forKey:@"show_splash"];
+                        [prefs synchronize];
                     })));
                 });
             }
@@ -838,7 +829,13 @@ static NSOperationQueue *delegateQueue;
     } else {
         [self _extract];
         if ([self.auto_update isEqualToString:@"auto"]) {
-            [self doRedirect];
+            if ([self isDebug]) {
+                [prefs setBool:NO forKey:@"show_splash"];
+                [prefs synchronize];
+                [self showDebugDialog];
+            } else {
+                [self doRedirect];
+            }
         }
     }
 }

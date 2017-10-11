@@ -12,12 +12,6 @@ var IonicDeploy = {
     }
     exec(success, failure, 'IonicDeploy', 'initialize', [config]);
   },
-  debug: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'showDebug');
-  },
-  clearDebug: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'clearDebug');
-  },
   check: function(success, failure) {
     exec(success, failure, 'IonicDeploy', 'check');
   },
@@ -71,20 +65,5 @@ var IonicCordova = {
   },
   deploy: IonicDeploy
 };
-
-/**
- * DEBUG DIALOG
- *
- * Right now this is just used for live updates, but all manner of functionality could be added in the case where the
- * app is a debug build.
- */
-function onDeviceReady() {
-  IonicCordova.deploy.debug(function(success) {
-    console.log("SUCCESS", success);
-  }, function(fail) {
-    console.log("FAIL", fail);
-  })
-}
-document.addEventListener("deviceready", onDeviceReady, false);
 
 module.exports = IonicCordova;
