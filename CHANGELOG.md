@@ -4,8 +4,9 @@ Changelog
 # 2.0.0
 
 * **BREAKING** Refactored the deploy plugin API to take a config object at `init`, but no longer needs app ID's/channels in individual calls.
-* Fixed a bug where the splashscreen was hiding before the deploy had finished on iOS
-* Fixed `auto` update method in Android to properly show the splash screen
+* Fixed a bug where the splashscreen was hiding before the deploy had finished on iOS.
+* Fixed `auto` update method in Android to properly show the splash screen.
+* Streamlined the way debug builds are handled.  The plugin will now ask before each redirect away from the bundled version, allowing easier local development.
 
 ## 1.1.9
 
