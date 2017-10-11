@@ -63,7 +63,7 @@ static NSOperationQueue *delegateQueue;
 
         UIAlertController *alertController = [UIAlertController
                                               alertControllerWithTitle:@"Deploy: Debug"
-                                              message:@"A newer version of this app is available on this device.  Since this is a debug build, would you like to update or stay on the bundled version?"
+                                              message:@"A newer version of this app is available on this device.\nSince this is a debug build, would you like to update or stay on the bundled version?\n(This warning only appears in debug builds)"
                                               preferredStyle:UIAlertControllerStyleAlert];
 
         if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {

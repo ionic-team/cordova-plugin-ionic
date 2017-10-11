@@ -140,9 +140,6 @@ public class IonicDeploy extends CordovaPlugin {
   }
 
   private Boolean isDebug() {
-    return false;
-
-    /**
     try {
       if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
         return true;
@@ -151,7 +148,6 @@ public class IonicDeploy extends CordovaPlugin {
       // do nothing
     }
     return false;
-    */
   }
 
   /**
@@ -222,7 +218,7 @@ public class IonicDeploy extends CordovaPlugin {
   }
 
   private void checkAndDownloadNewVersion() {
-    if (!this.autoUpdate.equals("none") && !this.isDebug()) {
+    if (!this.autoUpdate.equals("none")) {
       this.isLoading = true;
       final IonicDeploy self = this;
       cordova.getThreadPool().execute(new Runnable() {
@@ -262,7 +258,11 @@ public class IonicDeploy extends CordovaPlugin {
 
       if(!IonicDeploy.NO_DEPLOY_AVAILABLE.equals(uuid)) {
         logMessage("LOAD", "Init Deploy Version");
-        this.redirect(uuid);
+        if (this.isDebug()) {
+          this.showDebug();
+        } else {
+          this.redirect(uuid);
+        }
       }
     }
     return null;
@@ -299,9 +299,6 @@ public class IonicDeploy extends CordovaPlugin {
       }
 
       callbackContext.success();
-      return true;
-    } else if (action.equals("showDebug")) {
-      this.showDebug();
       return true;
     } else if (action.equals("check")) {
       logMessage("CHECK", "Checking for updates");
@@ -861,7 +858,11 @@ public class IonicDeploy extends CordovaPlugin {
     if (callbackContext != null) {
       callbackContext.success("done");
     } else if (this.autoUpdate.equals("auto")) {
-      this.redirect(this.getUUID(""));
+      if (this.isDebug()) {
+        this.showDebug();
+      } else {
+        this.redirect(this.getUUID(""));
+      }
     }
   }
 
@@ -958,56 +959,40 @@ public class IonicDeploy extends CordovaPlugin {
     final CordovaInterface cordova = this.cordova;
     final IonicDeploy weak = this;
 
-    if (this.isDebug() && this.prefs.getInt("no_debug", 0) == 0) {
-      Runnable runnable = new Runnable() {
-        public void run() {
+    Runnable runnable = new Runnable() {
+      public void run() {
 
-          AlertDialog.Builder dlg = new AlertDialog.Builder(cordova.getActivity(), AlertDialog.THEME_DEVICE_DEFAULT_LIGHT);
-          dlg.setMessage("A live update may be available, but this device appears to be running a debug build.  Would you like to apply live updates, or disable live updating while you develop?");
-          dlg.setTitle("Deploy: Debug");
-          dlg.setCancelable(false);
+        AlertDialog.Builder dlg = new AlertDialog.Builder(cordova.getActivity(), AlertDialog.THEME_DEVICE_DEFAULT_LIGHT);
+        dlg.setMessage("A newer version of this app is available on this device.\nWould you like to update or stay on the bundled version?\n(This warning only appears in debug builds)");
+        dlg.setTitle("Deploy: Debug");
+        dlg.setCancelable(false);
 
-          dlg.setNegativeButton("Disable",
-            new AlertDialog.OnClickListener() {
-              public void onClick(DialogInterface dialog, int which) {
-                prefs.edit().putInt("no_debug", 1).apply();
-                dialog.dismiss();
-              }
-            });
+        dlg.setNegativeButton("Ignore",
+          new AlertDialog.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+              dialog.dismiss();
+            }
+          });
 
-          dlg.setPositiveButton("Update",
-            new AlertDialog.OnClickListener() {
-              public void onClick(DialogInterface dialog, int which) {
-                weak.autoUpdate = "auto";
-                cordova.getThreadPool().execute(new Runnable() {
-                  public void run() {
-                    if (weak.isUpdateAvailable()) {
-                      try {
-                        String url = weak.last_update.getString("url");
-                        final DownloadTask downloadTask = new DownloadTask(weak.myContext, weak);
-                        downloadTask.execute(url);
-                      } catch (JSONException e) {
-                        logMessage("AUTO_UPDATE", "Update information is not available");
-                      }
-                    }
-                  }
-                });
-                dialog.dismiss();
-              }
-            });
+        dlg.setPositiveButton("Update",
+          new AlertDialog.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+              weak.redirect(weak.getUUID(""));
+              dialog.dismiss();
+            }
+          });
 
-          int currentapiVersion = android.os.Build.VERSION.SDK_INT;
-          dlg.create();
-          AlertDialog dialog =  dlg.show();
-          if (currentapiVersion >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            TextView messageview = (TextView)dialog.findViewById(android.R.id.message);
-            messageview.setTextDirection(android.view.View.TEXT_DIRECTION_LOCALE);
-          }
-        };
+        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        dlg.create();
+        AlertDialog dialog =  dlg.show();
+        if (currentapiVersion >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
+          TextView messageview = (TextView)dialog.findViewById(android.R.id.message);
+          messageview.setTextDirection(android.view.View.TEXT_DIRECTION_LOCALE);
+        }
       };
+    };
 
-      this.cordova.getActivity().runOnUiThread(runnable);
-    }
+    this.cordova.getActivity().runOnUiThread(runnable);
   }
 
   private int getSplashId() {
