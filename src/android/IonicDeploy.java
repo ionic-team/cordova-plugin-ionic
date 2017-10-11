@@ -3,6 +3,8 @@ package com.ionicframework.deploy;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
@@ -11,9 +13,24 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.os.Handler;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.DecelerateInterpolator;
+import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -73,6 +90,11 @@ public class IonicDeploy extends CordovaPlugin {
   boolean ignore_deploy = false;
   JSONObject last_update;
 
+  // Auto-update splash dialog
+  private static Dialog splashDialog;
+  private static ProgressDialog spinnerDialog;
+  private ImageView splashImageView;
+
   public static final String INDEX_UPDATED = "INDEX_UPDATED";
   public static final String NO_DEPLOY_LABEL = "NO_DEPLOY_LABEL";
   public static final String NO_DEPLOY_AVAILABLE = "NO_DEPLOY_AVAILABLE";
@@ -118,6 +140,9 @@ public class IonicDeploy extends CordovaPlugin {
   }
 
   private Boolean isDebug() {
+    return false;
+
+    /**
     try {
       if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
         return true;
@@ -126,6 +151,7 @@ public class IonicDeploy extends CordovaPlugin {
       // do nothing
     }
     return false;
+    */
   }
 
   /**
@@ -203,6 +229,7 @@ public class IonicDeploy extends CordovaPlugin {
         public void run() {
           if (isUpdateAvailable()) {
             try {
+              showSplashScreen();
               String url = self.last_update.getString("url");
               final DownloadTask downloadTask = new DownloadTask(self.myContext, self);
               downloadTask.execute(url);
@@ -260,15 +287,15 @@ public class IonicDeploy extends CordovaPlugin {
     if (action.equals("initialize")) {
       JSONObject conf = new JSONObject(args.getString(0));
       if (conf.has("appId")) {
-        this.app_id = conf.get("appId");
+        this.app_id = conf.getString("appId");
       }
 
       if (conf.has("host")) {
-        this.server = conf.get("host");
+        this.server = conf.getString("host");
       }
 
       if (conf.has("channel")) {
-        this.channel = conf.get("channel")
+        this.channel = conf.getString("channel");
       }
 
       callbackContext.success();
@@ -873,6 +900,7 @@ public class IonicDeploy extends CordovaPlugin {
             prefs.edit().putString("loaded_uuid", uuid).apply();
             webView.loadUrlIntoView(indexLocation, false);
             webView.clearHistory();
+            removeSplashScreen();
           }
         });
       } catch (Exception e) {
@@ -980,6 +1008,148 @@ public class IonicDeploy extends CordovaPlugin {
 
       this.cordova.getActivity().runOnUiThread(runnable);
     }
+  }
+
+  private int getSplashId() {
+    int drawableId = 0;
+    String splashResource = preferences.getString("SplashScreen", "screen");
+    if (splashResource != null) {
+      drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", cordova.getActivity().getClass().getPackage().getName());
+      if (drawableId == 0) {
+        drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", cordova.getActivity().getPackageName());
+      }
+    }
+    return drawableId;
+  }
+
+  private void spinnerStart() {
+    cordova.getActivity().runOnUiThread(new Runnable() {
+      public void run() {
+        spinnerStop();
+
+        spinnerDialog = new ProgressDialog(webView.getContext());
+        spinnerDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+          public void onCancel(DialogInterface dialog) {
+            spinnerDialog = null;
+          }
+        });
+
+        spinnerDialog.setCancelable(false);
+        spinnerDialog.setIndeterminate(true);
+        RelativeLayout centeredLayout = new RelativeLayout(cordova.getActivity());
+        centeredLayout.setGravity(Gravity.CENTER);
+        centeredLayout.setLayoutParams(new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        ProgressBar progressBar = new ProgressBar(webView.getContext());
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+        progressBar.setLayoutParams(layoutParams);
+        centeredLayout.addView(progressBar);
+        spinnerDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        spinnerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        spinnerDialog.show();
+        spinnerDialog.setContentView(centeredLayout);
+      }
+    });
+  }
+
+  private void spinnerStop() {
+    this.cordova.getActivity().runOnUiThread(new Runnable() {
+      public void run() {
+        if (spinnerDialog != null && spinnerDialog.isShowing()) {
+          spinnerDialog.dismiss();
+          spinnerDialog = null;
+        }
+      }
+    });
+  }
+
+  private void removeSplashScreen() {
+    cordova.getActivity().runOnUiThread(new Runnable() {
+      public void run() {
+        if (splashDialog != null && splashDialog.isShowing()) {
+          final int fadeSplashScreenDuration = 300;
+          if (fadeSplashScreenDuration > 0) {
+            AlphaAnimation fadeOut = new AlphaAnimation(1, 0);
+            fadeOut.setInterpolator(new DecelerateInterpolator());
+            fadeOut.setDuration(fadeSplashScreenDuration);
+
+            splashImageView.setAnimation(fadeOut);
+            splashImageView.startAnimation(fadeOut);
+
+            fadeOut.setAnimationListener(new Animation.AnimationListener() {
+              @Override
+              public void onAnimationStart(Animation animation) {
+                spinnerStop();
+              }
+
+              @Override
+              public void onAnimationEnd(Animation animation) {
+                if (splashDialog != null && splashDialog.isShowing()) {
+                  splashDialog.dismiss();
+                  splashDialog = null;
+                  splashImageView = null;
+                }
+              }
+
+              @Override
+              public void onAnimationRepeat(Animation animation) {
+              }
+            });
+          } else {
+            spinnerStop();
+            splashDialog.dismiss();
+            splashDialog = null;
+            splashImageView = null;
+          }
+        }
+      }
+    });
+  }
+
+  @SuppressWarnings("deprecation")
+  private void showSplashScreen() {
+    final int drawableId = getSplashId();
+
+    if (cordova.getActivity().isFinishing()) {
+      return;
+    }
+    if (splashDialog != null && splashDialog.isShowing()) {
+      return;
+    }
+    if (drawableId == 0) {
+      return;
+    }
+
+    cordova.getActivity().runOnUiThread(new Runnable() {
+      public void run() {
+        Display display = cordova.getActivity().getWindowManager().getDefaultDisplay();
+        Context context = webView.getContext();
+
+        splashImageView = new ImageView(context);
+        splashImageView.setImageResource(drawableId);
+        LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        splashImageView.setLayoutParams(layoutParams);
+
+        splashImageView.setMinimumHeight(display.getHeight());
+        splashImageView.setMinimumWidth(display.getWidth());
+        splashImageView.setBackgroundColor(preferences.getInteger("backgroundColor", Color.BLACK));
+
+        if (preferences.getBoolean("SplashMaintainAspectRatio", false)) {
+          splashImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+          splashImageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        }
+
+        splashDialog = new Dialog(context, android.R.style.Theme_Translucent_NoTitleBar);
+        if ((cordova.getActivity().getWindow().getAttributes().flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN) {
+          splashDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+        splashDialog.setContentView(splashImageView);
+        splashDialog.setCancelable(false);
+        splashDialog.show();
+        spinnerStart();
+      }
+    });
   }
 
   private class DownloadTask extends AsyncTask<String, Integer, String> {
