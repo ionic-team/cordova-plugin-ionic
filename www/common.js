@@ -6,41 +6,38 @@ var exec = require('cordova/exec');
  * The plugin API for the live updates feature.
  */
 var IonicDeploy = {
-  init: function(app_id, server_host, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'initialize', [app_id, server_host]);
+  init: function(config, success, failure) {
+    if (typeof config !== 'string') {
+      config = JSON.stringify(config);
+    }
+    exec(success, failure, 'IonicDeploy', 'initialize', [config]);
   },
-  debug: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'showDebug', []);
+  check: function(success, failure) {
+    exec(success, failure, 'IonicDeploy', 'check');
   },
-  clearDebug: function(success, failure) {
-    exec(success, failure, 'IonicDeploy', 'clearDebug', []);
+  download: function(success, failure) {
+  	exec(success, failure, 'IonicDeploy', 'download');
   },
-  check: function(app_id, channel_tag, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'check', [app_id, channel_tag]);
+  extract: function(success,failure) {
+    exec(success, failure, 'IonicDeploy', 'extract');
   },
-  download: function(app_id, success, failure) {
-  	exec(success, failure, 'IonicDeploy', 'download', [app_id]);
+  redirect: function(success, failure) {
+  	exec(success, failure, 'IonicDeploy', 'redirect');
   },
-  extract: function(app_id, success,failure) {
-    exec(success, failure, 'IonicDeploy', 'extract', [app_id]);
+  info: function(success, failure) {
+    exec(success, failure, 'IonicDeploy', 'info');
   },
-  redirect: function(app_id, success, failure) {
-  	exec(success, failure, 'IonicDeploy', 'redirect', [app_id]);
+  getVersions: function(success, failure) {
+    exec(success, failure, 'IonicDeploy', 'getVersions');
   },
-  info: function(app_id, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'info', [app_id]);
+  deleteVersion: function(version, success, failure) {
+    exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
   },
-  getVersions: function(app_id, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'getVersions', [app_id]);
-  },
-  deleteVersion: function(app_id, version, success, failure) {
-    exec(success, failure, 'IonicDeploy', 'deleteVersion', [app_id, version]);
-  },
-  parseUpdate: function(app_id, jsonResponse, success, failure) {
+  parseUpdate: function(jsonResponse, success, failure) {
     if (typeof jsonReponse !== 'string') {
       jsonResponse = JSON.stringify(jsonResponse);
     }
-    exec(success, failure, 'IonicDeploy', 'parseUpdate', [app_id, jsonResponse]);
+    exec(success, failure, 'IonicDeploy', 'parseUpdate', [jsonResponse]);
   },
 };
 
@@ -68,20 +65,5 @@ var IonicCordova = {
   },
   deploy: IonicDeploy
 };
-
-/**
- * DEBUG DIALOG
- *
- * Right now this is just used for live updates, but all manner of functionality could be added in the case where the
- * app is a debug build.
- */
-function onDeviceReady() {
-  IonicCordova.deploy.debug(function(success) {
-    console.log("SUCCESS", success);
-  }, function(fail) {
-    console.log("FAIL", fail);
-  })
-}
-document.addEventListener("deviceready", onDeviceReady, false);
 
 module.exports = IonicCordova;
