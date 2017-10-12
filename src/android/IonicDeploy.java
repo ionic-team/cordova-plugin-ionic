@@ -329,6 +329,7 @@ public class IonicDeploy extends CordovaPlugin {
     } else if (action.equals("redirect")) {
       final String uuid = this.getUUID("");
       this.redirect(uuid);
+      callbackContext.success();
       return true;
     } else if (action.equals("info")) {
       this.info(callbackContext);
