@@ -1,7 +1,7 @@
 Changelog
 ======
 
-# 2.0.1
+## 2.0.1
 
 * Fixed a bug with the splashscreen dependency definition
 
