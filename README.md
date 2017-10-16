@@ -4,7 +4,7 @@ Ionic Cordova SDK
 ## Setup
 
 ```bash
-cordova plugin add cordova-plugin-ionic --save --variable APP_ID="512a1405" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="auto"
+cordova plugin add cordova-plugin-ionic --save --variable APP_ID="abcd1234" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="auto"
 ```
 
 The plugin will be available on `window` as `IonicCordova`

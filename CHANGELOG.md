@@ -1,6 +1,10 @@
 Changelog
 ======
 
+# 2.0.1
+
+* Fixed a bug with the splashscreen dependency definition
+
 # 2.0.0
 
 * **BREAKING** Refactored the deploy plugin API to take a config object at `init`, but no longer needs app ID's/channels in individual calls.

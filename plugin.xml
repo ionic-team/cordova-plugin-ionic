@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-ionic"
-    version="2.0.0">
+    version="2.0.1">
     <name>IonicCordova</name>
     <description>Common Cordova functionality for Ionic apps</description>
     <license>MIT</license>
@@ -156,4 +156,5 @@
     </platform>
 
     <dependency id="cordova-plugin-add-swift-support" version="^1.6.1"/>
+    <dependency id="cordova-plugin-splashscreen" version="^4.0.0"/>
 </plugin>
