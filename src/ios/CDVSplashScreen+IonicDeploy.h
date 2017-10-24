@@ -5,8 +5,8 @@
 
 @interface CDVSplashScreen (Deploy)
 
-- (void)pageDidLoad;
+- (void)hideViews;
 
-- (void)setVisible:(BOOL)visible andForce:(BOOL)force;
+- (void)destroyViews;
 
 @end

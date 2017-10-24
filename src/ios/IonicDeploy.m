@@ -46,61 +46,60 @@ static NSOperationQueue *delegateQueue;
 
 + (BOOL) isPluginUpdating {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSInteger isLoading = [prefs integerForKey:@"is_downloading"];
-    if (isLoading == 1) {
-        return true;
-    }
-    return false;
+    return [prefs boolForKey:@"show_splash"];
+}
+
+- (BOOL) isDebug {
+#ifdef DEBUG
+    return YES;
+#else 
+    return NO;
+#endif
 }
 
 - (void)showDebugDialog {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    if(![prefs boolForKey:@"no_debug"] && [self parseCheckResponse:[self postDeviceDetails]]) {
 #ifdef __IPHONE_8_0
-        if (NSClassFromString(@"UIAlertController")) {
-            
-            UIAlertController *alertController = [UIAlertController
-                                                  alertControllerWithTitle:@"Deploy: Debug"
-                                                  message:@"A live update may be available, but this device appears to be running a debug build.  Would you like to apply live updates, or disable live updating while you develop?"
-                                                  preferredStyle:UIAlertControllerStyleAlert];
-            
-            if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {
-                CGRect alertFrame = [UIScreen mainScreen].applicationFrame;
-                if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
-                    // swap the values for the app frame since it is now in landscape
-                    CGFloat temp = alertFrame.size.width;
-                    alertFrame.size.width = alertFrame.size.height;
-                    alertFrame.size.height = temp;
-                }
-                alertController.view.frame =  alertFrame;
+    if (NSClassFromString(@"UIAlertController")) {
+
+        UIAlertController *alertController = [UIAlertController
+                                              alertControllerWithTitle:@"Deploy: Debug"
+                                              message:@"A newer version of this app is available on this device.\nSince this is a debug build, would you like to update or stay on the bundled version?\n(This warning only appears in debug builds)"
+                                              preferredStyle:UIAlertControllerStyleAlert];
+
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.3) {
+            CGRect alertFrame = [UIScreen mainScreen].applicationFrame;
+            if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
+                // swap the values for the app frame since it is now in landscape
+                CGFloat temp = alertFrame.size.width;
+                alertFrame.size.width = alertFrame.size.height;
+                alertFrame.size.height = temp;
             }
-            
-            __weak IonicDeploy* weakDeploy = self;
-            
-            [alertController addAction:[UIAlertAction
-                                        actionWithTitle:@"Update"
-                                        style:UIAlertActionStyleDefault
-                                        handler:^(UIAlertAction * action) {
-                                            weakDeploy.auto_update = @"auto";
-                                            [weakDeploy _download];
-                                        }]];
-            [alertController addAction:[UIAlertAction
-                                        actionWithTitle:@"Disable"
-                                        style:UIAlertActionStyleDefault
-                                        handler:^(UIAlertAction * action) {
-                                            [prefs setBool:YES forKey:@"no_debug"];
-                                            [prefs synchronize];
-                                        }]];
-            
-            UIViewController *presentingViewController = self.viewController;
-            while(presentingViewController.presentedViewController != nil && ![presentingViewController.presentedViewController isBeingDismissed]) {
-                presentingViewController = presentingViewController.presentedViewController;
-            }
-            
-            [presentingViewController presentViewController:alertController animated:YES completion:nil];
+            alertController.view.frame =  alertFrame;
         }
-#endif
+
+        __weak IonicDeploy* weakDeploy = self;
+
+        [alertController addAction:[UIAlertAction
+                                    actionWithTitle:@"Update"
+                                    style:UIAlertActionStyleDefault
+                                    handler:^(UIAlertAction * action) {
+                                        [weakDeploy doRedirect];
+                                    }]];
+        [alertController addAction:[UIAlertAction
+                                    actionWithTitle:@"Ignore"
+                                    style:UIAlertActionStyleDefault
+                                    handler:^(UIAlertAction * action) {
+                                        NSLog(@"Skipping redirect");
+                                    }]];
+
+        UIViewController *presentingViewController = self.viewController;
+        while(presentingViewController.presentedViewController != nil && ![presentingViewController.presentedViewController isBeingDismissed]) {
+            presentingViewController = presentingViewController.presentedViewController;
+        }
+
+        [presentingViewController presentViewController:alertController animated:YES completion:nil];
     }
+#endif
 }
 
 - (void) pluginInitialize {
@@ -123,34 +122,29 @@ static NSOperationQueue *delegateQueue;
     }
 
     [self initVersionChecks];
-#ifdef DEBUG
-    [prefs setInteger:2 forKey:@"is_downloading"];
-    [prefs synchronize];
-#else
+
     if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         if (![self.auto_update isEqualToString:@"auto"]) {
-            [prefs setInteger:2 forKey:@"is_downloading"];
+            [prefs setBool:NO forKey:@"show_splash"];
             [prefs synchronize];
         }
-        
         [self _download];
     } else {
-#endif
-        [prefs setInteger:2 forKey:@"is_downloading"];
+        [prefs setBool:NO forKey:@"show_splash"];
         [prefs synchronize];
         NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
         NSString *ignore = [prefs stringForKey:@"ionicdeploy_version_ignore"];
         if (ignore == nil) {
             ignore = NOTHING_TO_IGNORE;
         }
-        
+
         if (![uuid isEqualToString:@""] && !self.ignore_deploy && ![uuid isEqualToString:ignore]) {
             if ( uuid != nil && ![self.currentUUID isEqualToString: uuid] ) {
                 // Get target index.html
                 NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
                 NSString *libraryDirectory = [paths objectAtIndex:0];
                 NSString *path = [NSString stringWithFormat:@"%@/%@/index.html", libraryDirectory, uuid];
-                
+
                 SEL wkWebViewSelector = NSSelectorFromString(@"loadFileURL:allowingReadAccessToURL:");
                 if ([self.webView respondsToSelector:wkWebViewSelector]) {
                     // It's a WKWebview
@@ -160,24 +154,30 @@ static NSOperationQueue *delegateQueue;
                          NSArray *indexSplit = [result componentsSeparatedByString:@"?"];
                          NSString *currentIndex = [indexSplit objectAtIndex:0];
                          if (![currentIndex isEqualToString:path]) {
-                             [self doRedirect];
+                             if ([self isDebug]) {
+                                 [self showDebugDialog];
+                             } else {
+                                 [self doRedirect];
+                             }
                          }
                      }];
-                    
+
                 } else {
                     // It's a UIWebView
                     NSString *currentIndex = [((UIWebView*)self.webView) stringByEvaluatingJavaScriptFromString:@"window.location.href"];
                     NSArray *indexSplit = [currentIndex componentsSeparatedByString:@"?"];
                     currentIndex = [indexSplit objectAtIndex:0];
                     if (![currentIndex isEqualToString:path]) {
-                        [self doRedirect];
+                        if ([self isDebug]) {
+                            [self showDebugDialog];
+                        } else {
+                            [self doRedirect];
+                        }
                     }
                 }
             }
         }
-#ifndef DEBUG
     }
-#endif
 }
 
 - (NSString *) getUUID {
@@ -229,34 +229,39 @@ static NSOperationQueue *delegateQueue;
             self.ignore_deploy = true;
             [self updateVersionLabel:uuid];
             [prefs setObject: @"" forKey: @"uuid"];
-            [prefs setInteger:1 forKey:@"is_downloading"];
+            [prefs setBool:YES forKey:@"show_splash"];
             [prefs synchronize];
         }
     }
 }
 
-- (void) onReset {
-    // redirect to latest deploy
-    [self doRedirect];
-}
-
 - (void) initialize:(CDVInvokedUrlCommand *)command {
-    self.appId = [command.arguments objectAtIndex:0];
-    self.deploy_server = [command.arguments objectAtIndex:1];
-}
+    NSString *jsonString = [command.arguments objectAtIndex:0];
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *jsonError = nil;
+    NSDictionary *jsonRes = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&jsonError];
 
-- (void) showDebug:(CDVInvokedUrlCommand *)command {
-#ifdef DEBUG
-    if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
-        [self showDebugDialog];
+    if (jsonError != nil) {
+        NSString *err = [NSString stringWithFormat:@"%@", [jsonError localizedDescription]];
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:err] callbackId:command.callbackId];
+        return;
     }
-#endif
+
+    if ([jsonRes valueForKey:@"appId"] != nil) {
+        self.appId = [jsonRes valueForKey:@"appId"];
+    }
+
+    if ([jsonRes valueForKey:@"host"] != nil) {
+        self.deploy_server = [jsonRes valueForKey:@"host"];
+    }
+
+    if ([jsonRes valueForKey:@"channel"] != nil) {
+        self.channel_tag = [jsonRes valueForKey:@"channel"];
+    }
 }
 
 - (void) check:(CDVInvokedUrlCommand *)command {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    self.appId = [command.arguments objectAtIndex:0];
-    self.channel_tag = [command.arguments objectAtIndex:1];
     [prefs setObject: self.channel_tag forKey: @"channel"];
     [prefs synchronize];
 
@@ -275,8 +280,7 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) parseUpdate:(CDVInvokedUrlCommand *)command {
-    self.appId = [command.arguments objectAtIndex:0];
-    NSString *jsonString = [command.arguments objectAtIndex:1];
+    NSString *jsonString = [command.arguments objectAtIndex:0];
     NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
 
     if([self.appId isEqual: @"YOUR_APP_ID"]) {
@@ -309,23 +313,23 @@ static NSOperationQueue *delegateQueue;
 - (Boolean) parseCheckResponse: (JsonHttpResponse)result {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSString *our_version = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
-    
+
     if(result.json != nil) {
         NSLog(@"JSON: %@", result.json);
         NSDictionary *resp = [result.json objectForKey: @"data"];
         NSNumber *compatible = [resp valueForKey:@"compatible"];
         NSNumber *update_available = [resp valueForKey:@"available"];
         NSString *ignore_version = [prefs objectForKey:@"ionicdeploy_version_ignore"];
-        
+
         NSLog(@"compatible: %@", (compatible) ? @"True" : @"False");
         NSLog(@"available: %@", (update_available) ? @"True" : @"False");
-        
+
         if (compatible != [NSNumber numberWithBool:YES]) {
             NSLog(@"Refusing update due to incompatible binary version");
         } else if(update_available == [NSNumber numberWithBool: YES]) {
             NSString *update_uuid = [resp objectForKey:@"snapshot"];
             NSLog(@"update uuid: %@", update_uuid);
-            
+
             if(![update_uuid isEqual:ignore_version] && ![update_uuid isEqual:our_version]) {
                 [prefs setObject: update_uuid forKey: @"upstream_uuid"];
                 [prefs synchronize];
@@ -334,7 +338,7 @@ static NSOperationQueue *delegateQueue;
                 update_available = 0;
             }
         }
-        
+
         if (update_available == [NSNumber numberWithBool:YES] && compatible == [NSNumber numberWithBool:YES]) {
             NSLog(@"update is true");
             return true;
@@ -356,17 +360,17 @@ static NSOperationQueue *delegateQueue;
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"false"];
     }
-    
+
     [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
 }
 
 - (void) _download {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    
+
     NSString *upstream_uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"upstream_uuid"];
-    
+
     NSLog(@"Upstream UUID: %@", upstream_uuid);
-    
+
     if (upstream_uuid != nil && [self hasVersion:upstream_uuid]) {
         // Set the current version to the upstream version (we already have this version)
         [prefs setObject:upstream_uuid forKey:@"uuid"];
@@ -375,26 +379,30 @@ static NSOperationQueue *delegateQueue;
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
         } else {
             [self _extract];
-            [prefs setInteger:2 forKey:@"is_downloading"];
-            [prefs synchronize];
             if ([self.auto_update isEqualToString:@"auto"]) {
-                [self doRedirect];
+                if ([self isDebug]) {
+                    [prefs setBool:NO forKey:@"show_splash"];
+                    [prefs synchronize];
+                    [self showDebugDialog];
+                } else {
+                    [self doRedirect];
+                }
             }
         }
     } else {
         NSDictionary *result = self.last_update;
         NSString *download_url = [result objectForKey:@"url"];
-        
+
         NSLog(@"download url is: %@", download_url);
-        
+
         self.downloadManager = [[DownloadManager alloc] initWithDelegate:self];
-        
+
         NSURL *url = [NSURL URLWithString:download_url];
-        
+
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
         NSString *libraryDirectory = [paths objectAtIndex:0];
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", libraryDirectory,@"www.zip"];
-        
+
         NSLog(@"Queueing Download...");
         [self.downloadManager addDownloadWithFilename:filePath URL:url];
     }
@@ -402,9 +410,9 @@ static NSOperationQueue *delegateQueue;
 
 - (void) _extract {
     self.ignore_deploy = false;
-    
+
     NSString *upstream_uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"upstream_uuid"];
-    
+
     if(upstream_uuid != nil && [self hasVersion:upstream_uuid]) {
         [self updateVersionLabel:NOTHING_TO_IGNORE];
         [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"done"] callbackId:self.callbackId];
@@ -414,16 +422,16 @@ static NSOperationQueue *delegateQueue;
         NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", libraryDirectory, @"www.zip"];
         NSString *extractPath = [NSString stringWithFormat:@"%@/%@/", libraryDirectory, uuid];
-        
+
         NSLog(@"Path for zip file: %@", filePath);
         NSLog(@"Unzipping...");
-        
+
         [SSZipArchive unzipFileAtPath:filePath toDestination:extractPath delegate:self];
         [self saveVersion:upstream_uuid];
         [self excludeVersionFromBackup:uuid];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
         BOOL success = [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
-        
+
         NSLog(@"Unzipped...");
         NSLog(@"Removing www.zip %d", success);
     }
@@ -444,12 +452,12 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) redirect:(CDVInvokedUrlCommand *)command {
-    self.appId = [command.arguments objectAtIndex:0];
-
     CDVPluginResult* pluginResult = nil;
-
-    [self doRedirect];
-
+    if ([self isDebug]) {
+        [self showDebugDialog];
+    } else {
+        [self doRedirect];
+    }
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -460,6 +468,7 @@ static NSOperationQueue *delegateQueue;
         uuid = NO_DEPLOY_LABEL;
     }
     [json setObject:uuid forKey:@"deploy_uuid"];
+    [json setObject:self.channel_tag forKey:@"channel"];
     [json setObject:[[self deconstructVersionLabel:self.version_label] firstObject] forKey:@"binary_version"];
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
 }
@@ -505,56 +514,20 @@ static NSOperationQueue *delegateQueue;
                                           stringWithFormat:@"<script src=\"%@\"></script>", self.cordova_js_resource];
                 NSError *error = nil;
 
-                // Ensure cordova.js isn't commented out
-                NSRegularExpression *commentedRegex = [NSRegularExpression
-                                                       regularExpressionWithPattern:@"<!--.*<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>.*-->"
-                                                       options:NSRegularExpressionCaseInsensitive
-                                                       error:&error];
-                NSArray *matches = [commentedRegex
-                                    matchesInString:htmlData
-                                    options:0
-                                    range:NSMakeRange(0, [htmlData length])];
+                // Find an existing cordova.js tag
+                NSRegularExpression *cordovaRegex = [NSRegularExpression
+                                                     regularExpressionWithPattern:@"<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>"
+                                                     options:NSRegularExpressionCaseInsensitive
+                                                     error:&error];
+                NSArray *matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];
                 if (matches && matches.count){
-                    // It was commented out, uncomment and update it.
-                    htmlData = [commentedRegex
-                                stringByReplacingMatchesInString:htmlData options:0
+                    // We found the script, update it
+                    htmlData = [cordovaRegex
+                                stringByReplacingMatchesInString:htmlData
+                                options:0
                                 range:NSMakeRange(0, [htmlData length])
                                 withTemplate:newReference];
-                } else {
-                    // We need to inject the script tag and/or update an existing one.
-                    // First, find an existing cordova.js tag
-                    NSRegularExpression *cordovaRegex = [NSRegularExpression
-                                                         regularExpressionWithPattern:@"<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>"
-                                                         options:NSRegularExpressionCaseInsensitive
-                                                         error:&error];
-                    matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];
-                    if (matches && matches.count){
-                        // We found the script, update it
-                        htmlData = [cordovaRegex
-                                    stringByReplacingMatchesInString:htmlData
-                                    options:0
-                                    range:NSMakeRange(0, [htmlData length])
-                                    withTemplate:newReference];
-                    } else {
-                        // cordova.js isn't present, need to inject. We'll just put it after the first <script> tag we find
-                        NSRegularExpression *scriptRegex = [NSRegularExpression
-                                                            regularExpressionWithPattern:@"<script.*>.*</script>"
-                                                            options:NSRegularExpressionCaseInsensitive
-                                                            error:&error];
-                        NSTextCheckingResult *match = [scriptRegex
-                                                       firstMatchInString:htmlData
-                                                       options:NSRegularExpressionCaseInsensitive
-                                                       range:NSMakeRange(0, [htmlData length])];
-
-                        // Add our script after the one we matched
-                        NSString *injectedScript = [NSString stringWithFormat:@"%@\n%@\n", [htmlData substringWithRange:[match rangeAtIndex:0]], newReference];
-                        // Update the index.html string with our script
-                        htmlData = [htmlData
-                                    stringByReplacingOccurrencesOfString:[htmlData substringWithRange:[match rangeAtIndex:0]]
-                                    withString:injectedScript];
-                    }
                 }
-
 
                 // Write new index.html
                 [htmlData writeToFile:components.path atomically:YES encoding:NSUTF8StringEncoding error:nil];
@@ -566,6 +539,13 @@ static NSOperationQueue *delegateQueue;
                     SEL reloadSelector = NSSelectorFromString(@"reload");
                     ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
                     [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:components.URL]];
+                    
+                    // Tell the swizzled splash it can hide after 3 seconds
+                    // TODO: There HAS to be a more elegant way to accomplish this...
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 3 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
+                        [prefs setBool:NO forKey:@"show_splash"];
+                        [prefs synchronize];
+                    })));
                 });
             }
         });
@@ -825,7 +805,7 @@ static NSOperationQueue *delegateQueue;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }
 
-    [prefs setInteger:2 forKey:@"is_downloading"];
+    [prefs setBool:NO forKey:@"show_splash"];
     [prefs synchronize];
 }
 
@@ -841,17 +821,21 @@ static NSOperationQueue *delegateQueue;
 
     NSLog(@"UUID is: %@ and upstream_uuid is: %@", uuid, upstream_uuid);
     NSLog(@"Download Finished...");
-    
+
     if (self.callbackId) {
         CDVPluginResult* pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     } else {
         [self _extract];
-        [prefs setInteger:2 forKey:@"is_downloading"];
-        [prefs synchronize];
         if ([self.auto_update isEqualToString:@"auto"]) {
-            [self doRedirect];
+            if ([self isDebug]) {
+                [prefs setBool:NO forKey:@"show_splash"];
+                [prefs synchronize];
+                [self showDebugDialog];
+            } else {
+                [self doRedirect];
+            }
         }
     }
 }
@@ -866,13 +850,13 @@ static NSOperationQueue *delegateQueue;
         CDVPluginResult* pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:progress];
         [pluginResult setKeepCallbackAsBool:TRUE];
-        
+
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-        
+
         if (progress == 100) {
             CDVPluginResult* pluginResult = nil;
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"done"];
-            
+
             [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
         }
     }

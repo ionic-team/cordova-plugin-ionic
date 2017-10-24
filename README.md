@@ -4,7 +4,7 @@ Ionic Cordova SDK
 ## Setup
 
 ```bash
-cordova plugin add cordova-plugin-ionic --save --variable APP_ID="512a1405" --variable CHANNEL_NAME="Master"
+cordova plugin add cordova-plugin-ionic --save --variable APP_ID="abcd1234" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="auto"
 ```
 
 The plugin will be available on `window` as `IonicCordova`
@@ -21,12 +21,12 @@ The plugin will be available on `window` as `IonicCordova`
 
 ### Cordova API
 
-* `IonicCordova.deploy.init(app_id, server_host, success, failure)` - Initializes the plugin with an app ID and API host specified in js-land.  Can be used to change these variables at runtime.
-* `IonicCordova.deploy.check(app_id, channel_tag, success, failure)` - Check for updates from a specified channel, will change the saved channel from the install step.
-* `IonicCordova.deploy.download(app_id, success, failure)` - If an update is present, download it.
-* `IonicCordova.deploy.extract(app_id, success, failure)` - If an update has been downloaded, extract it and set the default redirect location for next app start.
-* `IonicCordova.deploy.redirect(app_id, success, failure)` - Redirect to the latest version of the app on this device.
-* `IonicCordova.deploy.info(app_id, success, failure)` - Get info on current version for this device.
-* `IonicCordova.deploy.getVersions(app_id, success, failure)` - List downloaded versions on this device.
-* `IonicCordova.deploy.deleteVersion(app_id, uuid, success, failure)` - Delete a downloaded version by UUID from this device.
+* `IonicCordova.deploy.init(config, success, failure)` - Initializes the plugin with an app ID and API host specified in js-land.  Can be used to change these variables at runtime.
+* `IonicCordova.deploy.check(success, failure)` - Check for updates from a specified channel, will change the saved channel from the install step.
+* `IonicCordova.deploy.download(success, failure)` - If an update is present, download it.
+* `IonicCordova.deploy.extract(success, failure)` - If an update has been downloaded, extract it and set the default redirect location for next app start.
+* `IonicCordova.deploy.redirect(success, failure)` - Redirect to the latest version of the app on this device.
+* `IonicCordova.deploy.info(success, failure)` - Get info on current version for this device.
+* `IonicCordova.deploy.getVersions(success, failure)` - List downloaded versions on this device.
+* `IonicCordova.deploy.deleteVersion(uuid, success, failure)` - Delete a downloaded version by UUID from this device.
 
