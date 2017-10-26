@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 2.0.2
+
+* Fixed a bug where the splashscreen could hang in some cases when using the `background` update method on Android.
+
 ## 2.0.1
 
 * Fixed a bug with the splashscreen dependency definition
