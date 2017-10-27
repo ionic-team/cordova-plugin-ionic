@@ -226,9 +226,17 @@ public class IonicDeploy extends CordovaPlugin {
           if (isUpdateAvailable()) {
             try {
               showSplashScreen();
-              String url = self.last_update.getString("url");
-              final DownloadTask downloadTask = new DownloadTask(self.myContext, self);
-              downloadTask.execute(url);
+              String upstream_uuid = self.prefs.getString("upstream_uuid", "");
+              if (upstream_uuid != "" && self.hasVersion(upstream_uuid)) {
+                // Set the current version to the upstream uuid
+                self.prefs.edit().putString("uuid", upstream_uuid).apply();
+                logMessage("EXTRACT", "Extracting update");
+                self.unzip("www.zip", upstream_uuid, null);
+              } else {
+                String url = self.last_update.getString("url");
+                final DownloadTask downloadTask = new DownloadTask(self.myContext, self);
+                downloadTask.execute(url);
+              }
             } catch (JSONException e) {
               logMessage("AUTO_UPDATE", "Update information is not available");
             }
@@ -757,6 +765,14 @@ public class IonicDeploy extends CordovaPlugin {
 
       if (callbackContext != null) {
         callbackContext.success("done"); // we have already extracted this version
+      } else if (this.autoUpdate.equals("auto")) {
+        if (this.isDebug()) {
+          this.showDebug();
+        } else {
+          this.redirect(this.getUUID(""));
+        }
+      } else {
+        removeSplashScreen();
       }
       return;
     }
@@ -864,6 +880,8 @@ public class IonicDeploy extends CordovaPlugin {
       } else {
         this.redirect(this.getUUID(""));
       }
+    } else {
+      removeSplashScreen();
     }
   }
 
