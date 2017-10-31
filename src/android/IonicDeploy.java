@@ -989,6 +989,7 @@ public class IonicDeploy extends CordovaPlugin {
         dlg.setNegativeButton("Ignore",
           new AlertDialog.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
+              weak.removeSplashScreen();
               dialog.dismiss();
             }
           });
