@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 2.0.3
+
+* Fixed a bug where the splashscreen could hang in some cases when dismissing the debug dialog within the automatic update methods on Android.
+
 ## 2.0.2
 
 * Fixed a bug where the splashscreen could hang in some cases when using the `background` update method on Android.
