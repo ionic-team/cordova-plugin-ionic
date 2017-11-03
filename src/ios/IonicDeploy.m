@@ -258,6 +258,8 @@ static NSOperationQueue *delegateQueue;
     if ([jsonRes valueForKey:@"channel"] != nil) {
         self.channel_tag = [jsonRes valueForKey:@"channel"];
     }
+    
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:nil] callbackId:command.callbackId];
 }
 
 - (void) check:(CDVInvokedUrlCommand *)command {
@@ -452,7 +454,7 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) redirect:(CDVInvokedUrlCommand *)command {
-    CDVPluginResult* pluginResult = nil;
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:nil];
     if ([self isDebug]) {
         [self showDebugDialog];
     } else {
