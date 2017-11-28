@@ -1,6 +1,8 @@
 Ionic Cordova SDK
 ======
 
+Supported platforms: iOS, Android
+
 ## Setup
 
 ```bash
