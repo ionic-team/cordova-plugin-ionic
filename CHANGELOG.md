@@ -1,6 +1,11 @@
 Changelog
 ======
 
+## 2.0.4
+
+* Added a supported platforms note (PR #33)
+* Added correct callback calld for initialize and redirect methods (PR #20)
+
 ## 2.0.3
 
 * Fixed a bug where the splashscreen could hang in some cases when dismissing the debug dialog within the automatic update methods on Android.
