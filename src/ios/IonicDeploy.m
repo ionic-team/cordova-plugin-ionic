@@ -107,23 +107,39 @@ static NSOperationQueue *delegateQueue;
     self.cordova_js_resource = [[NSBundle mainBundle] pathForResource:@"www/cordova" ofType:@"js"];
     self.serialQueue = dispatch_queue_create("Deploy Plugin Queue", NULL);
     self.version_label = [prefs stringForKey:@"ionicdeploy_version_label"];
-    if(self.version_label == nil) {
+    if (!self.version_label) {
         self.version_label = NO_DEPLOY_LABEL;
     }
     self.maxVersions = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue];
-    self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
-    self.deploy_server = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
-    self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
+
+    // Load App ID
+    self.appId = [prefs stringForKey:@"ion_app_id"];
+    if (!self.appId) {
+        self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
+    }
+
+    // Load Pro API
+    self.deploy_server = [prefs stringForKey:@"ion_api"];
+    if (!self.deploy_server) {
+        self.deploy_server = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
+    }
+
+    // Load update method
+    self.auto_update = [prefs stringForKey:@"ion_update_method"];
+    if (!self.auto_update) {
+        self.auto_update = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
+    }
+
+    // Load target channel
     self.channel_tag = [prefs stringForKey:@"channel"];
-    if (self.channel_tag == nil) {
+    if (!self.channel_tag) {
         self.channel_tag = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
-        [prefs setObject: self.channel_tag forKey: @"channel"];
-        [prefs synchronize];
     }
 
     [self initVersionChecks];
 
     if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
+        // We want to check for updates on startup
         if (![self.auto_update isEqualToString:@"auto"]) {
             [prefs setBool:NO forKey:@"show_splash"];
             [prefs synchronize];
@@ -236,6 +252,7 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) initialize:(CDVInvokedUrlCommand *)command {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSString *jsonString = [command.arguments objectAtIndex:0];
     NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
     NSError *jsonError = nil;
@@ -249,16 +266,20 @@ static NSOperationQueue *delegateQueue;
 
     if ([jsonRes valueForKey:@"appId"] != nil) {
         self.appId = [jsonRes valueForKey:@"appId"];
+        [prefs setObject:self.appId forKey:@"ion_app_id"];
     }
 
     if ([jsonRes valueForKey:@"host"] != nil) {
         self.deploy_server = [jsonRes valueForKey:@"host"];
+        [prefs setObject:self.deploy_server forKey:@"ion_api"];
     }
 
     if ([jsonRes valueForKey:@"channel"] != nil) {
         self.channel_tag = [jsonRes valueForKey:@"channel"];
+        [prefs setObject:self.channel_tag forKey:@"channel"];
     }
     
+    [prefs synchronize];
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:nil] callbackId:command.callbackId];
 }
 
@@ -443,7 +464,7 @@ static NSOperationQueue *delegateQueue;
             if (success) {
                 [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
             } else {
-                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error unzipping deploy"] callbackId:self.callbackId];
+                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error extracting deploy"] callbackId:self.callbackId];
             }
         }
     }
