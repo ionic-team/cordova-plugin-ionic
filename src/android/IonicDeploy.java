@@ -764,7 +764,7 @@ public class IonicDeploy extends CordovaPlugin {
       this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
 
       if (callbackContext != null) {
-        callbackContext.success("done"); // we have already extracted this version
+        callbackContext.success("true");
       } else if (this.autoUpdate.equals("auto")) {
         if (this.isDebug()) {
           this.showDebug();
@@ -826,6 +826,7 @@ public class IonicDeploy extends CordovaPlugin {
         }
       }
       zipInputStream.close();
+      callbackContext.success("true");
 
     } catch(Exception e) {
       //TODO Handle problems..
