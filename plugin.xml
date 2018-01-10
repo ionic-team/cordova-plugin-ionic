@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-ionic"
-    version="2.0.4">
+    version="3.0.0">
     <name>IonicCordova</name>
     <description>Common Cordova functionality for Ionic apps</description>
     <license>MIT</license>
@@ -54,7 +54,7 @@
         </config-file>
 
         <header-file src="src/ios/CDVSplashScreen+IonicDeploy.h" />
-        <source-file src="src/ios/CDVSplashScreen+IonicDeploy.m" />      
+        <source-file src="src/ios/CDVSplashScreen+IonicDeploy.m" />
         <header-file src="src/ios/IonicConstant.h" />
         <source-file src="src/ios/IonicConstant.m" />
         <header-file src="src/ios/IonicDeploy.h" />
@@ -156,5 +156,5 @@
     </platform>
 
     <dependency id="cordova-plugin-add-swift-support" version="^1.6.1"/>
-    <dependency id="cordova-plugin-splashscreen" version="^4.0.0"/>
+    <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
 </plugin>
