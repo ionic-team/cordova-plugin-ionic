@@ -11,12 +11,8 @@
   "description": "Ionic Cordova SDK",
   "engines": {
     "cordovaDependencies": {
-      "3.0.0": {
-        "cordova-plugin-splashscreen": ">=5.0.1"
-      },
-      "2.0.4": {
-        "cordova-plugin-splashscreen": ">=4.0.0"
-      }
+      "3.0.0": { "cordova-plugin-splashscreen": ">=5.0.1" },
+      "2.0.4": { "cordova-plugin-splashscreen": ">=4.0.0" }
     }
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",

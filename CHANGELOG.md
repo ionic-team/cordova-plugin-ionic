@@ -1,6 +1,12 @@
 Changelog
 ======
 
+# 3.0.0
+
+* Updated Cordova Splashscreen dependency (PR #41)
+* Fixed the callback responses from the `download` and `extract` functions to reflect the docs.
+* Store updates to plugin config make via the `init` methods in preferences.
+
 ## 2.0.4
 
 * Added a supported platforms note (PR #33)

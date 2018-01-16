@@ -163,6 +163,7 @@ public class IonicDeploy extends CordovaPlugin {
     this.prefs = getPreferences();
     this.v = webView;
     this.version_label = prefs.getString("ionicdeploy_version_label", IonicDeploy.NO_DEPLOY_LABEL);
+
     this.app_id = prefs.getString("app_id", getStringResourceByName("ionic_app_id"));
     this.server = getStringResourceByName("ionic_update_api");
     this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
@@ -296,6 +297,7 @@ public class IonicDeploy extends CordovaPlugin {
       JSONObject conf = new JSONObject(args.getString(0));
       if (conf.has("appId")) {
         this.app_id = conf.getString("appId");
+        this.prefs.edit().putString("app_id", this.app_id).apply();
       }
 
       if (conf.has("host")) {
@@ -304,6 +306,7 @@ public class IonicDeploy extends CordovaPlugin {
 
       if (conf.has("channel")) {
         this.channel = conf.getString("channel");
+        this.prefs.edit().putString("channel", this.channel).apply();
       }
 
       callbackContext.success();
@@ -764,7 +767,7 @@ public class IonicDeploy extends CordovaPlugin {
       this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
 
       if (callbackContext != null) {
-        callbackContext.success("done"); // we have already extracted this version
+        callbackContext.success("true");
       } else if (this.autoUpdate.equals("auto")) {
         if (this.isDebug()) {
           this.showDebug();
@@ -826,6 +829,7 @@ public class IonicDeploy extends CordovaPlugin {
         }
       }
       zipInputStream.close();
+      callbackContext.success("true");
 
     } catch(Exception e) {
       //TODO Handle problems..
