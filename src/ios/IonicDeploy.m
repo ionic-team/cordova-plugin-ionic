@@ -50,7 +50,7 @@ static NSOperationQueue *delegateQueue;
     return [prefs boolForKey:@"show_splash"];
 }
 
-- (NSString *) generateUUID {
+- (NSString *) generateUDID {
     return [[NSUUID] UUIDString];
 }
 
@@ -115,7 +115,7 @@ static NSOperationQueue *delegateQueue;
     // Load device ID (for more accurate billing)
     self.deviceId = [prefs stirngForKey:@"ion_device_id"];
     if (!self.deviceId) {
-        self.deviceId = [self generateUUID]
+        self.deviceId = [self generateUDID];
         [prefs setObject:self.deviceId forKey: @"ion_device_id"];
         [prefs synchronize];
     }

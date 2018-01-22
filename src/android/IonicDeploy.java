@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Iterator;
 import java.util.regex.Pattern;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -81,6 +82,7 @@ public class IonicDeploy extends CordovaPlugin {
   String app_id = null;
   String channel = null;
   String autoUpdate = "auto";
+  String deviceId = null;
   boolean debug = true;
   boolean isLoading = false;
   SharedPreferences prefs = null;
@@ -139,6 +141,10 @@ public class IonicDeploy extends CordovaPlugin {
     return activity.getString(resId);
   }
 
+  private String generateUDID() {
+    return UUID.randomUUID().toString();
+  }
+
   private Boolean isDebug() {
     try {
       if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
@@ -163,7 +169,7 @@ public class IonicDeploy extends CordovaPlugin {
     this.prefs = getPreferences();
     this.v = webView;
     this.version_label = prefs.getString("ionicdeploy_version_label", IonicDeploy.NO_DEPLOY_LABEL);
-
+    this.deviceId = prefs.getString("device_id", this.generateUDID());
     this.app_id = prefs.getString("app_id", getStringResourceByName("ionic_app_id"));
     this.server = getStringResourceByName("ionic_update_api");
     this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
