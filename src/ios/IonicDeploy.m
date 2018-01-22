@@ -20,6 +20,7 @@ typedef struct JsonHttpResponse {
 @property (nonatomic) NSURLResponse *urlResponse;
 
 @property int progress;
+@property NSString *deviceId;
 @property NSString *callbackId;
 @property NSString *appId;
 @property NSString *channel_tag;
@@ -47,6 +48,10 @@ static NSOperationQueue *delegateQueue;
 + (BOOL) isPluginUpdating {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     return [prefs boolForKey:@"show_splash"];
+}
+
+- (NSString *) generateUUID {
+    return [[NSUUID] UUIDString];
 }
 
 - (BOOL) isDebug {
@@ -106,11 +111,20 @@ static NSOperationQueue *delegateQueue;
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     self.cordova_js_resource = [[NSBundle mainBundle] pathForResource:@"www/cordova" ofType:@"js"];
     self.serialQueue = dispatch_queue_create("Deploy Plugin Queue", NULL);
+
+    // Load device ID (for more accurate billing)
+    self.deviceId = [prefs stirngForKey:@"ion_device_id"];
+    if (!self.deviceId) {
+        self.deviceId = [self generateUUID]
+        [prefs setObject:self.deviceId forKey: @"ion_device_id"];
+        [prefs synchronize];
+    }
+
+    // Load version label
     self.version_label = [prefs stringForKey:@"ionicdeploy_version_label"];
     if (!self.version_label) {
         self.version_label = NO_DEPLOY_LABEL;
     }
-    self.maxVersions = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue];
 
     // Load App ID
     self.appId = [prefs stringForKey:@"ion_app_id"];
@@ -135,6 +149,8 @@ static NSOperationQueue *delegateQueue;
     if (!self.channel_tag) {
         self.channel_tag = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
     }
+
+    self.maxVersions = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue];
 
     [self initVersionChecks];
 
