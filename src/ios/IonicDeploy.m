@@ -613,6 +613,7 @@ static NSOperationQueue *delegateQueue;
                                        dictionaryWithDictionary:@{
                                                                   @"platform" : @"ios",
                                                                   @"binary_version" : app_version,
+                                                                  @"device_id": self.deviceId
                                                                   }];
 
     if (uuid != nil && ![uuid  isEqual: @""]) {

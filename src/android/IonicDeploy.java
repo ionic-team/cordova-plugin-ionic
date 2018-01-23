@@ -676,6 +676,7 @@ public class IonicDeploy extends CordovaPlugin {
         device_details.put("snapshot", uuid);
       }
       device_details.put("platform", "android");
+      device_details.put("device_id", this.deviceId);
       json.put("channel_name", channel_tag);
       json.put("app_id", this.app_id);
       json.put("device", device_details);
