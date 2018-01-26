@@ -82,7 +82,7 @@ public class IonicDeploy extends CordovaPlugin {
   String app_id = null;
   String channel = null;
   String autoUpdate = "auto";
-  boolean shouldDebug
+  boolean shouldDebug;
   String deviceId = null;
   boolean debug = true;
   boolean isLoading = false;
