@@ -82,7 +82,7 @@ public class IonicDeploy extends CordovaPlugin {
   String app_id = null;
   String channel = null;
   String autoUpdate = "auto";
-  boolean shouldDebug;
+  String shouldDebug;
   String deviceId = null;
   boolean debug = true;
   boolean isLoading = false;
@@ -177,7 +177,7 @@ public class IonicDeploy extends CordovaPlugin {
     this.server = getStringResourceByName("ionic_update_api");
     this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
     this.autoUpdate = getStringResourceByName("ionic_update_method");
-    this.shouldDebug =  Boolean.valueOf(update.getString("ionic_debug"));
+    this.shouldDebug = prefs.getString("debug", getStringResourceByName("ionic_debug"));
 
     try {
       this.maxVersions = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
