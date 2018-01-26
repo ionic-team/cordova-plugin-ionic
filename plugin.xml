@@ -35,11 +35,11 @@
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonAppId">
-            <string>$DEBUG</string>
+            <string>$APP_ID</string>
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonDebug">
-            <string>$APP_ID</string>
+            <string>$DEBUG</string>
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonChannelName">
