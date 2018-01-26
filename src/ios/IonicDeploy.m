@@ -57,9 +57,9 @@ static NSOperationQueue *delegateQueue;
 
 - (BOOL) isDebug {
 #ifdef DEBUG
-if([self.shouldDebug isEqualToString:@"false"]){
+if([self.shouldDebug isEqualToString:@"false"]) {
     return NO;
-} else{
+} else {
     return YES;
 }
 #else
@@ -585,7 +585,7 @@ if([self.shouldDebug isEqualToString:@"false"]){
                                                      options:NSRegularExpressionCaseInsensitive
                                                      error:&error];
                 NSArray *matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];
-                if (matches && matches.count){
+                if (matches && matches.count) {
                     // We found the script, update it
                     htmlData = [cordovaRegex
                                 stringByReplacingMatchesInString:htmlData
@@ -599,7 +599,7 @@ if([self.shouldDebug isEqualToString:@"false"]){
 
                 // Do redirect
                 NSLog(@"Redirecting to: %@", components.URL.absoluteString);
-                dispatch_async(dispatch_get_main_queue(), ^(void){
+                dispatch_async(dispatch_get_main_queue(), ^(void) {
                     NSLog(@"Reloading the web view.");
                     SEL reloadSelector = NSSelectorFromString(@"reload");
                     ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
@@ -809,7 +809,7 @@ if([self.shouldDebug isEqualToString:@"false"]){
 
     NSError *error = nil;
     BOOL success = [URL setResourceValue:[NSNumber numberWithBool: YES] forKey: NSURLIsExcludedFromBackupKey error: &error];
-    if(!success){
+    if(!success) {
         NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
     } else {
         NSLog(@"Excluding %@ from backup", pathToFolder);

@@ -149,7 +149,7 @@ public class IonicDeploy extends CordovaPlugin {
   private Boolean isDebug() {
     try {
       if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0 ) {
-        if(this.shouldDebug != "false"){
+        if(!this.shouldDebug.equals("false")){
           return true;
         }
       }
