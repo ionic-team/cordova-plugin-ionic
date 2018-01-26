@@ -28,6 +28,7 @@ typedef struct JsonHttpResponse {
 @property int maxVersions;
 @property NSDictionary *last_update;
 @property Boolean ignore_deploy;
+@property NSString shouldDebug;
 @property NSString *version_label;
 @property NSString *currentUUID;
 @property dispatch_queue_t serialQueue;
@@ -56,7 +57,11 @@ static NSOperationQueue *delegateQueue;
 
 - (BOOL) isDebug {
 #ifdef DEBUG
+if([self.shouldDebug isEqualToString:@"false"]){
+    return NO
+} else{
     return YES;
+}
 #else 
     return NO;
 #endif
@@ -130,6 +135,12 @@ static NSOperationQueue *delegateQueue;
     self.appId = [prefs stringForKey:@"ion_app_id"];
     if (!self.appId) {
         self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
+    }
+
+    // Load Debug
+    self.shouldDebug = [prefs stringForKey:@"ion_debug"];
+    if (!self.shouldDebug) {
+        self.shouldDebug = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonDebug"]];
     }
 
     // Load Pro API
@@ -283,6 +294,11 @@ static NSOperationQueue *delegateQueue;
     if ([jsonRes valueForKey:@"appId"] != nil) {
         self.appId = [jsonRes valueForKey:@"appId"];
         [prefs setObject:self.appId forKey:@"ion_app_id"];
+    }
+
+    if ([jsonRes valueForKey:@"debug"] != nil) {
+        self.appId = [jsonRes valueForKey:@"debug"];
+        [prefs setObject:self.appId forKey:@"ion_debug"];
     }
 
     if ([jsonRes valueForKey:@"host"] != nil) {
