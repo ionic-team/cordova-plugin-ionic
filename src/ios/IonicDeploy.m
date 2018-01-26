@@ -28,7 +28,7 @@ typedef struct JsonHttpResponse {
 @property int maxVersions;
 @property NSDictionary *last_update;
 @property Boolean ignore_deploy;
-@property NSString shouldDebug;
+@property NSString *shouldDebug;
 @property NSString *version_label;
 @property NSString *currentUUID;
 @property dispatch_queue_t serialQueue;
@@ -52,17 +52,17 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (NSString *) generateUDID {
-    return [[NSUUID] UUIDString];
+    return [[NSUUID UUID] UUIDString];
 }
 
 - (BOOL) isDebug {
 #ifdef DEBUG
 if([self.shouldDebug isEqualToString:@"false"]){
-    return NO
+    return NO;
 } else{
     return YES;
 }
-#else 
+#else
     return NO;
 #endif
 }
@@ -118,7 +118,7 @@ if([self.shouldDebug isEqualToString:@"false"]){
     self.serialQueue = dispatch_queue_create("Deploy Plugin Queue", NULL);
 
     // Load device ID (for more accurate billing)
-    self.deviceId = [prefs stirngForKey:@"ion_device_id"];
+    self.deviceId = [prefs stringForKey:@"ion_device_id"];
     if (!self.deviceId) {
         self.deviceId = [self generateUDID];
         [prefs setObject:self.deviceId forKey: @"ion_device_id"];
@@ -310,7 +310,7 @@ if([self.shouldDebug isEqualToString:@"false"]){
         self.channel_tag = [jsonRes valueForKey:@"channel"];
         [prefs setObject:self.channel_tag forKey:@"channel"];
     }
-    
+   
     [prefs synchronize];
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:nil] callbackId:command.callbackId];
 }
@@ -604,7 +604,7 @@ if([self.shouldDebug isEqualToString:@"false"]){
                     SEL reloadSelector = NSSelectorFromString(@"reload");
                     ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
                     [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:components.URL]];
-                    
+                   
                     // Tell the swizzled splash it can hide after 3 seconds
                     // TODO: There HAS to be a more elegant way to accomplish this...
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 3 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
