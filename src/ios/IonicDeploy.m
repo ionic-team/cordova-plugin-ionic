@@ -51,7 +51,7 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (NSString *) generateUDID {
-    return [[NSUUID] UUIDString];
+    return [[NSUUID UUID] UUIDString];
 }
 
 - (BOOL) isDebug {
@@ -113,7 +113,7 @@ static NSOperationQueue *delegateQueue;
     self.serialQueue = dispatch_queue_create("Deploy Plugin Queue", NULL);
 
     // Load device ID (for more accurate billing)
-    self.deviceId = [prefs stirngForKey:@"ion_device_id"];
+    self.deviceId = [prefs stringForKey:@"ion_device_id"];
     if (!self.deviceId) {
         self.deviceId = [self generateUDID];
         [prefs setObject:self.deviceId forKey: @"ion_device_id"];
