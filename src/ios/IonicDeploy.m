@@ -20,7 +20,6 @@ typedef struct JsonHttpResponse {
 @property (nonatomic) NSURLResponse *urlResponse;
 
 @property int progress;
-@property NSString *deviceId;
 @property NSString *callbackId;
 @property NSString *appId;
 @property NSString *channel_tag;
@@ -48,10 +47,6 @@ static NSOperationQueue *delegateQueue;
 + (BOOL) isPluginUpdating {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     return [prefs boolForKey:@"show_splash"];
-}
-
-- (NSString *) generateUDID {
-    return [[NSUUID UUID] UUIDString];
 }
 
 - (BOOL) isDebug {
@@ -111,14 +106,6 @@ static NSOperationQueue *delegateQueue;
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     self.cordova_js_resource = [[NSBundle mainBundle] pathForResource:@"www/cordova" ofType:@"js"];
     self.serialQueue = dispatch_queue_create("Deploy Plugin Queue", NULL);
-
-    // Load device ID (for more accurate billing)
-    self.deviceId = [prefs stringForKey:@"ion_device_id"];
-    if (!self.deviceId) {
-        self.deviceId = [self generateUDID];
-        [prefs setObject:self.deviceId forKey: @"ion_device_id"];
-        [prefs synchronize];
-    }
 
     // Load version label
     self.version_label = [prefs stringForKey:@"ionicdeploy_version_label"];
@@ -612,8 +599,7 @@ static NSOperationQueue *delegateQueue;
     NSMutableDictionary *deviceDict = [NSMutableDictionary
                                        dictionaryWithDictionary:@{
                                                                   @"platform" : @"ios",
-                                                                  @"binary_version" : app_version,
-                                                                  @"device_id": self.deviceId
+                                                                  @"binary_version" : app_version
                                                                   }];
 
     if (uuid != nil && ![uuid  isEqual: @""]) {
