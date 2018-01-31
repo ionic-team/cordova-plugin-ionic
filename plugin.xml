@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-ionic"
-    version="3.0.0">
+    version="3.0.1">
     <name>IonicCordova</name>
     <description>Common Cordova functionality for Ionic apps</description>
     <license>MIT</license>
@@ -133,7 +133,8 @@
         <source-file src="src/ios/Unirest/UNIHTTPStringResponse.m" />
         <header-file src="src/ios/Unirest/UNIJsonNode.h" />
         <source-file src="src/ios/Unirest/UNIJsonNode.m" />
-        <source-file src="src/ios/IonicCordovaCommon.swift" />
+        <header-file src="src/ios/IonicCordovaCommon.h" />
+        <source-file src="src/ios/IonicCordovaCommon.m" />
     </platform>
 
     <platform name="android">
@@ -161,6 +162,5 @@
         <source-file src="src/android/IonicDeploy.java" target-dir="src/com/ionicframework/deploy" />
     </platform>
 
-    <dependency id="cordova-plugin-add-swift-support" version="^1.6.1"/>
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
 </plugin>
