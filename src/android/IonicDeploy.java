@@ -82,6 +82,7 @@ public class IonicDeploy extends CordovaPlugin {
   String app_id = null;
   String channel = null;
   String autoUpdate = "auto";
+  String shouldDebug;
   boolean debug = true;
   boolean isLoading = false;
   SharedPreferences prefs = null;
@@ -142,8 +143,10 @@ public class IonicDeploy extends CordovaPlugin {
 
   private Boolean isDebug() {
     try {
-      if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
-        return true;
+      if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0 ) {
+        if(!this.shouldDebug.equals("false")){
+          return true;
+        }
       }
     } catch (NameNotFoundException e){
       // do nothing
@@ -168,6 +171,7 @@ public class IonicDeploy extends CordovaPlugin {
     this.server = getStringResourceByName("ionic_update_api");
     this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
     this.autoUpdate = getStringResourceByName("ionic_update_method");
+    this.shouldDebug = prefs.getString("debug", getStringResourceByName("ionic_debug"));
 
     try {
       this.maxVersions = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
@@ -430,6 +434,8 @@ public class IonicDeploy extends CordovaPlugin {
         } else if(updatesAvailable) {
           try {
             String update_uuid = update.getString("snapshot");
+            logMessage("upstream", "update uuid: "+update_uuid+" ignore version: "+ignore_version+" loaded_version: "+loaded_version);
+
             if(!update_uuid.equals(ignore_version) && !update_uuid.equals(loaded_version)) {
               prefs.edit().putString("upstream_uuid", update_uuid).apply();
               this.last_update = update;
@@ -665,6 +671,7 @@ public class IonicDeploy extends CordovaPlugin {
     JSONObject device_details = new JSONObject();
 
     try {
+      logMessage("endpoint", endpoint);
       device_details.put("binary_version", this.deconstructVersionLabel(this.version_label)[0]);
       if(!uuid.equals("")) {
         device_details.put("snapshot", uuid);
@@ -673,6 +680,9 @@ public class IonicDeploy extends CordovaPlugin {
       json.put("channel_name", channel_tag);
       json.put("app_id", this.app_id);
       json.put("device", device_details);
+      logMessage("channel_name", channel_tag);
+      logMessage("app_id", this.app_id);
+      logMessage("device", device_details.toString());
 
       String params = json.toString();
       byte[] postData = params.getBytes("UTF-8");

@@ -27,6 +27,7 @@ typedef struct JsonHttpResponse {
 @property int maxVersions;
 @property NSDictionary *last_update;
 @property Boolean ignore_deploy;
+@property NSString *shouldDebug;
 @property NSString *version_label;
 @property NSString *currentUUID;
 @property dispatch_queue_t serialQueue;
@@ -49,10 +50,15 @@ static NSOperationQueue *delegateQueue;
     return [prefs boolForKey:@"show_splash"];
 }
 
+
 - (BOOL) isDebug {
 #ifdef DEBUG
+if([self.shouldDebug isEqualToString:@"false"]) {
+    return NO;
+} else {
     return YES;
-#else 
+}
+#else
     return NO;
 #endif
 }
@@ -117,6 +123,12 @@ static NSOperationQueue *delegateQueue;
     self.appId = [prefs stringForKey:@"ion_app_id"];
     if (!self.appId) {
         self.appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
+    }
+
+    // Load Debug
+    self.shouldDebug = [prefs stringForKey:@"ion_debug"];
+    if (!self.shouldDebug) {
+        self.shouldDebug = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonDebug"]];
     }
 
     // Load Pro API
@@ -272,6 +284,11 @@ static NSOperationQueue *delegateQueue;
         [prefs setObject:self.appId forKey:@"ion_app_id"];
     }
 
+    if ([jsonRes valueForKey:@"debug"] != nil) {
+        self.appId = [jsonRes valueForKey:@"debug"];
+        [prefs setObject:self.appId forKey:@"ion_debug"];
+    }
+
     if ([jsonRes valueForKey:@"host"] != nil) {
         self.deploy_server = [jsonRes valueForKey:@"host"];
         [prefs setObject:self.deploy_server forKey:@"ion_api"];
@@ -281,7 +298,7 @@ static NSOperationQueue *delegateQueue;
         self.channel_tag = [jsonRes valueForKey:@"channel"];
         [prefs setObject:self.channel_tag forKey:@"channel"];
     }
-    
+   
     [prefs synchronize];
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:nil] callbackId:command.callbackId];
 }
@@ -556,7 +573,7 @@ static NSOperationQueue *delegateQueue;
                                                      options:NSRegularExpressionCaseInsensitive
                                                      error:&error];
                 NSArray *matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];
-                if (matches && matches.count){
+                if (matches && matches.count) {
                     // We found the script, update it
                     htmlData = [cordovaRegex
                                 stringByReplacingMatchesInString:htmlData
@@ -570,12 +587,12 @@ static NSOperationQueue *delegateQueue;
 
                 // Do redirect
                 NSLog(@"Redirecting to: %@", components.URL.absoluteString);
-                dispatch_async(dispatch_get_main_queue(), ^(void){
+                dispatch_async(dispatch_get_main_queue(), ^(void) {
                     NSLog(@"Reloading the web view.");
                     SEL reloadSelector = NSSelectorFromString(@"reload");
                     ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
                     [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:components.URL]];
-                    
+                   
                     // Tell the swizzled splash it can hide after 3 seconds
                     // TODO: There HAS to be a more elegant way to accomplish this...
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 3 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
@@ -779,7 +796,7 @@ static NSOperationQueue *delegateQueue;
 
     NSError *error = nil;
     BOOL success = [URL setResourceValue:[NSNumber numberWithBool: YES] forKey: NSURLIsExcludedFromBackupKey error: &error];
-    if(!success){
+    if(!success) {
         NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
     } else {
         NSLog(@"Excluding %@ from backup", pathToFolder);
