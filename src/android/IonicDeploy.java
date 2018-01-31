@@ -680,7 +680,7 @@ public class IonicDeploy extends CordovaPlugin {
       json.put("device", device_details);
       logMessage("channel_name", channel_tag);
       logMessage("app_id", this.app_id);
-      logMessage("device", device_details);
+      logMessage("device", device_details.toString());
 
       String params = json.toString();
       byte[] postData = params.getBytes("UTF-8");
