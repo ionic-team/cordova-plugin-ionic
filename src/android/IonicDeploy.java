@@ -669,7 +669,7 @@ public class IonicDeploy extends CordovaPlugin {
     JSONObject device_details = new JSONObject();
 
     try {
-      logMessage('endpoint', endpoint);
+      logMessage("endpoint", endpoint);
       device_details.put("binary_version", this.deconstructVersionLabel(this.version_label)[0]);
       if(!uuid.equals("")) {
         device_details.put("snapshot", uuid);
