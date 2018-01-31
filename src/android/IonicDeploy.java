@@ -669,6 +669,7 @@ public class IonicDeploy extends CordovaPlugin {
     JSONObject device_details = new JSONObject();
 
     try {
+      logMessage('endpoint', endpoint);
       device_details.put("binary_version", this.deconstructVersionLabel(this.version_label)[0]);
       if(!uuid.equals("")) {
         device_details.put("snapshot", uuid);
@@ -677,6 +678,9 @@ public class IonicDeploy extends CordovaPlugin {
       json.put("channel_name", channel_tag);
       json.put("app_id", this.app_id);
       json.put("device", device_details);
+      logMessage("channel_name", channel_tag);
+      logMessage("app_id", this.app_id);
+      logMessage("device", device_details);
 
       String params = json.toString();
       byte[] postData = params.getBytes("UTF-8");
