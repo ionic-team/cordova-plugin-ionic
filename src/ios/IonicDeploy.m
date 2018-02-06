@@ -569,7 +569,7 @@ if([self.shouldDebug isEqualToString:@"false"]) {
 
                 // Find an existing cordova.js tag
                 NSRegularExpression *cordovaRegex = [NSRegularExpression
-                                                     regularExpressionWithPattern:@"<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>(.|[\r\n])*<\\/script>"
+                                                     regularExpressionWithPattern:@"<script src=(?:\"|')(?:[\\w\\-\\:/\\.]*)?cordova\\.js(?:[\\.\\w]*)?(?:\"|')>(.|[\\r\\n])*?</script>"
                                                      options:NSRegularExpressionCaseInsensitive
                                                      error:&error];
                 NSArray *matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];

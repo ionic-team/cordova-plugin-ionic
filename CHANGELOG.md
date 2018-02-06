@@ -1,6 +1,10 @@
 Changelog
 ======
 
+# 3.1.1
+
+* Fixed another issue with the cordova.js regex.
+
 # 3.1.0
 
 * Added a `WARN_DEBUG` flag to allow bypass of the debug dialog. (PR $49)
