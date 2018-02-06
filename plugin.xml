@@ -17,7 +17,7 @@
 
     <preference name="APP_ID" />
     <preference name="CHANNEL_NAME" />
-    <preference name="DEBUG" />
+    <preference name="WARN_DEBUG" default="true"/>
     <preference name="UPDATE_API" default="https://api.ionicjs.com" />
     <preference name="UPDATE_METHOD" default="background" />
     <preference name="MAX_STORE" default="2" />
@@ -39,7 +39,7 @@
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonDebug">
-            <string>$DEBUG</string>
+            <string>$WARN_DEBUG</string>
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonChannelName">
@@ -151,7 +151,7 @@
 
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="ionic_app_id">$APP_ID</string>
-            <string name="ionic_debug">$DEBUG</string>
+            <string name="ionic_debug">$WARN_DEBUG</string>
             <string name="ionic_channel_name">$CHANNEL_NAME</string>
             <string name="ionic_update_api">$UPDATE_API</string>
             <string name="ionic_update_method">$UPDATE_METHOD</string>
