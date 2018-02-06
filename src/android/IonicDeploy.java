@@ -839,7 +839,9 @@ public class IonicDeploy extends CordovaPlugin {
         }
       }
       zipInputStream.close();
-      callbackContext.success("true");
+      if (callbackContext != null) {
+        callbackContext.success("true");
+      }
 
     } catch(Exception e) {
       //TODO Handle problems..
@@ -955,34 +957,15 @@ public class IonicDeploy extends CordovaPlugin {
     String newReference = "<script src=\"file:///android_asset/www/cordova.js\"></script>";
 
     // Define regular expressions
-    String commentedRegexString = "<!--.*<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>.*-->";  // Find commented cordova.js
-    String cordovaRegexString = "<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>";  // Find cordova.js
-    String scriptRegexString = "<script.*>.*</script>";  // Find a script tag
+    String cordovaRegexString = "<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>(.|[\r\n])*<\\/script>";  // Find cordova.js
 
     // Compile the regexes
-    Pattern commentedRegex = Pattern.compile(commentedRegexString);
     Pattern cordovaRegex = Pattern.compile(cordovaRegexString);
-    Pattern scriptRegex = Pattern.compile(scriptRegexString);
 
-    // First, make sure cordova.js isn't commented out.
-    if (commentedRegex.matcher(indexStr).find()) {
-      // It is, let's uncomment it.
-      indexStr = indexStr.replaceAll(commentedRegexString, newReference);
-    } else {
-      // It's either uncommented or missing
-      // First let's see if it's uncommented
-      if (cordovaRegex.matcher(indexStr).find()) {
-        // We found an extant cordova.js, update it
-        indexStr = indexStr.replaceAll(cordovaRegexString, newReference);
-      } else {
-        // No cordova.js, gotta inject it!
-        // First, find the first script tag we can
-        Matcher scriptMatcher = scriptRegex.matcher(indexStr);
-        if (scriptMatcher.find()) {
-          // Got the script, add cordova.js below it
-          String newScriptTag = String.format("%s\n%s\n", scriptMatcher.group(0), newReference);
-        }
-      }
+    // Find cordova.js
+    if (cordovaRegex.matcher(indexStr).find()) {
+      // We found an extant cordova.js, update it
+      indexStr = indexStr.replaceAll(cordovaRegexString, newReference);
     }
 
     return indexStr;
