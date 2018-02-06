@@ -3,7 +3,9 @@ Changelog
 
 # 3.1.0
 
-* Added a `WARN_DEBUG` flag to allow bypass of the debug dialog.
+* Added a `WARN_DEBUG` flag to allow bypass of the debug dialog. (PR $49)
+* Fixed a bug where minified script tags could be overwritten.
+* Fixed a bug where redirect could error incorrectly on Android.
 
 # 3.0.0
 

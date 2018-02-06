@@ -839,8 +839,38 @@ public class IonicDeploy extends CordovaPlugin {
         }
       }
       zipInputStream.close();
+
+      // Save the version we just downloaded as a version on hand
+      saveVersion(upstream_uuid);
+
+      String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
+      if (this.myContext.getFileStreamPath(zip).exists()) {
+        String deleteCmd = "rm -r " + wwwFile;
+        Runtime runtime = Runtime.getRuntime();
+        try {
+          runtime.exec(deleteCmd);
+          logMessage("REMOVE", "Removed www.zip");
+        } catch (IOException e) {
+          logMessage("REMOVE", "Failed to remove " + wwwFile + ". Error: " + e.getMessage());
+        }
+      }
+
+      // if we get here we know unzip worked
+      this.ignore_deploy = false;
+      this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
+
+      this.isLoading = false;
+
       if (callbackContext != null) {
         callbackContext.success("true");
+      } else if (this.autoUpdate.equals("auto")) {
+        if (this.isDebug()) {
+          this.showDebug();
+        } else {
+          this.redirect(this.getUUID(""));
+        }
+      } else {
+        removeSplashScreen();
       }
 
     } catch(Exception e) {
@@ -861,43 +891,9 @@ public class IonicDeploy extends CordovaPlugin {
       }
 
       if (callbackContext != null) {
-        // make sure to send an error
         callbackContext.error(e.getMessage());
       }
       return;
-    }
-
-    // Save the version we just downloaded as a version on hand
-    saveVersion(upstream_uuid);
-
-    String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
-    if (this.myContext.getFileStreamPath(zip).exists()) {
-      String deleteCmd = "rm -r " + wwwFile;
-      Runtime runtime = Runtime.getRuntime();
-      try {
-        runtime.exec(deleteCmd);
-        logMessage("REMOVE", "Removed www.zip");
-      } catch (IOException e) {
-        logMessage("REMOVE", "Failed to remove " + wwwFile + ". Error: " + e.getMessage());
-      }
-    }
-
-    // if we get here we know unzip worked
-    this.ignore_deploy = false;
-    this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
-
-    this.isLoading = false;
-
-    if (callbackContext != null) {
-      callbackContext.success("done");
-    } else if (this.autoUpdate.equals("auto")) {
-      if (this.isDebug()) {
-        this.showDebug();
-      } else {
-        this.redirect(this.getUUID(""));
-      }
-    } else {
-      removeSplashScreen();
     }
   }
 
