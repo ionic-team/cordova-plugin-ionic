@@ -1,6 +1,10 @@
 Changelog
 ======
 
+# 3.1.0
+
+* Added a `WARN_DEBUG` flag to allow bypass of the debug dialog.
+
 # 3.0.0
 
 * Updated Cordova Splashscreen dependency (PR #41)
