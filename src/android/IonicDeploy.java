@@ -230,7 +230,10 @@ public class IonicDeploy extends CordovaPlugin {
         public void run() {
           if (isUpdateAvailable()) {
             try {
-              showSplashScreen();
+              if (self.autoUpdate.equals("auto")) {
+                showSplashScreen();
+              }
+
               String upstream_uuid = self.prefs.getString("upstream_uuid", "");
               if (upstream_uuid != "" && self.hasVersion(upstream_uuid)) {
                 // Set the current version to the upstream uuid
@@ -784,8 +787,6 @@ public class IonicDeploy extends CordovaPlugin {
         } else {
           this.redirect(this.getUUID(""));
         }
-      } else {
-        removeSplashScreen();
       }
       return;
     }
@@ -862,7 +863,7 @@ public class IonicDeploy extends CordovaPlugin {
       this.isLoading = false;
 
       if (callbackContext != null) {
-        callbackContext.success("true");
+        callbackContext.success("done");
       } else if (this.autoUpdate.equals("auto")) {
         if (this.isDebug()) {
           this.showDebug();

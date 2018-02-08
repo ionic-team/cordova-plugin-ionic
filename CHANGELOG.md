@@ -1,6 +1,11 @@
 Changelog
 ======
 
+# 3.1.2
+
+* Fixed the extract callback value
+* Fixed a bug where the splashscreen would show for long periods while using the `background` update method on Android
+
 # 3.1.1
 
 * Fixed another issue with the cordova.js regex.
