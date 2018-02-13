@@ -230,7 +230,10 @@ public class IonicDeploy extends CordovaPlugin {
         public void run() {
           if (isUpdateAvailable()) {
             try {
-              showSplashScreen();
+              if (self.autoUpdate.equals("auto")) {
+                showSplashScreen();
+              }
+
               String upstream_uuid = self.prefs.getString("upstream_uuid", "");
               if (upstream_uuid != "" && self.hasVersion(upstream_uuid)) {
                 // Set the current version to the upstream uuid
@@ -784,8 +787,6 @@ public class IonicDeploy extends CordovaPlugin {
         } else {
           this.redirect(this.getUUID(""));
         }
-      } else {
-        removeSplashScreen();
       }
       return;
     }
@@ -839,7 +840,39 @@ public class IonicDeploy extends CordovaPlugin {
         }
       }
       zipInputStream.close();
-      callbackContext.success("true");
+
+      // Save the version we just downloaded as a version on hand
+      saveVersion(upstream_uuid);
+
+      String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
+      if (this.myContext.getFileStreamPath(zip).exists()) {
+        String deleteCmd = "rm -r " + wwwFile;
+        Runtime runtime = Runtime.getRuntime();
+        try {
+          runtime.exec(deleteCmd);
+          logMessage("REMOVE", "Removed www.zip");
+        } catch (IOException e) {
+          logMessage("REMOVE", "Failed to remove " + wwwFile + ". Error: " + e.getMessage());
+        }
+      }
+
+      // if we get here we know unzip worked
+      this.ignore_deploy = false;
+      this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
+
+      this.isLoading = false;
+
+      if (callbackContext != null) {
+        callbackContext.success("done");
+      } else if (this.autoUpdate.equals("auto")) {
+        if (this.isDebug()) {
+          this.showDebug();
+        } else {
+          this.redirect(this.getUUID(""));
+        }
+      } else {
+        removeSplashScreen();
+      }
 
     } catch(Exception e) {
       //TODO Handle problems..
@@ -859,43 +892,9 @@ public class IonicDeploy extends CordovaPlugin {
       }
 
       if (callbackContext != null) {
-        // make sure to send an error
         callbackContext.error(e.getMessage());
       }
       return;
-    }
-
-    // Save the version we just downloaded as a version on hand
-    saveVersion(upstream_uuid);
-
-    String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
-    if (this.myContext.getFileStreamPath(zip).exists()) {
-      String deleteCmd = "rm -r " + wwwFile;
-      Runtime runtime = Runtime.getRuntime();
-      try {
-        runtime.exec(deleteCmd);
-        logMessage("REMOVE", "Removed www.zip");
-      } catch (IOException e) {
-        logMessage("REMOVE", "Failed to remove " + wwwFile + ". Error: " + e.getMessage());
-      }
-    }
-
-    // if we get here we know unzip worked
-    this.ignore_deploy = false;
-    this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
-
-    this.isLoading = false;
-
-    if (callbackContext != null) {
-      callbackContext.success("done");
-    } else if (this.autoUpdate.equals("auto")) {
-      if (this.isDebug()) {
-        this.showDebug();
-      } else {
-        this.redirect(this.getUUID(""));
-      }
-    } else {
-      removeSplashScreen();
     }
   }
 
@@ -955,34 +954,15 @@ public class IonicDeploy extends CordovaPlugin {
     String newReference = "<script src=\"file:///android_asset/www/cordova.js\"></script>";
 
     // Define regular expressions
-    String commentedRegexString = "<!--.*<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>.*-->";  // Find commented cordova.js
-    String cordovaRegexString = "<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>";  // Find cordova.js
-    String scriptRegexString = "<script.*>.*</script>";  // Find a script tag
+    String cordovaRegexString = "<script src=(?:\"|')(?:[\\w\\-\\:/\\.]*)?cordova\\.js(?:[\\.\\w]*)?(?:\"|')>(.|[\\r\\n])*?</script>";  // Find cordova.js
 
     // Compile the regexes
-    Pattern commentedRegex = Pattern.compile(commentedRegexString);
     Pattern cordovaRegex = Pattern.compile(cordovaRegexString);
-    Pattern scriptRegex = Pattern.compile(scriptRegexString);
 
-    // First, make sure cordova.js isn't commented out.
-    if (commentedRegex.matcher(indexStr).find()) {
-      // It is, let's uncomment it.
-      indexStr = indexStr.replaceAll(commentedRegexString, newReference);
-    } else {
-      // It's either uncommented or missing
-      // First let's see if it's uncommented
-      if (cordovaRegex.matcher(indexStr).find()) {
-        // We found an extant cordova.js, update it
-        indexStr = indexStr.replaceAll(cordovaRegexString, newReference);
-      } else {
-        // No cordova.js, gotta inject it!
-        // First, find the first script tag we can
-        Matcher scriptMatcher = scriptRegex.matcher(indexStr);
-        if (scriptMatcher.find()) {
-          // Got the script, add cordova.js below it
-          String newScriptTag = String.format("%s\n%s\n", scriptMatcher.group(0), newReference);
-        }
-      }
+    // Find cordova.js
+    if (cordovaRegex.matcher(indexStr).find()) {
+      // We found an extant cordova.js, update it
+      indexStr = indexStr.replaceAll(cordovaRegexString, newReference);
     }
 
     return indexStr;

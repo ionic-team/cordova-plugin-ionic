@@ -1,6 +1,21 @@
 Changelog
 ======
 
+# 3.1.2
+
+* Fixed the extract callback value
+* Fixed a bug where the splashscreen would show for long periods while using the `background` update method on Android
+
+# 3.1.1
+
+* Fixed another issue with the cordova.js regex.
+
+# 3.1.0
+
+* Added a `WARN_DEBUG` flag to allow bypass of the debug dialog. (PR $49)
+* Fixed a bug where minified script tags could be overwritten.
+* Fixed a bug where redirect could error incorrectly on Android.
+
 # 3.0.0
 
 * Updated Cordova Splashscreen dependency (PR #41)
