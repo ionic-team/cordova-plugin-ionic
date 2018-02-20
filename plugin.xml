@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-ionic"
-    version="2.0.2">
+    version="3.1.3">
     <name>IonicCordova</name>
     <description>Common Cordova functionality for Ionic apps</description>
     <license>MIT</license>
@@ -17,6 +17,7 @@
 
     <preference name="APP_ID" />
     <preference name="CHANNEL_NAME" />
+    <preference name="WARN_DEBUG" default="true"/>
     <preference name="UPDATE_API" default="https://api.ionicjs.com" />
     <preference name="UPDATE_METHOD" default="background" />
     <preference name="MAX_STORE" default="2" />
@@ -35,6 +36,10 @@
 
         <config-file target="*-Info.plist" parent="IonAppId">
             <string>$APP_ID</string>
+        </config-file>
+
+        <config-file target="*-Info.plist" parent="IonDebug">
+            <string>$WARN_DEBUG</string>
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonChannelName">
@@ -119,7 +124,8 @@
         <source-file src="src/ios/Unirest/UNIHTTPStringResponse.m" />
         <header-file src="src/ios/Unirest/UNIJsonNode.h" />
         <source-file src="src/ios/Unirest/UNIJsonNode.m" />
-        <source-file src="src/ios/IonicCordovaCommon.swift" />
+        <header-file src="src/ios/IonicCordovaCommon.h" />
+        <source-file src="src/ios/IonicCordovaCommon.m" />
     </platform>
 
     <platform name="android">
@@ -136,6 +142,7 @@
 
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="ionic_app_id">$APP_ID</string>
+            <string name="ionic_debug">$WARN_DEBUG</string>
             <string name="ionic_channel_name">$CHANNEL_NAME</string>
             <string name="ionic_update_api">$UPDATE_API</string>
             <string name="ionic_update_method">$UPDATE_METHOD</string>
@@ -146,6 +153,5 @@
         <source-file src="src/android/IonicDeploy.java" target-dir="src/com/ionicframework/deploy" />
     </platform>
 
-    <dependency id="cordova-plugin-add-swift-support" version="^1.6.1"/>
-    <dependency id="cordova-plugin-splashscreen" version="^4.0.0"/>
+    <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
 </plugin>

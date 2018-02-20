@@ -1,6 +1,41 @@
 Changelog
 ======
 
+# 3.1.3
+
+* Fixed a bug where `ng-cordova` could potentially be overwritten when a deploy is applied.
+* Added a release without the zip plugin (`3.1.3-nozip`)
+
+# 3.1.2
+
+* Fixed the extract callback value
+* Fixed a bug where the splashscreen would show for long periods while using the `background` update method on Android
+
+# 3.1.1
+
+* Fixed another issue with the cordova.js regex.
+
+# 3.1.0
+
+* Added a `WARN_DEBUG` flag to allow bypass of the debug dialog. (PR $49)
+* Fixed a bug where minified script tags could be overwritten.
+* Fixed a bug where redirect could error incorrectly on Android.
+
+# 3.0.0
+
+* Updated Cordova Splashscreen dependency (PR #41)
+* Fixed the callback responses from the `download` and `extract` functions to reflect the docs.
+* Store updates to plugin config make via the `init` methods in preferences.
+
+## 2.0.4
+
+* Added a supported platforms note (PR #33)
+* Added correct callback calld for initialize and redirect methods (PR #20)
+
+## 2.0.3
+
+* Fixed a bug where the splashscreen could hang in some cases when dismissing the debug dialog within the automatic update methods on Android.
+
 ## 2.0.2
 
 * Fixed a bug where the splashscreen could hang in some cases when using the `background` update method on Android.

@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Iterator;
 import java.util.regex.Pattern;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -81,6 +82,7 @@ public class IonicDeploy extends CordovaPlugin {
   String app_id = null;
   String channel = null;
   String autoUpdate = "auto";
+  String shouldDebug;
   boolean debug = true;
   boolean isLoading = false;
   SharedPreferences prefs = null;
@@ -141,8 +143,10 @@ public class IonicDeploy extends CordovaPlugin {
 
   private Boolean isDebug() {
     try {
-      if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
-        return true;
+      if ((this.myContext.getPackageManager().getPackageInfo(this.myContext.getPackageName(), 0).applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0 ) {
+        if(!this.shouldDebug.equals("false")){
+          return true;
+        }
       }
     } catch (NameNotFoundException e){
       // do nothing
@@ -167,6 +171,7 @@ public class IonicDeploy extends CordovaPlugin {
     this.server = getStringResourceByName("ionic_update_api");
     this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
     this.autoUpdate = getStringResourceByName("ionic_update_method");
+    this.shouldDebug = prefs.getString("debug", getStringResourceByName("ionic_debug"));
 
     try {
       this.maxVersions = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
@@ -225,7 +230,10 @@ public class IonicDeploy extends CordovaPlugin {
         public void run() {
           if (isUpdateAvailable()) {
             try {
-              showSplashScreen();
+              if (self.autoUpdate.equals("auto")) {
+                showSplashScreen();
+              }
+
               String upstream_uuid = self.prefs.getString("upstream_uuid", "");
               if (upstream_uuid != "" && self.hasVersion(upstream_uuid)) {
                 // Set the current version to the upstream uuid
@@ -296,6 +304,7 @@ public class IonicDeploy extends CordovaPlugin {
       JSONObject conf = new JSONObject(args.getString(0));
       if (conf.has("appId")) {
         this.app_id = conf.getString("appId");
+        this.prefs.edit().putString("app_id", this.app_id).apply();
       }
 
       if (conf.has("host")) {
@@ -304,6 +313,7 @@ public class IonicDeploy extends CordovaPlugin {
 
       if (conf.has("channel")) {
         this.channel = conf.getString("channel");
+        this.prefs.edit().putString("channel", this.channel).apply();
       }
 
       callbackContext.success();
@@ -427,6 +437,8 @@ public class IonicDeploy extends CordovaPlugin {
         } else if(updatesAvailable) {
           try {
             String update_uuid = update.getString("snapshot");
+            logMessage("upstream", "update uuid: "+update_uuid+" ignore version: "+ignore_version+" loaded_version: "+loaded_version);
+
             if(!update_uuid.equals(ignore_version) && !update_uuid.equals(loaded_version)) {
               prefs.edit().putString("upstream_uuid", update_uuid).apply();
               this.last_update = update;
@@ -662,6 +674,7 @@ public class IonicDeploy extends CordovaPlugin {
     JSONObject device_details = new JSONObject();
 
     try {
+      logMessage("endpoint", endpoint);
       device_details.put("binary_version", this.deconstructVersionLabel(this.version_label)[0]);
       if(!uuid.equals("")) {
         device_details.put("snapshot", uuid);
@@ -670,6 +683,9 @@ public class IonicDeploy extends CordovaPlugin {
       json.put("channel_name", channel_tag);
       json.put("app_id", this.app_id);
       json.put("device", device_details);
+      logMessage("channel_name", channel_tag);
+      logMessage("app_id", this.app_id);
+      logMessage("device", device_details.toString());
 
       String params = json.toString();
       byte[] postData = params.getBytes("UTF-8");
@@ -764,15 +780,13 @@ public class IonicDeploy extends CordovaPlugin {
       this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
 
       if (callbackContext != null) {
-        callbackContext.success("done"); // we have already extracted this version
+        callbackContext.success("true");
       } else if (this.autoUpdate.equals("auto")) {
         if (this.isDebug()) {
           this.showDebug();
         } else {
           this.redirect(this.getUUID(""));
         }
-      } else {
-        removeSplashScreen();
       }
       return;
     }
@@ -827,6 +841,39 @@ public class IonicDeploy extends CordovaPlugin {
       }
       zipInputStream.close();
 
+      // Save the version we just downloaded as a version on hand
+      saveVersion(upstream_uuid);
+
+      String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
+      if (this.myContext.getFileStreamPath(zip).exists()) {
+        String deleteCmd = "rm -r " + wwwFile;
+        Runtime runtime = Runtime.getRuntime();
+        try {
+          runtime.exec(deleteCmd);
+          logMessage("REMOVE", "Removed www.zip");
+        } catch (IOException e) {
+          logMessage("REMOVE", "Failed to remove " + wwwFile + ". Error: " + e.getMessage());
+        }
+      }
+
+      // if we get here we know unzip worked
+      this.ignore_deploy = false;
+      this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
+
+      this.isLoading = false;
+
+      if (callbackContext != null) {
+        callbackContext.success("done");
+      } else if (this.autoUpdate.equals("auto")) {
+        if (this.isDebug()) {
+          this.showDebug();
+        } else {
+          this.redirect(this.getUUID(""));
+        }
+      } else {
+        removeSplashScreen();
+      }
+
     } catch(Exception e) {
       //TODO Handle problems..
       logMessage("UNZIP_STEP", "Exception: " + e.getMessage());
@@ -845,43 +892,9 @@ public class IonicDeploy extends CordovaPlugin {
       }
 
       if (callbackContext != null) {
-        // make sure to send an error
         callbackContext.error(e.getMessage());
       }
       return;
-    }
-
-    // Save the version we just downloaded as a version on hand
-    saveVersion(upstream_uuid);
-
-    String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
-    if (this.myContext.getFileStreamPath(zip).exists()) {
-      String deleteCmd = "rm -r " + wwwFile;
-      Runtime runtime = Runtime.getRuntime();
-      try {
-        runtime.exec(deleteCmd);
-        logMessage("REMOVE", "Removed www.zip");
-      } catch (IOException e) {
-        logMessage("REMOVE", "Failed to remove " + wwwFile + ". Error: " + e.getMessage());
-      }
-    }
-
-    // if we get here we know unzip worked
-    this.ignore_deploy = false;
-    this.updateVersionLabel(IonicDeploy.NOTHING_TO_IGNORE);
-
-    this.isLoading = false;
-
-    if (callbackContext != null) {
-      callbackContext.success("done");
-    } else if (this.autoUpdate.equals("auto")) {
-      if (this.isDebug()) {
-        this.showDebug();
-      } else {
-        this.redirect(this.getUUID(""));
-      }
-    } else {
-      removeSplashScreen();
     }
   }
 
@@ -941,34 +954,15 @@ public class IonicDeploy extends CordovaPlugin {
     String newReference = "<script src=\"file:///android_asset/www/cordova.js\"></script>";
 
     // Define regular expressions
-    String commentedRegexString = "<!--.*<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>.*-->";  // Find commented cordova.js
-    String cordovaRegexString = "<script src=(\"|')(.*\\/|)cordova\\.js.*(\"|')>.*<\\/script>";  // Find cordova.js
-    String scriptRegexString = "<script.*>.*</script>";  // Find a script tag
+    String cordovaRegexString = "<script src=(?:\"|')(?:[\\w\\-\\:/\\.]*/)?cordova\\.js(?:[\\.\\w]*)?(?:\"|')>(.|[\\r\\n])*?</script>";  // Find cordova.js
 
     // Compile the regexes
-    Pattern commentedRegex = Pattern.compile(commentedRegexString);
     Pattern cordovaRegex = Pattern.compile(cordovaRegexString);
-    Pattern scriptRegex = Pattern.compile(scriptRegexString);
 
-    // First, make sure cordova.js isn't commented out.
-    if (commentedRegex.matcher(indexStr).find()) {
-      // It is, let's uncomment it.
-      indexStr = indexStr.replaceAll(commentedRegexString, newReference);
-    } else {
-      // It's either uncommented or missing
-      // First let's see if it's uncommented
-      if (cordovaRegex.matcher(indexStr).find()) {
-        // We found an extant cordova.js, update it
-        indexStr = indexStr.replaceAll(cordovaRegexString, newReference);
-      } else {
-        // No cordova.js, gotta inject it!
-        // First, find the first script tag we can
-        Matcher scriptMatcher = scriptRegex.matcher(indexStr);
-        if (scriptMatcher.find()) {
-          // Got the script, add cordova.js below it
-          String newScriptTag = String.format("%s\n%s\n", scriptMatcher.group(0), newReference);
-        }
-      }
+    // Find cordova.js
+    if (cordovaRegex.matcher(indexStr).find()) {
+      // We found an extant cordova.js, update it
+      indexStr = indexStr.replaceAll(cordovaRegexString, newReference);
     }
 
     return indexStr;
@@ -989,6 +983,7 @@ public class IonicDeploy extends CordovaPlugin {
         dlg.setNegativeButton("Ignore",
           new AlertDialog.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
+              weak.removeSplashScreen();
               dialog.dismiss();
             }
           });
