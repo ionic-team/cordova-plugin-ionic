@@ -865,8 +865,8 @@ static NSOperationQueue *delegateQueue;
 {
     // Save the upstream_uuid (what we just downloaded) to the uuid preference
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
-    NSString *upstream_uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"upstream_uuid"];
+    NSString *uuid = [prefs objectForKey:@"uuid"];
+    NSString *upstream_uuid = [prefs objectForKey:@"upstream_uuid"];
     
     [prefs setObject: upstream_uuid forKey: @"uuid"];
     [prefs synchronize];
@@ -895,13 +895,6 @@ static NSOperationQueue *delegateQueue;
         [pluginResult setKeepCallbackAsBool:TRUE];
         
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-        
-        if (progress == 100) {
-            CDVPluginResult* pluginResult = nil;
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"done"];
-            
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-        }
     }
 }
 
