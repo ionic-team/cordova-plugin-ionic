@@ -1,7 +1,7 @@
 #import "IonicDeploy.h"
 #import <Cordova/CDV.h>
 #import "UNIRest.h"
-#import "IonSSZipArchive.h"
+#import "SSZipArchive.h"
 #import "IonicConstant.h"
 #import <objc/message.h>
 #import <UIKit/UIKit.h>

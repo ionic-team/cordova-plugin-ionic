@@ -4,6 +4,7 @@ Changelog
 # 3.1.3
 
 * Fixed a bug where `ng-cordova` could potentially be overwritten when a deploy is applied.
+* Added a release without the zip plugin (`3.1.3-nozip`)
 
 # 3.1.2
 

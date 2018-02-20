@@ -3,9 +3,9 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import "DownloadManager.h"
-#import "IonSSZipArchive.h"
+#import "SSZipArchive.h"
 
-@interface IonicDeploy : CDVPlugin <DownloadManagerDelegate, IonSSZipArchiveDelegate, UIAlertViewDelegate>
+@interface IonicDeploy : CDVPlugin <DownloadManagerDelegate, SSZipArchiveDelegate, UIAlertViewDelegate>
 
 @property (strong, nonatomic) DownloadManager *downloadManager;
 
