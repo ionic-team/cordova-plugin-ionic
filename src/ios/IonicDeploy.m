@@ -885,7 +885,7 @@ static NSOperationQueue *delegateQueue;
 
 /* Delegate Methods for IonSSZipArchive */
 
-- (void)ionZipArchiveProgressEvent:(NSInteger)loaded total:(NSInteger)total {
+- (void)zipArchiveProgressEvent:(NSInteger)loaded total:(NSInteger)total {
     float progress = ((100.0 / total) * loaded);
     NSLog(@"Zip Extraction: %.0f%%", progress);
     

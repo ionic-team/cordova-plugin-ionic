@@ -1,14 +1,12 @@
 //
-//  IonSSZipArchive.m
-//  IonSSZipArchive
+//  SSZipArchive.m
+//  SSZipArchive
 //
 //  Created by Sam Soffes on 7/21/10.
 //  Copyright (c) Sam Soffes 2010-2014. All rights reserved.
 //
-//  Modified to avoid conflicts
-//
 
-#import "IonSSZipArchive.h"
+#import "SSZipArchive.h"
 #include "zip.h"
 #import "zlib.h"
 #import "zconf.h"
@@ -17,12 +15,12 @@
 
 #define CHUNK 16384
 
-@interface IonSSZipArchive ()
+@interface SSZipArchive ()
 + (NSDate *)_dateWithMSDOSFormat:(UInt32)msdosDateTime;
 @end
 
 
-@implementation IonSSZipArchive {
+@implementation SSZipArchive {
 	NSString *_path;
 	NSString *_filename;
     zipFile _zip;
@@ -41,12 +39,12 @@
 }
 
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<IonSSZipArchiveDelegate>)delegate {
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<SSZipArchiveDelegate>)delegate {
 	return [self unzipFileAtPath:path toDestination:destination overwrite:YES password:nil error:nil delegate:delegate];
 }
 
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<IonSSZipArchiveDelegate>)delegate {
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<SSZipArchiveDelegate>)delegate {
 	// Begin opening
 	zipFile zip = unzOpen((const char*)[path UTF8String]);
 	if (zip == NULL) {
@@ -307,7 +305,7 @@
 
 + (BOOL)createZipFileAtPath:(NSString *)path withFilesAtPaths:(NSArray *)paths {
 	BOOL success = NO;
-	IonSSZipArchive *zipArchive = [[IonSSZipArchive alloc] initWithPath:path];
+	SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
 	if ([zipArchive open]) {
 		for (NSString *path in paths) {
 			[zipArchive writeFile:path];
@@ -327,7 +325,7 @@
     BOOL success = NO;
 
     NSFileManager *fileManager = nil;
-	IonSSZipArchive *zipArchive = [[IonSSZipArchive alloc] initWithPath:path];
+	SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
 
 	if ([zipArchive open]) {
         // use a local filemanager (queue/thread compatibility)
