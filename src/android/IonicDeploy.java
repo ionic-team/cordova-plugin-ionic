@@ -863,7 +863,7 @@ public class IonicDeploy extends CordovaPlugin {
       this.isLoading = false;
 
       if (callbackContext != null) {
-        callbackContext.success("done");
+        callbackContext.success("true");
       } else if (this.autoUpdate.equals("auto")) {
         if (this.isDebug()) {
           this.showDebug();
