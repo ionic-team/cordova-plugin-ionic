@@ -1,7 +1,7 @@
 #import "IonicDeploy.h"
 #import <Cordova/CDV.h>
 #import "UNIRest.h"
-#import "SSZipArchive.h"
+#import "IonSSZipArchive.h"
 #import "IonicConstant.h"
 #import <objc/message.h>
 #import <UIKit/UIKit.h>
@@ -462,7 +462,7 @@ static NSOperationQueue *delegateQueue;
         NSLog(@"Path for zip file: %@", filePath);
         NSLog(@"Unzipping...");
 
-        [SSZipArchive unzipFileAtPath:filePath toDestination:extractPath delegate:self];
+        [IonSSZipArchive unzipFileAtPath:filePath toDestination:extractPath delegate:self];
         [self saveVersion:upstream_uuid];
         [self excludeVersionFromBackup:uuid];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
@@ -568,7 +568,7 @@ static NSOperationQueue *delegateQueue;
 
                 // Find an existing cordova.js tag
                 NSRegularExpression *cordovaRegex = [NSRegularExpression
-                                                     regularExpressionWithPattern:@"<script src=(?:\"|')(?:[\\w\\-\\:/\\.]*\/)?cordova\\.js(?:[\\.\\w]*)?(?:\"|')>(.|[\\r\\n])*?</script>"
+                                                     regularExpressionWithPattern:@"<script src=(?:\"|')(?:[\\w\\-\\:/\\.]*/)?cordova\\.js(?:[\\.\\w]*)?(?:\"|')>(.|[\\r\\n])*?</script>"
                                                      options:NSRegularExpressionCaseInsensitive
                                                      error:&error];
                 NSArray *matches = [cordovaRegex matchesInString:htmlData options:0 range:NSMakeRange(0, [htmlData length])];
@@ -883,9 +883,9 @@ static NSOperationQueue *delegateQueue;
     }
 }
 
-/* Delegate Methods for SSZipArchive */
+/* Delegate Methods for IonSSZipArchive */
 
-- (void)zipArchiveProgressEvent:(NSInteger)loaded total:(NSInteger)total {
+- (void)ionZipArchiveProgressEvent:(NSInteger)loaded total:(NSInteger)total {
     float progress = ((100.0 / total) * loaded);
     NSLog(@"Zip Extraction: %.0f%%", progress);
 

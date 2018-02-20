@@ -1,12 +1,14 @@
 //
-//  SSZipArchive.m
-//  SSZipArchive
+//  IonSSZipArchive.m
+//  IonSSZipArchive
 //
 //  Created by Sam Soffes on 7/21/10.
 //  Copyright (c) Sam Soffes 2010-2014. All rights reserved.
 //
+//  Modified to avoid conflicts
+//
 
-#import "SSZipArchive.h"
+#import "IonSSZipArchive.h"
 #include "zip.h"
 #import "zlib.h"
 #import "zconf.h"
@@ -15,12 +17,12 @@
 
 #define CHUNK 16384
 
-@interface SSZipArchive ()
+@interface IonSSZipArchive ()
 + (NSDate *)_dateWithMSDOSFormat:(UInt32)msdosDateTime;
 @end
 
 
-@implementation SSZipArchive {
+@implementation IonSSZipArchive {
 	NSString *_path;
 	NSString *_filename;
     zipFile _zip;
@@ -39,12 +41,12 @@
 }
 
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<SSZipArchiveDelegate>)delegate {
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<IonSSZipArchiveDelegate>)delegate {
 	return [self unzipFileAtPath:path toDestination:destination overwrite:YES password:nil error:nil delegate:delegate];
 }
 
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<SSZipArchiveDelegate>)delegate {
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<IonSSZipArchiveDelegate>)delegate {
 	// Begin opening
 	zipFile zip = unzOpen((const char*)[path UTF8String]);
 	if (zip == NULL) {
@@ -81,8 +83,8 @@
 	if ([delegate respondsToSelector:@selector(zipArchiveWillUnzipArchiveAtPath:zipInfo:)]) {
 		[delegate zipArchiveWillUnzipArchiveAtPath:path zipInfo:globalInfo];
 	}
-	if ([delegate respondsToSelector:@selector(zipArchiveProgressEvent:total:)]) {
-		[delegate zipArchiveProgressEvent:currentPosition total:fileSize];
+	if ([delegate respondsToSelector:@selector(ionZipArchiveProgressEvent:total:)]) {
+		[delegate ionZipArchiveProgressEvent:currentPosition total:fileSize];
 	}
 
 	NSInteger currentFileNumber = 0;
@@ -117,8 +119,8 @@
 				[delegate zipArchiveWillUnzipFileAtIndex:currentFileNumber totalFiles:(NSInteger)globalInfo.number_entry
 											 archivePath:path fileInfo:fileInfo];
 			}
-			if ([delegate respondsToSelector:@selector(zipArchiveProgressEvent:total:)]) {
-				[delegate zipArchiveProgressEvent:currentPosition total:fileSize];
+			if ([delegate respondsToSelector:@selector(ionZipArchiveProgressEvent:total:)]) {
+				[delegate ionZipArchiveProgressEvent:currentPosition total:fileSize];
 			}
 
 			char *filename = (char *)malloc(fileInfo.size_filename + 1);
@@ -227,7 +229,7 @@
                             // Unable to set the permissions attribute
                             NSLog(@"[SSZipArchive] Failed to set attributes - whilst setting permissions");
                         }
-                        
+
 #if !__has_feature(objc_arc)
                         [attrs release];
 #endif
@@ -293,8 +295,8 @@
 		[delegate zipArchiveDidUnzipArchiveAtPath:path zipInfo:globalInfo unzippedPath:destination];
 	}
 	// final progress event = 100%
-	if ([delegate respondsToSelector:@selector(zipArchiveProgressEvent:total:)]) {
-		[delegate zipArchiveProgressEvent:fileSize total:fileSize];
+	if ([delegate respondsToSelector:@selector(ionZipArchiveProgressEvent:total:)]) {
+		[delegate ionZipArchiveProgressEvent:fileSize total:fileSize];
 	}
 
 	return success;
@@ -305,7 +307,7 @@
 
 + (BOOL)createZipFileAtPath:(NSString *)path withFilesAtPaths:(NSArray *)paths {
 	BOOL success = NO;
-	SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
+	IonSSZipArchive *zipArchive = [[IonSSZipArchive alloc] initWithPath:path];
 	if ([zipArchive open]) {
 		for (NSString *path in paths) {
 			[zipArchive writeFile:path];
@@ -325,7 +327,7 @@
     BOOL success = NO;
 
     NSFileManager *fileManager = nil;
-	SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
+	IonSSZipArchive *zipArchive = [[IonSSZipArchive alloc] initWithPath:path];
 
 	if ([zipArchive open]) {
         // use a local filemanager (queue/thread compatibility)

@@ -68,8 +68,8 @@
         <source-file src="src/ios/Download.m" />
         <header-file src="src/ios/DownloadManager.h" />
         <source-file src="src/ios/DownloadManager.m" />
-        <header-file src="src/ios/SSZipArchive.h" />
-        <source-file src="src/ios/SSZipArchive.m" />
+        <header-file src="src/ios/IonSSZipArchive.h" />
+        <source-file src="src/ios/IonSSZipArchive.m" />
         <header-file src="src/ios/ARCHelper/ARCHelper.h" />
         <header-file src="src/ios/MiniZip/crypt.h" />
         <header-file src="src/ios/MiniZip/ioapi.h" />

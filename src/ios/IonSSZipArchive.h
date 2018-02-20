@@ -1,27 +1,29 @@
 //
-//  SSZipArchive.h
-//  SSZipArchive
+//  IonSSZipArchive.h
+//  IonSSZipArchive
 //
 //  Created by Sam Soffes on 7/21/10.
 //  Copyright (c) Sam Soffes 2010-2014. All rights reserved.
 //
+//  Modified to avoid conflicts
+//
 
-#ifndef _SSZIPARCHIVE_H
-#define _SSZIPARCHIVE_H
+#ifndef _IONSSZIPARCHIVE_H
+#define _IONSSZIPARCHIVE_H
 
 #import <Foundation/Foundation.h>
 #include "unzip.h"
 
-@protocol SSZipArchiveDelegate;
+@protocol IonSSZipArchiveDelegate;
 
-@interface SSZipArchive : NSObject
+@interface IonSSZipArchive : NSObject
 
 // Unzip
 + (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination;
 + (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error;
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<SSZipArchiveDelegate>)delegate;
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<SSZipArchiveDelegate>)delegate;
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<IonSSZipArchiveDelegate>)delegate;
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<IonSSZipArchiveDelegate>)delegate;
 
 // Zip
 + (BOOL)createZipFileAtPath:(NSString *)path withFilesAtPaths:(NSArray *)filenames;
@@ -36,7 +38,7 @@
 @end
 
 
-@protocol SSZipArchiveDelegate <NSObject>
+@protocol IonSSZipArchiveDelegate <NSObject>
 
 @optional
 
@@ -46,7 +48,7 @@
 - (void)zipArchiveWillUnzipFileAtIndex:(NSInteger)fileIndex totalFiles:(NSInteger)totalFiles archivePath:(NSString *)archivePath fileInfo:(unz_file_info)fileInfo;
 - (void)zipArchiveDidUnzipFileAtIndex:(NSInteger)fileIndex totalFiles:(NSInteger)totalFiles archivePath:(NSString *)archivePath fileInfo:(unz_file_info)fileInfo;
 
-- (void)zipArchiveProgressEvent:(NSInteger)loaded total:(NSInteger)total;
+- (void)ionZipArchiveProgressEvent:(NSInteger)loaded total:(NSInteger)total;
 @end
 
 #endif /* _SSZIPARCHIVE_H */

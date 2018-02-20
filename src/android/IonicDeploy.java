@@ -954,7 +954,7 @@ public class IonicDeploy extends CordovaPlugin {
     String newReference = "<script src=\"file:///android_asset/www/cordova.js\"></script>";
 
     // Define regular expressions
-    String cordovaRegexString = "<script src=(?:\"|')(?:[\\w\\-\\:/\\.]*\/)?cordova\\.js(?:[\\.\\w]*)?(?:\"|')>(.|[\\r\\n])*?</script>";  // Find cordova.js
+    String cordovaRegexString = "<script src=(?:\"|')(?:[\\w\\-\\:/\\.]*/)?cordova\\.js(?:[\\.\\w]*)?(?:\"|')>(.|[\\r\\n])*?</script>";  // Find cordova.js
 
     // Compile the regexes
     Pattern cordovaRegex = Pattern.compile(cordovaRegexString);
