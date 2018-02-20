@@ -24,6 +24,7 @@
 
     <!-- ios -->
     <platform name="ios">
+        <hook type="before_plugin_install" src="scripts/beforeInstall.js" />
         <config-file target="config.xml" parent="/*">
             <feature name="IonicDeploy">
                 <param name="ios-package" value="IonicDeploy" onload="true" />
@@ -68,8 +69,6 @@
         <source-file src="src/ios/Download.m" />
         <header-file src="src/ios/DownloadManager.h" />
         <source-file src="src/ios/DownloadManager.m" />
-        <header-file src="src/ios/SSZipArchive.h" />
-        <source-file src="src/ios/SSZipArchive.m" />
         <header-file src="src/ios/ARCHelper/ARCHelper.h" />
         <header-file src="src/ios/MiniZip/crypt.h" />
         <header-file src="src/ios/MiniZip/ioapi.h" />
