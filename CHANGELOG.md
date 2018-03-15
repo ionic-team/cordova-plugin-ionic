@@ -3,7 +3,7 @@ Changelog
 
 ## 4.0.1
 
-* Fixed a bug where `deleteVersion` would errorwhen called.
+* Fixed a bug where `deleteVersion` would errorwhen called. (PR #63)
 
 # 4.0.0
 
