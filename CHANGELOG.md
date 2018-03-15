@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.0.1
+
+* Fixed a bug where `deleteVersion` would errorwhen called.
+
 # 4.0.0
 
 * Removed some extraneous plugin result calls
