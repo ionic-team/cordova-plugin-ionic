@@ -475,7 +475,7 @@ static NSOperationQueue *delegateQueue;
             NSLog(@"%@", [copyError localizedFailureReason]);
             NSLog(@"%@", [copyError localizedDescription]);
             if (self.callbackId) {
-                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error extracting deploy"] callbackId:self.callbackId];
+                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error copying old www"] callbackId:self.callbackId];
             }
             return;
         }
@@ -483,7 +483,18 @@ static NSOperationQueue *delegateQueue;
         NSLog(@"Path for zip file: %@", filePath);
         NSLog(@"Unzipping...");
  
-        [SSZipArchive unzipFileAtPath:filePath toDestination:extractPath overwrite:true password:nil error:nil delegate:self];
+        NSError *unzipError = nil;
+        [SSZipArchive unzipFileAtPath:filePath toDestination:extractPath overwrite:true password:nil error:&unzipError delegate:self];
+        
+        if (unzipError != nil) {
+            NSLog(@"%@", [unzipError localizedFailureReason]);
+            NSLog(@"%@", [unzipError localizedDescription]);
+            if (self.callbackId) {
+                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error extracting deploy"] callbackId:self.callbackId];
+            }
+            return;
+        }
+        
         [self saveVersion:upstream_uuid];
         [self excludeVersionFromBackup:uuid];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
