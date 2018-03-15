@@ -1,13 +1,17 @@
 Changelog
 ======
 
+## 4.1.0
+
+* Added support for partial downloads.
+
 ## 4.0.1
 
 * Fixed a bug where `deleteVersion` would errorwhen called. (PR #63)
 
 # 4.0.0
 
-* Removed some extraneous plugin result calls
+* Removed some extraneous plugin result calls.
 * **BREAKING** Unified all API functions to return `true` on success.
 
 ## 3.1.3
