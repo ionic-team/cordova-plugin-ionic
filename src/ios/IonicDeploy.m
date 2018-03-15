@@ -723,7 +723,7 @@ static NSOperationQueue *delegateQueue;
 }
 
 - (void) deleteVersion:(CDVInvokedUrlCommand *)command {
-    NSString *uuid = [command.arguments objectAtIndex:1];
+    NSString *uuid = [command.arguments objectAtIndex:0];
     BOOL success = [self removeVersion:uuid];
     CDVPluginResult *pluginResult = nil;
     
@@ -899,4 +899,3 @@ static NSOperationQueue *delegateQueue;
 }
 
 @end
-
