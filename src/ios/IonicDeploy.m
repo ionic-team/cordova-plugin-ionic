@@ -445,24 +445,45 @@ static NSOperationQueue *delegateQueue;
 - (void) _extract {
     self.ignore_deploy = false;
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *upstream_uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"upstream_uuid"];
+    NSString *upstream_uuid = [prefs objectForKey:@"upstream_uuid"];
+    NSString *uuid = [prefs objectForKey:@"uuid"];
     
     if(upstream_uuid != nil && [self hasVersion:upstream_uuid]) {
         [self updateVersionLabel:NOTHING_TO_IGNORE];
+        [prefs setObject: upstream_uuid forKey: @"uuid"];
+        [prefs synchronize];
         if (self.callbackId) {
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
         }
     } else {
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
         NSString *libraryDirectory = [paths objectAtIndex:0];
-        NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", libraryDirectory, @"www.zip"];
-        NSString *extractPath = [NSString stringWithFormat:@"%@/%@/", libraryDirectory, uuid];
+        NSString *extractPath = [NSString stringWithFormat:@"%@/%@/", libraryDirectory, upstream_uuid];
+        NSString *curPath = [[[NSBundle mainBundle] pathForResource:@"www/index" ofType:@"html"] stringByDeletingLastPathComponent];
+
+        if (![uuid isEqualToString:@""]) {
+            curPath = [NSString stringWithFormat:@"%@/%@/", libraryDirectory, uuid];
+        }
         
+        NSLog(@"Copying existing version %@ from %@ to %@", uuid, curPath, extractPath);
+        
+        NSError *copyError = nil;
+        [[NSFileManager defaultManager] copyItemAtPath:curPath toPath:extractPath error:&copyError];
+        
+        if (copyError != nil) {
+            NSLog(@"%@", [copyError localizedFailureReason]);
+            NSLog(@"%@", [copyError localizedDescription]);
+            if (self.callbackId) {
+                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error extracting deploy"] callbackId:self.callbackId];
+            }
+            return;
+        }
+
         NSLog(@"Path for zip file: %@", filePath);
         NSLog(@"Unzipping...");
  
-        [SSZipArchive unzipFileAtPath:filePath toDestination:extractPath delegate:self];
+        [SSZipArchive unzipFileAtPath:filePath toDestination:extractPath overwrite:true password:nil error:nil delegate:self];
         [self saveVersion:upstream_uuid];
         [self excludeVersionFromBackup:uuid];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
@@ -470,6 +491,9 @@ static NSOperationQueue *delegateQueue;
         
         NSLog(@"Unzipped...");
         NSLog(@"Removing www.zip %d", success);
+        
+        [prefs setObject: upstream_uuid forKey: @"uuid"];
+        [prefs synchronize];
         
         if (self.callbackId) {
             if (success) {
@@ -863,15 +887,6 @@ static NSOperationQueue *delegateQueue;
 
 - (void)didFinishLoadingAllForManager:(DownloadManager *)downloadManager
 {
-    // Save the upstream_uuid (what we just downloaded) to the uuid preference
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *uuid = [prefs objectForKey:@"uuid"];
-    NSString *upstream_uuid = [prefs objectForKey:@"upstream_uuid"];
-    
-    [prefs setObject: upstream_uuid forKey: @"uuid"];
-    [prefs synchronize];
-    
-    NSLog(@"UUID is: %@ and upstream_uuid is: %@", uuid, upstream_uuid);
     NSLog(@"Download Finished...");
     
     if (self.callbackId) {
