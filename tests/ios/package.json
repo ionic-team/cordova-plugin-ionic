@@ -1,0 +1,12 @@
+{
+    "name": "cordova-plugin-ionic-test-ios",
+    "version": "1.0.0",
+    "description": "iOS Unit Tests for Cordova Ionic Plugin",
+    "author": "Ionic",
+    "license": "Apache Version 2.0",
+    "dependencies": {
+        "cordova-ios": "*",
+        "cordova-plugin-splashscreen": "^5.0.2"
+    },
+    "scripts": {}
+}

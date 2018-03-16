@@ -1,0 +1,956 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2254489F205C4D3A00B53D72 /* IonicPluginLibTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2254489E205C4D3A00B53D72 /* IonicPluginLibTests.m */; };
+		225448EC205C511A00B53D72 /* CDVSplashScreen+IonicDeploy.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448DE205C511900B53D72 /* CDVSplashScreen+IonicDeploy.m */; };
+		225448ED205C511A00B53D72 /* IonicConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448DF205C511900B53D72 /* IonicConstant.m */; };
+		225448EE205C511A00B53D72 /* DownloadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448E0205C511900B53D72 /* DownloadManager.m */; };
+		225448EF205C511A00B53D72 /* Download.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448E3205C511900B53D72 /* Download.m */; };
+		225448F0205C511A00B53D72 /* IonicDeploy.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448E5205C511A00B53D72 /* IonicDeploy.m */; };
+		225448F1205C511A00B53D72 /* IonicCordovaCommon.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448E7205C511A00B53D72 /* IonicCordovaCommon.m */; };
+		225448F2205C511A00B53D72 /* SSZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448E8205C511A00B53D72 /* SSZipArchive.m */; };
+		225448FB205C51AF00B53D72 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 225448F6205C51AF00B53D72 /* ioapi.c */; };
+		225448FC205C51AF00B53D72 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = 225448F9205C51AF00B53D72 /* zip.c */; };
+		225448FD205C51AF00B53D72 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 225448FA205C51AF00B53D72 /* unzip.c */; };
+		2254491B205C51CC00B53D72 /* UNIHTTPBinaryResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 225448FF205C51C100B53D72 /* UNIHTTPBinaryResponse.m */; };
+		2254491C205C51CC00B53D72 /* UNIHTTPStringResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544900205C51C100B53D72 /* UNIHTTPStringResponse.m */; };
+		2254491D205C51CC00B53D72 /* Base64.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544901205C51C200B53D72 /* Base64.m */; };
+		2254491E205C51CC00B53D72 /* UNIHTTPClientHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544902205C51C200B53D72 /* UNIHTTPClientHelper.m */; };
+		2254491F205C51CC00B53D72 /* UNIHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544904205C51C200B53D72 /* UNIHTTPResponse.m */; };
+		22544920205C51CC00B53D72 /* UNISimpleRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2254490B205C51C700B53D72 /* UNISimpleRequest.m */; };
+		22544921205C51CC00B53D72 /* UNIHTTPRequestWithBody.m in Sources */ = {isa = PBXBuildFile; fileRef = 2254490F205C51C800B53D72 /* UNIHTTPRequestWithBody.m */; };
+		22544922205C51CC00B53D72 /* UNIHTTPJsonResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544910205C51C800B53D72 /* UNIHTTPJsonResponse.m */; };
+		22544923205C51CC00B53D72 /* UNIUrlConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544912205C51CA00B53D72 /* UNIUrlConnection.m */; };
+		22544924205C51CC00B53D72 /* UNIBaseRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544913205C51CA00B53D72 /* UNIBaseRequest.m */; };
+		22544925205C51CC00B53D72 /* UNIJsonNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544914205C51CA00B53D72 /* UNIJsonNode.m */; };
+		22544926205C51CC00B53D72 /* UNIBodyRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544915205C51CA00B53D72 /* UNIBodyRequest.m */; };
+		22544927205C51CC00B53D72 /* UNIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544916205C51CB00B53D72 /* UNIHTTPRequest.m */; };
+		22544928205C51CC00B53D72 /* UNIRest.m in Sources */ = {isa = PBXBuildFile; fileRef = 22544917205C51CB00B53D72 /* UNIRest.m */; };
+		22544943205C51D800B53D72 /* gzread.c in Sources */ = {isa = PBXBuildFile; fileRef = 2254492A205C51D400B53D72 /* gzread.c */; };
+		22544944205C51D800B53D72 /* gzlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 2254492E205C51D400B53D72 /* gzlib.c */; };
+		22544945205C51D800B53D72 /* trees.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544930205C51D500B53D72 /* trees.c */; };
+		22544946205C51D800B53D72 /* adler32.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544931205C51D500B53D72 /* adler32.c */; };
+		22544947205C51D800B53D72 /* inftrees.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544932205C51D500B53D72 /* inftrees.c */; };
+		22544948205C51D800B53D72 /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544933205C51D500B53D72 /* zutil.c */; };
+		22544949205C51D800B53D72 /* deflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544935205C51D500B53D72 /* deflate.c */; };
+		2254494A205C51D800B53D72 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544936205C51D600B53D72 /* compress.c */; };
+		2254494B205C51D800B53D72 /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544937205C51D600B53D72 /* uncompr.c */; };
+		2254494C205C51D800B53D72 /* inflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544938205C51D600B53D72 /* inflate.c */; };
+		2254494D205C51D800B53D72 /* gzclose.c in Sources */ = {isa = PBXBuildFile; fileRef = 2254493C205C51D700B53D72 /* gzclose.c */; };
+		2254494E205C51D800B53D72 /* gzwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 2254493D205C51D700B53D72 /* gzwrite.c */; };
+		2254494F205C51D800B53D72 /* crc32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2254493E205C51D700B53D72 /* crc32.c */; };
+		22544950205C51D800B53D72 /* infback.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544940205C51D700B53D72 /* infback.c */; };
+		22544951205C51D800B53D72 /* inffast.c in Sources */ = {isa = PBXBuildFile; fileRef = 22544942205C51D800B53D72 /* inffast.c */; };
+		22BDFA46205C6C1100750EE0 /* CDVSplashScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 22BDFA43205C6C1100750EE0 /* CDVSplashScreen.m */; };
+		22BDFA47205C6C1100750EE0 /* CDVViewController+SplashScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 22BDFA45205C6C1100750EE0 /* CDVViewController+SplashScreen.m */; };
+		22BDFA48205C6C5500750EE0 /* libIonicPluginLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 225448D5205C50DE00B53D72 /* libIonicPluginLib.a */; };
+		22BDFA49205C6C6500750EE0 /* libCordova.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 22544894205C4CB300B53D72 /* libCordova.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		22544893205C4CB300B53D72 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2254488E205C4CB300B53D72 /* CordovaLib.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 68A32D7114102E1C006B237C;
+			remoteInfo = CordovaLib;
+		};
+		22544895205C4CB300B53D72 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2254488E205C4CB300B53D72 /* CordovaLib.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C0C01EB21E3911D50056E6CB;
+			remoteInfo = Cordova;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		225448D3205C50DE00B53D72 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22BDFA37205C6BF100750EE0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2254488E205C4CB300B53D72 /* CordovaLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CordovaLib.xcodeproj; path = "../node_modules/cordova-ios/CordovaLib/CordovaLib.xcodeproj"; sourceTree = "<group>"; };
+		2254489B205C4D3A00B53D72 /* IonicPluginLibTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IonicPluginLibTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2254489E205C4D3A00B53D72 /* IonicPluginLibTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IonicPluginLibTests.m; sourceTree = "<group>"; };
+		225448A0205C4D3A00B53D72 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		225448D5205C50DE00B53D72 /* libIonicPluginLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libIonicPluginLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		225448DE205C511900B53D72 /* CDVSplashScreen+IonicDeploy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "CDVSplashScreen+IonicDeploy.m"; path = "../../../../src/ios/CDVSplashScreen+IonicDeploy.m"; sourceTree = "<group>"; };
+		225448DF205C511900B53D72 /* IonicConstant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = IonicConstant.m; path = ../../../../src/ios/IonicConstant.m; sourceTree = "<group>"; };
+		225448E0205C511900B53D72 /* DownloadManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DownloadManager.m; path = ../../../../src/ios/DownloadManager.m; sourceTree = "<group>"; };
+		225448E1205C511900B53D72 /* IonicConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IonicConstant.h; path = ../../../../src/ios/IonicConstant.h; sourceTree = "<group>"; };
+		225448E2205C511900B53D72 /* Download.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Download.h; path = ../../../../src/ios/Download.h; sourceTree = "<group>"; };
+		225448E3205C511900B53D72 /* Download.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Download.m; path = ../../../../src/ios/Download.m; sourceTree = "<group>"; };
+		225448E4205C511A00B53D72 /* IonicDeploy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IonicDeploy.h; path = ../../../../src/ios/IonicDeploy.h; sourceTree = "<group>"; };
+		225448E5205C511A00B53D72 /* IonicDeploy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = IonicDeploy.m; path = ../../../../src/ios/IonicDeploy.m; sourceTree = "<group>"; };
+		225448E6205C511A00B53D72 /* SSZipArchive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SSZipArchive.h; path = ../../../../src/ios/SSZipArchive.h; sourceTree = "<group>"; };
+		225448E7205C511A00B53D72 /* IonicCordovaCommon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = IonicCordovaCommon.m; path = ../../../../src/ios/IonicCordovaCommon.m; sourceTree = "<group>"; };
+		225448E8205C511A00B53D72 /* SSZipArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SSZipArchive.m; path = ../../../../src/ios/SSZipArchive.m; sourceTree = "<group>"; };
+		225448E9205C511A00B53D72 /* CDVSplashScreen+IonicDeploy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "CDVSplashScreen+IonicDeploy.h"; path = "../../../../src/ios/CDVSplashScreen+IonicDeploy.h"; sourceTree = "<group>"; };
+		225448EA205C511A00B53D72 /* DownloadManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DownloadManager.h; path = ../../../../src/ios/DownloadManager.h; sourceTree = "<group>"; };
+		225448EB205C511A00B53D72 /* IonicCordovaCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IonicCordovaCommon.h; path = ../../../../src/ios/IonicCordovaCommon.h; sourceTree = "<group>"; };
+		225448F3205C519F00B53D72 /* ARCHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ARCHelper.h; path = ../../../../src/ios/ARCHelper/ARCHelper.h; sourceTree = "<group>"; };
+		225448F4205C51AF00B53D72 /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zip.h; path = ../../../../src/ios/MiniZip/zip.h; sourceTree = "<group>"; };
+		225448F5205C51AF00B53D72 /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ioapi.h; path = ../../../../src/ios/MiniZip/ioapi.h; sourceTree = "<group>"; };
+		225448F6205C51AF00B53D72 /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioapi.c; path = ../../../../src/ios/MiniZip/ioapi.c; sourceTree = "<group>"; };
+		225448F7205C51AF00B53D72 /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypt.h; path = ../../../../src/ios/MiniZip/crypt.h; sourceTree = "<group>"; };
+		225448F8205C51AF00B53D72 /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unzip.h; path = ../../../../src/ios/MiniZip/unzip.h; sourceTree = "<group>"; };
+		225448F9205C51AF00B53D72 /* zip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zip.c; path = ../../../../src/ios/MiniZip/zip.c; sourceTree = "<group>"; };
+		225448FA205C51AF00B53D72 /* unzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = unzip.c; path = ../../../../src/ios/MiniZip/unzip.c; sourceTree = "<group>"; };
+		225448FE205C51C100B53D72 /* UNIHTTPJsonResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIHTTPJsonResponse.h; path = ../../../../src/ios/Unirest/UNIHTTPJsonResponse.h; sourceTree = "<group>"; };
+		225448FF205C51C100B53D72 /* UNIHTTPBinaryResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIHTTPBinaryResponse.m; path = ../../../../src/ios/Unirest/UNIHTTPBinaryResponse.m; sourceTree = "<group>"; };
+		22544900205C51C100B53D72 /* UNIHTTPStringResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIHTTPStringResponse.m; path = ../../../../src/ios/Unirest/UNIHTTPStringResponse.m; sourceTree = "<group>"; };
+		22544901205C51C200B53D72 /* Base64.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Base64.m; path = ../../../../src/ios/Unirest/Base64.m; sourceTree = "<group>"; };
+		22544902205C51C200B53D72 /* UNIHTTPClientHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIHTTPClientHelper.m; path = ../../../../src/ios/Unirest/UNIHTTPClientHelper.m; sourceTree = "<group>"; };
+		22544903205C51C200B53D72 /* Base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Base64.h; path = ../../../../src/ios/Unirest/Base64.h; sourceTree = "<group>"; };
+		22544904205C51C200B53D72 /* UNIHTTPResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIHTTPResponse.m; path = ../../../../src/ios/Unirest/UNIHTTPResponse.m; sourceTree = "<group>"; };
+		22544905205C51C200B53D72 /* UNIHTTPStringResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIHTTPStringResponse.h; path = ../../../../src/ios/Unirest/UNIHTTPStringResponse.h; sourceTree = "<group>"; };
+		22544906205C51C200B53D72 /* UNIBodyRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIBodyRequest.h; path = ../../../../src/ios/Unirest/UNIBodyRequest.h; sourceTree = "<group>"; };
+		22544907205C51C600B53D72 /* UNIJsonNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIJsonNode.h; path = ../../../../src/ios/Unirest/UNIJsonNode.h; sourceTree = "<group>"; };
+		22544909205C51C600B53D72 /* UNIRest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIRest.h; path = ../../../../src/ios/Unirest/UNIRest.h; sourceTree = "<group>"; };
+		2254490A205C51C700B53D72 /* UNIBaseRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIBaseRequest.h; path = ../../../../src/ios/Unirest/UNIBaseRequest.h; sourceTree = "<group>"; };
+		2254490B205C51C700B53D72 /* UNISimpleRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNISimpleRequest.m; path = ../../../../src/ios/Unirest/UNISimpleRequest.m; sourceTree = "<group>"; };
+		2254490C205C51C700B53D72 /* UNIHTTPClientHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIHTTPClientHelper.h; path = ../../../../src/ios/Unirest/UNIHTTPClientHelper.h; sourceTree = "<group>"; };
+		2254490D205C51C700B53D72 /* UNISimpleRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNISimpleRequest.h; path = ../../../../src/ios/Unirest/UNISimpleRequest.h; sourceTree = "<group>"; };
+		2254490E205C51C700B53D72 /* UNIHTTPBinaryResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIHTTPBinaryResponse.h; path = ../../../../src/ios/Unirest/UNIHTTPBinaryResponse.h; sourceTree = "<group>"; };
+		2254490F205C51C800B53D72 /* UNIHTTPRequestWithBody.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIHTTPRequestWithBody.m; path = ../../../../src/ios/Unirest/UNIHTTPRequestWithBody.m; sourceTree = "<group>"; };
+		22544910205C51C800B53D72 /* UNIHTTPJsonResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIHTTPJsonResponse.m; path = ../../../../src/ios/Unirest/UNIHTTPJsonResponse.m; sourceTree = "<group>"; };
+		22544911205C51C800B53D72 /* UNIHTTPResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIHTTPResponse.h; path = ../../../../src/ios/Unirest/UNIHTTPResponse.h; sourceTree = "<group>"; };
+		22544912205C51CA00B53D72 /* UNIUrlConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIUrlConnection.m; path = ../../../../src/ios/Unirest/UNIUrlConnection.m; sourceTree = "<group>"; };
+		22544913205C51CA00B53D72 /* UNIBaseRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIBaseRequest.m; path = ../../../../src/ios/Unirest/UNIBaseRequest.m; sourceTree = "<group>"; };
+		22544914205C51CA00B53D72 /* UNIJsonNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIJsonNode.m; path = ../../../../src/ios/Unirest/UNIJsonNode.m; sourceTree = "<group>"; };
+		22544915205C51CA00B53D72 /* UNIBodyRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIBodyRequest.m; path = ../../../../src/ios/Unirest/UNIBodyRequest.m; sourceTree = "<group>"; };
+		22544916205C51CB00B53D72 /* UNIHTTPRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIHTTPRequest.m; path = ../../../../src/ios/Unirest/UNIHTTPRequest.m; sourceTree = "<group>"; };
+		22544917205C51CB00B53D72 /* UNIRest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UNIRest.m; path = ../../../../src/ios/Unirest/UNIRest.m; sourceTree = "<group>"; };
+		22544918205C51CC00B53D72 /* UNIUrlConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIUrlConnection.h; path = ../../../../src/ios/Unirest/UNIUrlConnection.h; sourceTree = "<group>"; };
+		22544919205C51CC00B53D72 /* UNIHTTPRequestWithBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIHTTPRequestWithBody.h; path = ../../../../src/ios/Unirest/UNIHTTPRequestWithBody.h; sourceTree = "<group>"; };
+		2254491A205C51CC00B53D72 /* UNIHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UNIHTTPRequest.h; path = ../../../../src/ios/Unirest/UNIHTTPRequest.h; sourceTree = "<group>"; };
+		22544929205C51D400B53D72 /* trees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = trees.h; path = ../../../../src/ios/ZLib/trees.h; sourceTree = "<group>"; };
+		2254492A205C51D400B53D72 /* gzread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzread.c; path = ../../../../src/ios/ZLib/gzread.c; sourceTree = "<group>"; };
+		2254492B205C51D400B53D72 /* zutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zutil.h; path = ../../../../src/ios/ZLib/zutil.h; sourceTree = "<group>"; };
+		2254492C205C51D400B53D72 /* inffast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inffast.h; path = ../../../../src/ios/ZLib/inffast.h; sourceTree = "<group>"; };
+		2254492D205C51D400B53D72 /* deflate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = deflate.h; path = ../../../../src/ios/ZLib/deflate.h; sourceTree = "<group>"; };
+		2254492E205C51D400B53D72 /* gzlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzlib.c; path = ../../../../src/ios/ZLib/gzlib.c; sourceTree = "<group>"; };
+		2254492F205C51D500B53D72 /* inffixed.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inffixed.h; path = ../../../../src/ios/ZLib/inffixed.h; sourceTree = "<group>"; };
+		22544930205C51D500B53D72 /* trees.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = trees.c; path = ../../../../src/ios/ZLib/trees.c; sourceTree = "<group>"; };
+		22544931205C51D500B53D72 /* adler32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = adler32.c; path = ../../../../src/ios/ZLib/adler32.c; sourceTree = "<group>"; };
+		22544932205C51D500B53D72 /* inftrees.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inftrees.c; path = ../../../../src/ios/ZLib/inftrees.c; sourceTree = "<group>"; };
+		22544933205C51D500B53D72 /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zutil.c; path = ../../../../src/ios/ZLib/zutil.c; sourceTree = "<group>"; };
+		22544934205C51D500B53D72 /* crc32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crc32.h; path = ../../../../src/ios/ZLib/crc32.h; sourceTree = "<group>"; };
+		22544935205C51D500B53D72 /* deflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = deflate.c; path = ../../../../src/ios/ZLib/deflate.c; sourceTree = "<group>"; };
+		22544936205C51D600B53D72 /* compress.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = compress.c; path = ../../../../src/ios/ZLib/compress.c; sourceTree = "<group>"; };
+		22544937205C51D600B53D72 /* uncompr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = uncompr.c; path = ../../../../src/ios/ZLib/uncompr.c; sourceTree = "<group>"; };
+		22544938205C51D600B53D72 /* inflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inflate.c; path = ../../../../src/ios/ZLib/inflate.c; sourceTree = "<group>"; };
+		22544939205C51D600B53D72 /* zconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zconf.h; path = ../../../../src/ios/ZLib/zconf.h; sourceTree = "<group>"; };
+		2254493A205C51D600B53D72 /* inflate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inflate.h; path = ../../../../src/ios/ZLib/inflate.h; sourceTree = "<group>"; };
+		2254493B205C51D600B53D72 /* inftrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inftrees.h; path = ../../../../src/ios/ZLib/inftrees.h; sourceTree = "<group>"; };
+		2254493C205C51D700B53D72 /* gzclose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzclose.c; path = ../../../../src/ios/ZLib/gzclose.c; sourceTree = "<group>"; };
+		2254493D205C51D700B53D72 /* gzwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzwrite.c; path = ../../../../src/ios/ZLib/gzwrite.c; sourceTree = "<group>"; };
+		2254493E205C51D700B53D72 /* crc32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = crc32.c; path = ../../../../src/ios/ZLib/crc32.c; sourceTree = "<group>"; };
+		2254493F205C51D700B53D72 /* gzguts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gzguts.h; path = ../../../../src/ios/ZLib/gzguts.h; sourceTree = "<group>"; };
+		22544940205C51D700B53D72 /* infback.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = infback.c; path = ../../../../src/ios/ZLib/infback.c; sourceTree = "<group>"; };
+		22544941205C51D700B53D72 /* zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zlib.h; path = ../../../../src/ios/ZLib/zlib.h; sourceTree = "<group>"; };
+		22544942205C51D800B53D72 /* inffast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inffast.c; path = ../../../../src/ios/ZLib/inffast.c; sourceTree = "<group>"; };
+		22BDFA39205C6BF100750EE0 /* libCDVSplashScreenLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCDVSplashScreenLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		22BDFA42205C6C1100750EE0 /* CDVSplashScreen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDVSplashScreen.h; path = "../../node_modules/cordova-plugin-splashscreen/src/ios/CDVSplashScreen.h"; sourceTree = "<group>"; };
+		22BDFA43205C6C1100750EE0 /* CDVSplashScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CDVSplashScreen.m; path = "../../node_modules/cordova-plugin-splashscreen/src/ios/CDVSplashScreen.m"; sourceTree = "<group>"; };
+		22BDFA44205C6C1100750EE0 /* CDVViewController+SplashScreen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "CDVViewController+SplashScreen.h"; path = "../../node_modules/cordova-plugin-splashscreen/src/ios/CDVViewController+SplashScreen.h"; sourceTree = "<group>"; };
+		22BDFA45205C6C1100750EE0 /* CDVViewController+SplashScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "CDVViewController+SplashScreen.m"; path = "../../node_modules/cordova-plugin-splashscreen/src/ios/CDVViewController+SplashScreen.m"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		22544898205C4D3A00B53D72 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22BDFA49205C6C6500750EE0 /* libCordova.a in Frameworks */,
+				22BDFA48205C6C5500750EE0 /* libIonicPluginLib.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		225448D2205C50DE00B53D72 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22BDFA36205C6BF100750EE0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		22544887205C4CA500B53D72 = {
+			isa = PBXGroup;
+			children = (
+				2254488E205C4CB300B53D72 /* CordovaLib.xcodeproj */,
+				2254489D205C4D3A00B53D72 /* IonicPluginLibTests */,
+				225448D6205C50DE00B53D72 /* IonicPluginLib */,
+				22BDFA3A205C6BF100750EE0 /* CDVSplashScreenLib */,
+				2254489C205C4D3A00B53D72 /* Products */,
+				22544973205C5C5400B53D72 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		2254488F205C4CB300B53D72 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				22544894205C4CB300B53D72 /* libCordova.a */,
+				22544896205C4CB300B53D72 /* Cordova.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2254489C205C4D3A00B53D72 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2254489B205C4D3A00B53D72 /* IonicPluginLibTests.xctest */,
+				225448D5205C50DE00B53D72 /* libIonicPluginLib.a */,
+				22BDFA39205C6BF100750EE0 /* libCDVSplashScreenLib.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2254489D205C4D3A00B53D72 /* IonicPluginLibTests */ = {
+			isa = PBXGroup;
+			children = (
+				2254489E205C4D3A00B53D72 /* IonicPluginLibTests.m */,
+				225448A0205C4D3A00B53D72 /* Info.plist */,
+			);
+			path = IonicPluginLibTests;
+			sourceTree = "<group>";
+		};
+		225448D6205C50DE00B53D72 /* IonicPluginLib */ = {
+			isa = PBXGroup;
+			children = (
+				22544931205C51D500B53D72 /* adler32.c */,
+				22544936205C51D600B53D72 /* compress.c */,
+				2254493E205C51D700B53D72 /* crc32.c */,
+				22544934205C51D500B53D72 /* crc32.h */,
+				22544935205C51D500B53D72 /* deflate.c */,
+				2254492D205C51D400B53D72 /* deflate.h */,
+				2254493C205C51D700B53D72 /* gzclose.c */,
+				2254493F205C51D700B53D72 /* gzguts.h */,
+				2254492E205C51D400B53D72 /* gzlib.c */,
+				2254492A205C51D400B53D72 /* gzread.c */,
+				2254493D205C51D700B53D72 /* gzwrite.c */,
+				22544940205C51D700B53D72 /* infback.c */,
+				22544942205C51D800B53D72 /* inffast.c */,
+				2254492C205C51D400B53D72 /* inffast.h */,
+				2254492F205C51D500B53D72 /* inffixed.h */,
+				22544938205C51D600B53D72 /* inflate.c */,
+				2254493A205C51D600B53D72 /* inflate.h */,
+				22544932205C51D500B53D72 /* inftrees.c */,
+				2254493B205C51D600B53D72 /* inftrees.h */,
+				22544930205C51D500B53D72 /* trees.c */,
+				22544929205C51D400B53D72 /* trees.h */,
+				22544937205C51D600B53D72 /* uncompr.c */,
+				22544939205C51D600B53D72 /* zconf.h */,
+				22544941205C51D700B53D72 /* zlib.h */,
+				22544933205C51D500B53D72 /* zutil.c */,
+				2254492B205C51D400B53D72 /* zutil.h */,
+				22544903205C51C200B53D72 /* Base64.h */,
+				22544901205C51C200B53D72 /* Base64.m */,
+				2254490A205C51C700B53D72 /* UNIBaseRequest.h */,
+				22544913205C51CA00B53D72 /* UNIBaseRequest.m */,
+				22544906205C51C200B53D72 /* UNIBodyRequest.h */,
+				22544915205C51CA00B53D72 /* UNIBodyRequest.m */,
+				2254490E205C51C700B53D72 /* UNIHTTPBinaryResponse.h */,
+				225448FF205C51C100B53D72 /* UNIHTTPBinaryResponse.m */,
+				2254490C205C51C700B53D72 /* UNIHTTPClientHelper.h */,
+				22544902205C51C200B53D72 /* UNIHTTPClientHelper.m */,
+				225448FE205C51C100B53D72 /* UNIHTTPJsonResponse.h */,
+				22544910205C51C800B53D72 /* UNIHTTPJsonResponse.m */,
+				2254491A205C51CC00B53D72 /* UNIHTTPRequest.h */,
+				22544916205C51CB00B53D72 /* UNIHTTPRequest.m */,
+				22544919205C51CC00B53D72 /* UNIHTTPRequestWithBody.h */,
+				2254490F205C51C800B53D72 /* UNIHTTPRequestWithBody.m */,
+				22544911205C51C800B53D72 /* UNIHTTPResponse.h */,
+				22544904205C51C200B53D72 /* UNIHTTPResponse.m */,
+				22544905205C51C200B53D72 /* UNIHTTPStringResponse.h */,
+				22544900205C51C100B53D72 /* UNIHTTPStringResponse.m */,
+				22544907205C51C600B53D72 /* UNIJsonNode.h */,
+				22544914205C51CA00B53D72 /* UNIJsonNode.m */,
+				22544909205C51C600B53D72 /* UNIRest.h */,
+				22544917205C51CB00B53D72 /* UNIRest.m */,
+				2254490D205C51C700B53D72 /* UNISimpleRequest.h */,
+				2254490B205C51C700B53D72 /* UNISimpleRequest.m */,
+				22544918205C51CC00B53D72 /* UNIUrlConnection.h */,
+				22544912205C51CA00B53D72 /* UNIUrlConnection.m */,
+				225448F7205C51AF00B53D72 /* crypt.h */,
+				225448F6205C51AF00B53D72 /* ioapi.c */,
+				225448F5205C51AF00B53D72 /* ioapi.h */,
+				225448FA205C51AF00B53D72 /* unzip.c */,
+				225448F8205C51AF00B53D72 /* unzip.h */,
+				225448F9205C51AF00B53D72 /* zip.c */,
+				225448F4205C51AF00B53D72 /* zip.h */,
+				225448F3205C519F00B53D72 /* ARCHelper.h */,
+				225448E9205C511A00B53D72 /* CDVSplashScreen+IonicDeploy.h */,
+				225448DE205C511900B53D72 /* CDVSplashScreen+IonicDeploy.m */,
+				225448E2205C511900B53D72 /* Download.h */,
+				225448E3205C511900B53D72 /* Download.m */,
+				225448EA205C511A00B53D72 /* DownloadManager.h */,
+				225448E0205C511900B53D72 /* DownloadManager.m */,
+				225448E1205C511900B53D72 /* IonicConstant.h */,
+				225448DF205C511900B53D72 /* IonicConstant.m */,
+				225448EB205C511A00B53D72 /* IonicCordovaCommon.h */,
+				225448E7205C511A00B53D72 /* IonicCordovaCommon.m */,
+				225448E4205C511A00B53D72 /* IonicDeploy.h */,
+				225448E5205C511A00B53D72 /* IonicDeploy.m */,
+				225448E6205C511A00B53D72 /* SSZipArchive.h */,
+				225448E8205C511A00B53D72 /* SSZipArchive.m */,
+			);
+			path = IonicPluginLib;
+			sourceTree = "<group>";
+		};
+		22544973205C5C5400B53D72 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		22BDFA3A205C6BF100750EE0 /* CDVSplashScreenLib */ = {
+			isa = PBXGroup;
+			children = (
+				22BDFA42205C6C1100750EE0 /* CDVSplashScreen.h */,
+				22BDFA43205C6C1100750EE0 /* CDVSplashScreen.m */,
+				22BDFA44205C6C1100750EE0 /* CDVViewController+SplashScreen.h */,
+				22BDFA45205C6C1100750EE0 /* CDVViewController+SplashScreen.m */,
+			);
+			path = CDVSplashScreenLib;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2254489A205C4D3A00B53D72 /* IonicPluginLibTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 225448A1205C4D3A00B53D72 /* Build configuration list for PBXNativeTarget "IonicPluginLibTests" */;
+			buildPhases = (
+				22544897205C4D3A00B53D72 /* Sources */,
+				22544898205C4D3A00B53D72 /* Frameworks */,
+				22544899205C4D3A00B53D72 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IonicPluginLibTests;
+			productName = IonicPluginLibTests;
+			productReference = 2254489B205C4D3A00B53D72 /* IonicPluginLibTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		225448D4205C50DE00B53D72 /* IonicPluginLib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 225448DB205C50DE00B53D72 /* Build configuration list for PBXNativeTarget "IonicPluginLib" */;
+			buildPhases = (
+				225448D1205C50DE00B53D72 /* Sources */,
+				225448D2205C50DE00B53D72 /* Frameworks */,
+				225448D3205C50DE00B53D72 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IonicPluginLib;
+			productName = IonicPluginLib;
+			productReference = 225448D5205C50DE00B53D72 /* libIonicPluginLib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		22BDFA38205C6BF100750EE0 /* CDVSplashScreenLib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 22BDFA3F205C6BF100750EE0 /* Build configuration list for PBXNativeTarget "CDVSplashScreenLib" */;
+			buildPhases = (
+				22BDFA35205C6BF100750EE0 /* Sources */,
+				22BDFA36205C6BF100750EE0 /* Frameworks */,
+				22BDFA37205C6BF100750EE0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CDVSplashScreenLib;
+			productName = CDVSplashScreenLib;
+			productReference = 22BDFA39205C6BF100750EE0 /* libCDVSplashScreenLib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		22544888205C4CA500B53D72 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0920;
+				TargetAttributes = {
+					2254489A205C4D3A00B53D72 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
+					225448D4205C50DE00B53D72 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
+					22BDFA38205C6BF100750EE0 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 2254488B205C4CA500B53D72 /* Build configuration list for PBXProject "IonicPluginTest" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 22544887205C4CA500B53D72;
+			productRefGroup = 2254489C205C4D3A00B53D72 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 2254488F205C4CB300B53D72 /* Products */;
+					ProjectRef = 2254488E205C4CB300B53D72 /* CordovaLib.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				2254489A205C4D3A00B53D72 /* IonicPluginLibTests */,
+				225448D4205C50DE00B53D72 /* IonicPluginLib */,
+				22BDFA38205C6BF100750EE0 /* CDVSplashScreenLib */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		22544894205C4CB300B53D72 /* libCordova.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCordova.a;
+			remoteRef = 22544893205C4CB300B53D72 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		22544896205C4CB300B53D72 /* Cordova.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Cordova.framework;
+			remoteRef = 22544895205C4CB300B53D72 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		22544899205C4D3A00B53D72 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		22544897205C4D3A00B53D72 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2254489F205C4D3A00B53D72 /* IonicPluginLibTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		225448D1205C50DE00B53D72 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				225448F0205C511A00B53D72 /* IonicDeploy.m in Sources */,
+				22544923205C51CC00B53D72 /* UNIUrlConnection.m in Sources */,
+				22544947205C51D800B53D72 /* inftrees.c in Sources */,
+				2254491D205C51CC00B53D72 /* Base64.m in Sources */,
+				2254491C205C51CC00B53D72 /* UNIHTTPStringResponse.m in Sources */,
+				2254491F205C51CC00B53D72 /* UNIHTTPResponse.m in Sources */,
+				225448EC205C511A00B53D72 /* CDVSplashScreen+IonicDeploy.m in Sources */,
+				22544921205C51CC00B53D72 /* UNIHTTPRequestWithBody.m in Sources */,
+				2254494A205C51D800B53D72 /* compress.c in Sources */,
+				22544945205C51D800B53D72 /* trees.c in Sources */,
+				225448ED205C511A00B53D72 /* IonicConstant.m in Sources */,
+				225448FB205C51AF00B53D72 /* ioapi.c in Sources */,
+				2254494F205C51D800B53D72 /* crc32.c in Sources */,
+				22544944205C51D800B53D72 /* gzlib.c in Sources */,
+				225448FC205C51AF00B53D72 /* zip.c in Sources */,
+				2254494D205C51D800B53D72 /* gzclose.c in Sources */,
+				22544946205C51D800B53D72 /* adler32.c in Sources */,
+				225448EF205C511A00B53D72 /* Download.m in Sources */,
+				2254494B205C51D800B53D72 /* uncompr.c in Sources */,
+				225448FD205C51AF00B53D72 /* unzip.c in Sources */,
+				2254491B205C51CC00B53D72 /* UNIHTTPBinaryResponse.m in Sources */,
+				225448F2205C511A00B53D72 /* SSZipArchive.m in Sources */,
+				22544928205C51CC00B53D72 /* UNIRest.m in Sources */,
+				22544949205C51D800B53D72 /* deflate.c in Sources */,
+				22544927205C51CC00B53D72 /* UNIHTTPRequest.m in Sources */,
+				22544922205C51CC00B53D72 /* UNIHTTPJsonResponse.m in Sources */,
+				22544920205C51CC00B53D72 /* UNISimpleRequest.m in Sources */,
+				225448EE205C511A00B53D72 /* DownloadManager.m in Sources */,
+				225448F1205C511A00B53D72 /* IonicCordovaCommon.m in Sources */,
+				22544951205C51D800B53D72 /* inffast.c in Sources */,
+				2254494C205C51D800B53D72 /* inflate.c in Sources */,
+				22544948205C51D800B53D72 /* zutil.c in Sources */,
+				2254494E205C51D800B53D72 /* gzwrite.c in Sources */,
+				22544950205C51D800B53D72 /* infback.c in Sources */,
+				22544926205C51CC00B53D72 /* UNIBodyRequest.m in Sources */,
+				22544925205C51CC00B53D72 /* UNIJsonNode.m in Sources */,
+				22544943205C51D800B53D72 /* gzread.c in Sources */,
+				2254491E205C51CC00B53D72 /* UNIHTTPClientHelper.m in Sources */,
+				22544924205C51CC00B53D72 /* UNIBaseRequest.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22BDFA35205C6BF100750EE0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22BDFA47205C6C1100750EE0 /* CDVViewController+SplashScreen.m in Sources */,
+				22BDFA46205C6C1100750EE0 /* CDVSplashScreen.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2254488C205C4CA500B53D72 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+			};
+			name = Debug;
+		};
+		2254488D205C4CA500B53D72 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+			};
+			name = Release;
+		};
+		225448A2205C4D3A00B53D72 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 9YN2HU59K8;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = IonicPluginLibTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = io.ionic.IonicPluginLibTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		225448A3205C4D3A00B53D72 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 9YN2HU59K8;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = IonicPluginLibTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = io.ionic.IonicPluginLibTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		225448DC205C50DE00B53D72 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 9YN2HU59K8;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "IonicPluginLib/IonicPluginLib-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		225448DD205C50DE00B53D72 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 9YN2HU59K8;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "IonicPluginLib/IonicPluginLib-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		22BDFA40205C6BF100750EE0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 9YN2HU59K8;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		22BDFA41205C6BF100750EE0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 9YN2HU59K8;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2254488B205C4CA500B53D72 /* Build configuration list for PBXProject "IonicPluginTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2254488C205C4CA500B53D72 /* Debug */,
+				2254488D205C4CA500B53D72 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		225448A1205C4D3A00B53D72 /* Build configuration list for PBXNativeTarget "IonicPluginLibTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				225448A2205C4D3A00B53D72 /* Debug */,
+				225448A3205C4D3A00B53D72 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		225448DB205C50DE00B53D72 /* Build configuration list for PBXNativeTarget "IonicPluginLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				225448DC205C50DE00B53D72 /* Debug */,
+				225448DD205C50DE00B53D72 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		22BDFA3F205C6BF100750EE0 /* Build configuration list for PBXNativeTarget "CDVSplashScreenLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22BDFA40205C6BF100750EE0 /* Debug */,
+				22BDFA41205C6BF100750EE0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 22544888205C4CA500B53D72 /* Project object */;
+}
