@@ -1,0 +1,11 @@
+{
+    "name": "cordova-plugin-ionic-test-android",
+    "version": "1.0.0",
+    "description": "Android Unit Tests for Cordova Ionic Plugin",
+    "author": "Ionic",
+    "license": "Apache Version 2.0",
+    "dependencies": {
+        "cordova-android": "*"
+    },
+    "scripts": {}
+}
