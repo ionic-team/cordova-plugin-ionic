@@ -77,13 +77,17 @@ class JsonHttpResponse {
 }
 
 public class IonicDeploy extends CordovaPlugin {
+  // Public vars
+  public String app_id = null;
+  public String autoUpdate = "auto";
+  public String channel = null;
+  public boolean debug = true;
+
+  // Protected vars
   String server = null;
   Context myContext = null;
-  String app_id = null;
-  String channel = null;
-  String autoUpdate = "auto";
+  CordovaInterface cordova = null;
   String shouldDebug;
-  boolean debug = true;
   boolean isLoading = false;
   SharedPreferences prefs = null;
   int maxVersions = 3;
@@ -134,8 +138,8 @@ public class IonicDeploy extends CordovaPlugin {
     return text.toString();
   }
 
-  private String getStringResourceByName(String aString) {
-    Activity activity = cordova.getActivity();
+  public String getStringResourceByName(String aString) {
+    Activity activity = this.cordova.getActivity();
     String packageName = activity.getPackageName();
     int resId = activity.getResources().getIdentifier(aString, "string", packageName);
     return activity.getString(resId);
@@ -163,6 +167,7 @@ public class IonicDeploy extends CordovaPlugin {
    */
   public void initialize(CordovaInterface cordova, CordovaWebView cWebView) {
     super.initialize(cordova, cWebView);
+    this.cordova = cordova;
     this.myContext = this.cordova.getActivity().getApplicationContext();
     this.prefs = getPreferences();
     this.v = webView;
@@ -226,7 +231,7 @@ public class IonicDeploy extends CordovaPlugin {
     if (!this.autoUpdate.equals("none")) {
       this.isLoading = true;
       final IonicDeploy self = this;
-      cordova.getThreadPool().execute(new Runnable() {
+      this.cordova.getThreadPool().execute(new Runnable() {
         public void run() {
           if (isUpdateAvailable()) {
             try {
@@ -321,7 +326,7 @@ public class IonicDeploy extends CordovaPlugin {
     } else if (action.equals("check")) {
       logMessage("CHECK", "Checking for updates");
       final String channel_tag = this.channel;
-      cordova.getThreadPool().execute(new Runnable() {
+      this.cordova.getThreadPool().execute(new Runnable() {
         public void run() {
           checkForUpdates(callbackContext, channel_tag);
         }
@@ -329,7 +334,7 @@ public class IonicDeploy extends CordovaPlugin {
       return true;
     } else if (action.equals("download")) {
       logMessage("DOWNLOAD", "Downloading updates");
-      cordova.getThreadPool().execute(new Runnable() {
+      this.cordova.getThreadPool().execute(new Runnable() {
         public void run() {
           downloadUpdate(callbackContext);
         }
@@ -338,7 +343,7 @@ public class IonicDeploy extends CordovaPlugin {
     } else if (action.equals("extract")) {
       logMessage("EXTRACT", "Extracting update");
       final String uuid = this.getUUID("");
-      cordova.getThreadPool().execute(new Runnable() {
+      this.cordova.getThreadPool().execute(new Runnable() {
         public void run() {
           unzip("www.zip", uuid, callbackContext);
         }
@@ -367,7 +372,7 @@ public class IonicDeploy extends CordovaPlugin {
     } else if (action.equals("parseUpdate")) {
       logMessage("PARSEUPDATE", "Checking response for updates");
       final String response = args.getString(0);
-      cordova.getThreadPool().execute(new Runnable() {
+      this.cordova.getThreadPool().execute(new Runnable() {
         public void run() {
           parseUpdate(callbackContext, response);
         }
@@ -926,7 +931,7 @@ public class IonicDeploy extends CordovaPlugin {
         fw.close();
 
         // Load in the new index.html
-        cordova.getActivity().runOnUiThread(new Runnable() {
+        this.cordova.getActivity().runOnUiThread(new Runnable() {
           @Override
           public void run() {
             logMessage("REDIRECT", "Loading deploy version: " + uuid);
@@ -1013,16 +1018,16 @@ public class IonicDeploy extends CordovaPlugin {
     int drawableId = 0;
     String splashResource = preferences.getString("SplashScreen", "screen");
     if (splashResource != null) {
-      drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", cordova.getActivity().getClass().getPackage().getName());
+      drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", this.cordova.getActivity().getClass().getPackage().getName());
       if (drawableId == 0) {
-        drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", cordova.getActivity().getPackageName());
+        drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", this.cordova.getActivity().getPackageName());
       }
     }
     return drawableId;
   }
 
   private void spinnerStart() {
-    cordova.getActivity().runOnUiThread(new Runnable() {
+    this.cordova.getActivity().runOnUiThread(new Runnable() {
       public void run() {
         spinnerStop();
 
@@ -1063,7 +1068,7 @@ public class IonicDeploy extends CordovaPlugin {
   }
 
   private void removeSplashScreen() {
-    cordova.getActivity().runOnUiThread(new Runnable() {
+    this.cordova.getActivity().runOnUiThread(new Runnable() {
       public void run() {
         if (splashDialog != null && splashDialog.isShowing()) {
           final int fadeSplashScreenDuration = 300;
@@ -1109,7 +1114,7 @@ public class IonicDeploy extends CordovaPlugin {
   private void showSplashScreen() {
     final int drawableId = getSplashId();
 
-    if (cordova.getActivity().isFinishing()) {
+    if (this.cordova.getActivity().isFinishing()) {
       return;
     }
     if (splashDialog != null && splashDialog.isShowing()) {
@@ -1119,7 +1124,7 @@ public class IonicDeploy extends CordovaPlugin {
       return;
     }
 
-    cordova.getActivity().runOnUiThread(new Runnable() {
+    this.cordova.getActivity().runOnUiThread(new Runnable() {
       public void run() {
         Display display = cordova.getActivity().getWindowManager().getDefaultDisplay();
         Context context = webView.getContext();
