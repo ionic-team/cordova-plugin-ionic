@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.1.1
+
+* Send plugin version to Ionic Pro when checking for updates.
+
 ## 4.1.0
 
 * Added support for partial downloads.
