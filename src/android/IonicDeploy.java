@@ -765,6 +765,58 @@ public class IonicDeploy extends CordovaPlugin {
     }
   }
 
+  private void copyAssets(String[] fileNames, String basePath, String outputPath) throws IOException
+  {
+    AssetManager assetManager = this.myContext.getAssets();
+    for (String fileName : fileNames) {
+      String relativePath = basePath + fileName;
+      String assetPath = "www" + relativePath;
+      String[] children = assetManager.list(assetPath);
+      // if there are children, it's a directory
+      if (children.length != 0) {
+        copyAssets(children, relativePath + "/", outputPath);
+      } else {
+        InputStream in = assetManager.open(assetPath);
+        copyFile(in, outputPath + relativePath);
+      }
+    }
+  }
+
+  private void copyFiles(File[] files, File outputDir) throws IOException
+  {
+    for (File file : files) {
+      if (file.isDirectory()) {
+        copyFiles(file.listFiles(), outputDir);
+      } else {
+        InputStream in = new FileInputStream(file);
+        String filePath = file.getPath();
+        // assumption that output directory and input directory are siblings
+        String baseAppDir = outputDir.getParent();
+        String relativePath = filePath.substring(baseAppDir.length() + 1);
+        relativePath = relativePath.substring(relativePath.indexOf("/"));
+        copyFile(in, outputDir.getPath() + relativePath);
+      }
+    }
+  }
+
+  private void copyFile(InputStream in, String outputPath) throws IOException {
+    File outFile = new File(outputPath);
+    if (!outFile.getParentFile().exists()) {
+      outFile.getParentFile().mkdirs();
+    }
+    OutputStream out = new FileOutputStream(outFile);
+    byte[] buffer = new byte[2048];
+    BufferedOutputStream bufferedOut = new BufferedOutputStream(out, buffer.length);
+    int bits;
+    while((bits = in.read(buffer, 0, buffer.length)) != -1) {
+      bufferedOut.write(buffer, 0, bits);
+    }
+    try {
+      in.close();
+      out.close();
+    } catch (IOException e) {}
+  }
+
   /**
    * Extract the downloaded archive
    *
@@ -800,6 +852,23 @@ public class IonicDeploy extends CordovaPlugin {
 
       // Make the version directory in internal storage
       File versionDir = this.myContext.getDir(location, Context.MODE_PRIVATE);
+
+      // copy previous version files over in case we're doing incremental updates
+      try {
+        // get previous version path
+        String uuid = prefs.getString("uuid", "");
+        if ("".equalsIgnoreCase(uuid)) {
+          // no previous deploy, get bundle path
+          // asset API is different than regular files on filesystem
+          String[] fileNames = this.myContext.getAssets().list("www");
+          copyAssets(fileNames, "/", versionDir.getPath());
+        } else {
+          File[] files = this.myContext.getDir(uuid, Context.MODE_PRIVATE).listFiles();
+          copyFiles(files, versionDir);
+        }
+      } catch (IOException e) {
+        logMessage("COPY_PREVIOUS", "There was an error copying the previous version files.");
+      }
 
       logMessage("UNZIP_DIR", versionDir.getAbsolutePath().toString());
 
@@ -845,6 +914,9 @@ public class IonicDeploy extends CordovaPlugin {
 
       // Save the version we just downloaded as a version on hand
       saveVersion(upstream_uuid);
+
+      // Set the saved uuid to the most recently acquired upstream_uuid
+      prefs.edit().putString("uuid", upstream_uuid).apply();
 
       String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
       if (this.myContext.getFileStreamPath(zip).exists()) {
@@ -1242,9 +1314,7 @@ public class IonicDeploy extends CordovaPlugin {
       // Request shared preferences for this app id
       SharedPreferences prefs = getPreferences();
 
-      // Set the saved uuid to the most recently acquired upstream_uuid
       final String uuid = prefs.getString("upstream_uuid", "");
-      prefs.edit().putString("uuid", uuid).apply();
 
       if (this.callbackContext != null) {
         this.callbackContext.success("true");
