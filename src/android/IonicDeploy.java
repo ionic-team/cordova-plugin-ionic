@@ -97,6 +97,7 @@ public class IonicDeploy extends CordovaPlugin {
   private static ProgressDialog spinnerDialog;
   private ImageView splashImageView;
 
+  public static final String PLUGIN_VERSION = "4.2.0";
   public static final String INDEX_UPDATED = "INDEX_UPDATED";
   public static final String NO_DEPLOY_LABEL = "NO_DEPLOY_LABEL";
   public static final String NO_DEPLOY_AVAILABLE = "NO_DEPLOY_AVAILABLE";
