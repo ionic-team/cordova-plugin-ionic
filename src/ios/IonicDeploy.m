@@ -660,7 +660,8 @@ static NSOperationQueue *delegateQueue;
     NSDictionary *parameters = @{
                                  @"device": deviceDict,
                                  @"app_id": self.appId,
-                                 @"channel_name": self.channel_tag
+                                 @"channel_name": self.channel_tag,
+                                 @"plugin_version": PLUGIN_VERSION
                                  };
     UNIHTTPJsonResponse *result = [[UNIRest postEntity:^(UNIBodyRequest *request) {
         [request setUrl:url];
