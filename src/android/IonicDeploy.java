@@ -765,6 +765,41 @@ public class IonicDeploy extends CordovaPlugin {
     }
   }
 
+  private void copyFiles(File[] files, File outputDir) throws IOException {
+    for (File file : files) {
+      if (file.isDirectory()) {
+        copyFiles(file.listFiles(), outputDir);
+      } else {
+        String filePath = file.getPath();
+        // assumption that output directory and input directory are siblings
+        String baseAppDir = outputDir.getParent();
+        String relativePath = filePath.substring(baseAppDir.length() + 1);
+        relativePath = relativePath.substring(relativePath.indexOf("/"));
+        File outFile = new File(outputDir.getPath() + relativePath);
+        if (!outFile.getParentFile().exists()) {
+          outFile.getParentFile().mkdirs();
+        }
+        copyFile(file, outFile);
+      }
+    }
+  }
+
+  private void copyFile(File inFile, File outFile) throws IOException {
+    InputStream in = new FileInputStream(inFile);
+    OutputStream out = new FileOutputStream(outFile);
+    byte[] buffer = new byte[2048];
+    BufferedOutputStream bufferedOut = new BufferedOutputStream(out, buffer.length);
+    int bits;
+    try {
+      while ((bits = in.read(buffer, 0, buffer.length)) != -1) {
+        bufferedOut.write(buffer, 0, bits);
+      }
+    } finally {
+      in.close();
+      bufferedOut.close();
+    }
+  }
+
   /**
    * Extract the downloaded archive
    *
@@ -792,7 +827,6 @@ public class IonicDeploy extends CordovaPlugin {
       }
       return;
     }
-
     try  {
       FileInputStream inputStream = this.myContext.openFileInput(zip);
       ZipInputStream zipInputStream = new ZipInputStream(inputStream);
@@ -800,6 +834,24 @@ public class IonicDeploy extends CordovaPlugin {
 
       // Make the version directory in internal storage
       File versionDir = this.myContext.getDir(location, Context.MODE_PRIVATE);
+
+
+      Boolean partialUpdate = false;
+      try {
+        partialUpdate = Boolean.valueOf(this.last_update.getString("partial"));
+      } catch (JSONException e) {}
+
+      if (partialUpdate) {
+        // copy previous version files over if we're doing partial updates
+        // get previous version path
+        String uuid = prefs.getString("uuid", "");
+        if (!"".equalsIgnoreCase(uuid)) {
+          File[] files = this.myContext.getDir(uuid, Context.MODE_PRIVATE).listFiles();
+          copyFiles(files, versionDir);
+        } else {
+          throw new Exception("Previous version UUID was null, but partial update indicated");
+        }
+      }
 
       logMessage("UNZIP_DIR", versionDir.getAbsolutePath().toString());
 
@@ -845,6 +897,9 @@ public class IonicDeploy extends CordovaPlugin {
 
       // Save the version we just downloaded as a version on hand
       saveVersion(upstream_uuid);
+
+      // Set the saved uuid to the most recently acquired upstream_uuid
+      prefs.edit().putString("uuid", upstream_uuid).apply();
 
       String wwwFile = this.myContext.getFileStreamPath(zip).getAbsolutePath().toString();
       if (this.myContext.getFileStreamPath(zip).exists()) {
@@ -1242,9 +1297,7 @@ public class IonicDeploy extends CordovaPlugin {
       // Request shared preferences for this app id
       SharedPreferences prefs = getPreferences();
 
-      // Set the saved uuid to the most recently acquired upstream_uuid
       final String uuid = prefs.getString("upstream_uuid", "");
-      prefs.edit().putString("uuid", uuid).apply();
 
       if (this.callbackContext != null) {
         this.callbackContext.success("true");
