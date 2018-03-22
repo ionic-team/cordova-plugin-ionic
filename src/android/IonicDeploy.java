@@ -771,7 +771,6 @@ public class IonicDeploy extends CordovaPlugin {
       if (file.isDirectory()) {
         copyFiles(file.listFiles(), outputDir);
       } else {
-        InputStream in = new FileInputStream(file);
         String filePath = file.getPath();
         // assumption that output directory and input directory are siblings
         String baseAppDir = outputDir.getParent();
@@ -781,13 +780,14 @@ public class IonicDeploy extends CordovaPlugin {
         if (!outFile.getParentFile().exists()) {
           outFile.getParentFile().mkdirs();
         }
-        OutputStream out = new FileOutputStream(outFile);
-        copyFile(in, out);
+        copyFile(file, outFile);
       }
     }
   }
 
-  private void copyFile(InputStream in, OutputStream out) throws IOException {
+  private void copyFile(File inFile, File outFile) throws IOException {
+    InputStream in = new FileInputStream(inFile);
+    OutputStream out = new FileOutputStream(outFile);
     byte[] buffer = new byte[2048];
     BufferedOutputStream bufferedOut = new BufferedOutputStream(out, buffer.length);
     int bits;
