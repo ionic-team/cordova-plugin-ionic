@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.1.2
+
+* Handle `partial` flag from Pro API in `check-device` endpoint.
+
 ## 4.1.1
 
 * Send plugin version to Ionic Pro when checking for updates.
