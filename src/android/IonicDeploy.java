@@ -765,8 +765,7 @@ public class IonicDeploy extends CordovaPlugin {
     }
   }
 
-  private void copyFiles(File[] files, File outputDir) throws IOException
-  {
+  private void copyFiles(File[] files, File outputDir) throws IOException {
     for (File file : files) {
       if (file.isDirectory()) {
         copyFiles(file.listFiles(), outputDir);
