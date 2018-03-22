@@ -765,23 +765,6 @@ public class IonicDeploy extends CordovaPlugin {
     }
   }
 
-  private void copyAssets(String[] fileNames, String basePath, String outputPath) throws IOException
-  {
-    AssetManager assetManager = this.myContext.getAssets();
-    for (String fileName : fileNames) {
-      String relativePath = basePath + fileName;
-      String assetPath = "www" + relativePath;
-      String[] children = assetManager.list(assetPath);
-      // if there are children, it's a directory
-      if (children.length != 0) {
-        copyAssets(children, relativePath + "/", outputPath);
-      } else {
-        InputStream in = assetManager.open(assetPath);
-        copyFile(in, outputPath + relativePath);
-      }
-    }
-  }
-
   private void copyFiles(File[] files, File outputDir) throws IOException
   {
     for (File file : files) {
@@ -794,17 +777,17 @@ public class IonicDeploy extends CordovaPlugin {
         String baseAppDir = outputDir.getParent();
         String relativePath = filePath.substring(baseAppDir.length() + 1);
         relativePath = relativePath.substring(relativePath.indexOf("/"));
-        copyFile(in, outputDir.getPath() + relativePath);
+        File outFile = new File(outputDir.getPath() + relativePath);
+        if (!outFile.getParentFile().exists()) {
+          outFile.getParentFile().mkdirs();
+        }
+        OutputStream out = new FileOutputStream(outFile);
+        copyFile(in, out);
       }
     }
   }
 
-  private void copyFile(InputStream in, String outputPath) throws IOException {
-    File outFile = new File(outputPath);
-    if (!outFile.getParentFile().exists()) {
-      outFile.getParentFile().mkdirs();
-    }
-    OutputStream out = new FileOutputStream(outFile);
+  private void copyFile(InputStream in, OutputStream out) throws IOException {
     byte[] buffer = new byte[2048];
     BufferedOutputStream bufferedOut = new BufferedOutputStream(out, buffer.length);
     int bits;
@@ -844,7 +827,6 @@ public class IonicDeploy extends CordovaPlugin {
       }
       return;
     }
-
     try  {
       FileInputStream inputStream = this.myContext.openFileInput(zip);
       ZipInputStream zipInputStream = new ZipInputStream(inputStream);
@@ -863,15 +845,8 @@ public class IonicDeploy extends CordovaPlugin {
         // copy previous version files over if we're doing partial updates
         // get previous version path
         String uuid = prefs.getString("uuid", "");
-        if ("".equalsIgnoreCase(uuid)) {
-          // no previous deploy, get bundle path
-          // asset API is different than regular files on filesystem
-          String[] fileNames = this.myContext.getAssets().list("www");
-          copyAssets(fileNames, "/", versionDir.getPath());
-        } else {
-          File[] files = this.myContext.getDir(uuid, Context.MODE_PRIVATE).listFiles();
-          copyFiles(files, versionDir);
-        }
+        File[] files = this.myContext.getDir(uuid, Context.MODE_PRIVATE).listFiles();
+        copyFiles(files, versionDir);
       }
 
       logMessage("UNZIP_DIR", versionDir.getAbsolutePath().toString());
