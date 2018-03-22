@@ -361,11 +361,15 @@ static NSOperationQueue *delegateQueue;
         NSLog(@"JSON: %@", result.json);
         NSDictionary *resp = [result.json objectForKey: @"data"];
         NSNumber *compatible = [resp valueForKey:@"compatible"];
+        NSNumber *partial = [resp valueForKey:@"partial"] ?: [NSNumber numberWithBool:NO];
         NSNumber *update_available = [resp valueForKey:@"available"];
         NSString *ignore_version = [prefs objectForKey:@"ionicdeploy_version_ignore"];
 
         NSLog(@"compatible: %@", (compatible) ? @"True" : @"False");
         NSLog(@"available: %@", (update_available) ? @"True" : @"False");
+        NSLog(@"partial: %@", (partial) ? @"True" : @"False");
+
+        [prefs setObject: partial forKey: @"upstream_partial_update"];
 
         if (compatible != [NSNumber numberWithBool:YES]) {
             NSLog(@"Refusing update due to incompatible binary version");
@@ -375,12 +379,13 @@ static NSOperationQueue *delegateQueue;
 
             if(![update_uuid isEqual:ignore_version] && ![update_uuid isEqual:our_version]) {
                 [prefs setObject: update_uuid forKey: @"upstream_uuid"];
-                [prefs synchronize];
                 self.last_update = resp;
             } else {
                 update_available = 0;
             }
         }
+
+        [prefs synchronize];
 
         if (update_available == [NSNumber numberWithBool:YES] && compatible == [NSNumber numberWithBool:YES]) {
             NSLog(@"update is true");
@@ -466,18 +471,20 @@ static NSOperationQueue *delegateQueue;
             curPath = [NSString stringWithFormat:@"%@/%@/", libraryDirectory, uuid];
         }
 
-        NSLog(@"Copying existing version %@ from %@ to %@", uuid, curPath, extractPath);
+        if ([prefs objectForKey:@"upstream_partial_update"] == [NSNumber numberWithBool:YES]) {
+            NSLog(@"Partial update, copying existing version %@ from %@ to %@", uuid, curPath, extractPath);
 
-        NSError *copyError = nil;
-        [[NSFileManager defaultManager] copyItemAtPath:curPath toPath:extractPath error:&copyError];
+            NSError *copyError = nil;
+            [[NSFileManager defaultManager] copyItemAtPath:curPath toPath:extractPath error:&copyError];
 
-        if (copyError != nil) {
-            NSLog(@"%@", [copyError localizedFailureReason]);
-            NSLog(@"%@", [copyError localizedDescription]);
-            if (self.callbackId) {
-                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error copying old www"] callbackId:self.callbackId];
+            if (copyError != nil) {
+                NSLog(@"%@", [copyError localizedFailureReason]);
+                NSLog(@"%@", [copyError localizedDescription]);
+                if (self.callbackId) {
+                    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error copying old www"] callbackId:self.callbackId];
+                }
+                return;
             }
-            return;
         }
 
         NSLog(@"Path for zip file: %@", filePath);
