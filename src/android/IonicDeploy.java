@@ -846,8 +846,12 @@ public class IonicDeploy extends CordovaPlugin {
         // copy previous version files over if we're doing partial updates
         // get previous version path
         String uuid = prefs.getString("uuid", "");
-        File[] files = this.myContext.getDir(uuid, Context.MODE_PRIVATE).listFiles();
-        copyFiles(files, versionDir);
+        if (!"".equalsIgnoreCase(uuid)) {
+          File[] files = this.myContext.getDir(uuid, Context.MODE_PRIVATE).listFiles();
+          copyFiles(files, versionDir);
+        } else {
+          throw new Exception("Previous version UUID was null, but partial update indicated");
+        }
       }
 
       logMessage("UNZIP_DIR", versionDir.getAbsolutePath().toString());
