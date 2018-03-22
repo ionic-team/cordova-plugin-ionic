@@ -791,13 +791,14 @@ public class IonicDeploy extends CordovaPlugin {
     byte[] buffer = new byte[2048];
     BufferedOutputStream bufferedOut = new BufferedOutputStream(out, buffer.length);
     int bits;
-    while((bits = in.read(buffer, 0, buffer.length)) != -1) {
-      bufferedOut.write(buffer, 0, bits);
-    }
     try {
+      while ((bits = in.read(buffer, 0, buffer.length)) != -1) {
+        bufferedOut.write(buffer, 0, bits);
+      }
+    } finally {
       in.close();
-      out.close();
-    } catch (IOException e) {}
+      bufferedOut.close();
+    }
   }
 
   /**
