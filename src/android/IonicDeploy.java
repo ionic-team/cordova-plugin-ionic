@@ -853,8 +853,14 @@ public class IonicDeploy extends CordovaPlugin {
       // Make the version directory in internal storage
       File versionDir = this.myContext.getDir(location, Context.MODE_PRIVATE);
 
-      // copy previous version files over in case we're doing incremental updates
+
+      Boolean partialUpdate = false;
       try {
+        partialUpdate = Boolean.valueOf(this.last_update.getString("partial"));
+      } catch (JSONException e) {}
+
+      if (partialUpdate) {
+        // copy previous version files over if we're doing partial updates
         // get previous version path
         String uuid = prefs.getString("uuid", "");
         if ("".equalsIgnoreCase(uuid)) {
@@ -866,8 +872,6 @@ public class IonicDeploy extends CordovaPlugin {
           File[] files = this.myContext.getDir(uuid, Context.MODE_PRIVATE).listFiles();
           copyFiles(files, versionDir);
         }
-      } catch (IOException e) {
-        logMessage("COPY_PREVIOUS", "There was an error copying the previous version files.");
       }
 
       logMessage("UNZIP_DIR", versionDir.getAbsolutePath().toString());
