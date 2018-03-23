@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.1.3
+
+* Fix broken release (4.1.2)
+
 ## 4.1.2
 
 * Handle `partial` flag from Pro API in `check-device` endpoint.
