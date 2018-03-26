@@ -29,15 +29,17 @@
 
 - (void) getPreferences:(CDVInvokedUrlCommand*)command
 {
+
     NSLog(@"Called getPreferences");
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
-    [json setObject:@"4e6b62ff" forKey:@"appId"];
+    [json setObject:@"myapp" forKey:@"appId"];
     [json setObject:@"false" forKey:@"debug"];
-    [json setObject:@"Master" forKey:@"channel"];
-    [json setObject:@"https://api-staging.ionicjs.com" forKey:@"host"];
+    [json setObject:@"mychannel" forKey:@"channel"];
+    [json setObject:@"http://localhost:7000" forKey:@"host"];
     [json setObject:@"auto" forKey:@"updateMethod"];
     [json setObject:@5 forKey:@"maxVersions"];
-    [json setObject:@"2622e7d7-9d39-496c-ad95-87f76b31f10f" forKey:@"currentVersionId"];
+    [json setObject:@"version1" forKey:@"versionId"];
+
     NSLog(@"Json: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
