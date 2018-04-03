@@ -11,10 +11,25 @@
   "description": "Ionic Cordova SDK",
   "engines": {
     "cordovaDependencies": {
-      "4.1.2": { "cordova-plugin-splashscreen": ">=5.0.1" },
-      "3.1.3": { "cordova-plugin-splashscreen": ">=5.0.1" },
-      "2.0.4": { "cordova-plugin-splashscreen": ">=4.0.0" }
+      "4.1.2": {
+        "cordova-plugin-splashscreen": ">=5.0.1"
+      },
+      "3.1.3": {
+        "cordova-plugin-splashscreen": ">=5.0.1"
+      },
+      "2.0.4": {
+        "cordova-plugin-splashscreen": ">=4.0.0"
+      }
     }
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "lint": "tslint --config tslint.json --project tsconfig.json",
+    "test": "jest",
+    "watch": "tsc -w",
+    "build": "npm run clean && tsc",
+    "prepublishOnly": "npm run build",
+    "precommit": "npm run lint"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",
@@ -37,8 +52,38 @@
   },
   "author": "Ionic",
   "contributors": [
-    {"name": "Max Lynch", "email": "max@ionic.io"},
-    {"name": "William Pelrine", "email": "rudy@ionic.io"}
+    {
+      "name": "Max Lynch",
+      "email": "max@ionic.io"
+    },
+    {
+      "name": "William Pelrine",
+      "email": "rudy@ionic.io"
+    }
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/cordova": "0.0.34",
+    "jest": "^22.4.3",
+    "rimraf": "^2.6.2",
+    "ts-jest": "^22.4.2",
+    "tslint": "^5.9.1",
+    "tslint-ionic-rules": "0.0.14",
+    "typescript": "^2.6.2"
+  },
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "tsconfig.json"
+      }
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      ".(ts)": "./node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "tests/.*\\.(ts|js)$"
+  }
 }
