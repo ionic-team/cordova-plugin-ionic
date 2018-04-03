@@ -36,7 +36,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.configure');
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.configure.');
     this.configure(config).then(
       result => success(),
       err => {
@@ -57,36 +57,135 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   check(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    cordova.exec(success, failure, 'IonicDeploy', 'check');
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.checkForUpdate.');
+    this.checkForUpdate().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  async checkForUpdate(): Promise<string> {
+    // TODO: Implement me
+    // cordova.exec(success, failure, 'IonicDeploy', 'check');
+    return 'Implment me please!';
   }
 
   download(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    cordova.exec(success, failure, 'IonicDeploy', 'download');
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.downloadUpdate.');
+    this.downloadUpdate().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  async downloadUpdate(): Promise<string> {
+    // TODO: Implement me
+    // cordova.exec(success, failure, 'IonicDeploy', 'download');
+    return 'Implment me please!';
   }
 
   extract(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    cordova.exec(success, failure, 'IonicDeploy', 'extract');
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.extractUpdate.');
+    this.extractUpdate().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  async extractUpdate(): Promise<string> {
+    // TODO: Implement me
+    // cordova.exec(success, failure, 'IonicDeploy', 'extract');
+    return 'Implment me please!';
   }
 
   redirect(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    cordova.exec(success, failure, 'IonicDeploy', 'redirect');
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.reloadApp.');
+    this.reloadApp().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  async reloadApp(): Promise<string> {
+    // TODO: Implement me
+    // cordova.exec(success, failure, 'IonicDeploy', 'redirect');
+    return 'Implment me please!';
   }
 
   info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>) {
-    // TODO: Implement me
-    // this.describeVersion(currentVersion, success, failure)
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.getCurrentVersion.');
+    this.getCurrentVersion().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
   }
 
-  describeVersion(version: string, success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>) {
+  async getCurrentVersion(): Promise<ISnapshotInfo> {
+    const versionId = (await this._pluginConfig).versionId;
+    if (typeof versionId === 'string') {
+      return this.getVersionById(versionId);
+    }
+    throw new Error('No current version applied.');
+  }
+
+  async getVersionById(versionId: string): Promise<ISnapshotInfo> {
     // TODO: Implement
+    // cordova.exec(success, failure, 'IonicDeploy', 'info');
+    return {
+      deploy_uuid: 'TODO',
+      versionId: 'TODO',
+      channel: 'todo',
+      binary_version: 'todo',
+      binaryVersion: 'todo'
+    };
   }
 
   getVersions(success: CallbackFunction<string[]>, failure: CallbackFunction<string>) {
-    cordova.exec(success, failure, 'IonicDeploy', 'getVersions');
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.getAvailableVersions.');
+    this.getAvailableVersions().then(
+      results => success(results.map(result => result.versionId)),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
   }
 
-  deleteVersion(version: string, success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    cordova.exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
+  async getAvailableVersions(): Promise<ISnapshotInfo[]> {
+    // TODO: Implement
+    // cordova.exec(success, failure, 'IonicDeploy', 'getVersions');
+    return [{
+      deploy_uuid: 'TODO',
+      versionId: 'TODO',
+      channel: 'todo',
+      binary_version: 'todo',
+      binaryVersion: 'todo'
+    }];
+  }
+
+  deleteVersion(versionId: string, success: CallbackFunction<string>, failure: CallbackFunction<string>) {
+    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.deleteVersionById.');
+    this.deleteVersionById(versionId).then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  async deleteVersionById(versionId: string): Promise<string> {
+    // TODO: Implement
+    // cordova.exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
+    return 'Implement me please';
   }
 }
 
@@ -105,7 +204,24 @@ export class IonicCordova implements IPluginBaseAPI {
   }
 
   getAppInfo(success: CallbackFunction<IAppInfo>, failure: CallbackFunction<string>) {
-    cordova.exec(success, failure, 'IonicCordovaCommon', 'getAppInfo');
+    console.warn('This function has been deprecated in favor of IonicCordova.getAppDetails.');
+    this.getAppDetails().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
   }
 
+  async getAppDetails(): Promise<IAppInfo> {
+    // TODO: Implement me
+    // cordova.exec(success, failure, 'IonicCordovaCommon', 'getAppInfo');
+    return {
+      platform: 'todo',
+      platformVersion: 'todo',
+      version: 'todo',
+      bundleName: 'todo',
+      bundleVersion: 'todo'
+    };
+  }
 }
