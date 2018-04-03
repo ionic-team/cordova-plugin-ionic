@@ -36,19 +36,13 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>) {
-    if (!isPluginConfig(config)) {
-      failure('Invalid Config Object');
-    }
     console.warn('This function has been deprecated in favor of IonicCordova.delpoy.configure');
-    this._pluginConfig.then((pluginConfig) => {
-      try {
-        Object.assign(pluginConfig, config);
-        const stringConfig = JSON.stringify(pluginConfig);
-        cordova.exec(success, failure, 'IonicDeploy', 'syncPreferences', [stringConfig]);
-      } catch (e) {
-        failure(e.message);
+    this.configure(config).then(
+      result => success(),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
       }
-    }, failure);
+    );
   }
 
   async configure(config: IDeployConfig) {
