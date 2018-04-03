@@ -1,4 +1,4 @@
-import { IonicCordova } from '../www/common';
+import * as IonicCordova from '../www/common';
 
 let mockPluginAPI = {
   IonicDeploy: {
@@ -30,7 +30,7 @@ const pluginConfig = {
   channel: 'mychannel',
   updateMethod: 'auto',
   maxVersions: 5,
-  versionId?: 'version1'
+  currentVersionId: 'version1'
 };
 
 describe('IonicCordova', () => {
@@ -49,7 +49,7 @@ describe('IonicCordova', () => {
     });
 
     it('should have a deploy object', async () => {
-      const pluginBase = new IonicCordova();
+      const pluginBase = IonicCordova;
       expect(pluginBase.deploy).toBeDefined();
     });
 
@@ -66,13 +66,13 @@ describe('IonicCordova', () => {
 
     it('should have a parent object', async () => {
       mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-      const pluginBase = new IonicCordova();
+      const pluginBase = IonicCordova;
       expect(pluginBase.deploy._parent).toBeDefined();
     });
 
     it('should set preferences on successful init of deploy plugin', async () => {
       mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-      const pluginBase = new IonicCordova();
+      const pluginBase = IonicCordova;
       expect(global.cordova.exec.mock.calls.length).toBe(1);
       expect(global.cordova.exec.mock.calls[0][2]).toBe('IonicCordova');
       expect(global.cordova.exec.mock.calls[0][3]).toBe('getPreferences');
@@ -81,7 +81,7 @@ describe('IonicCordova', () => {
 
     it('should log returned error on failed initialization of deploy plugin', async () => {
       mockPluginAPI.IonicCordova.getPreferences = callbackMock('random failure', false)
-      const pluginBase = new IonicCordova();
+      const pluginBase = IonicCordova;
       expect(global.cordova.exec.mock.calls.length).toBe(1);
       expect(global.cordova.exec.mock.calls[0][2]).toBe('IonicCordova');
       expect(global.cordova.exec.mock.calls[0][3]).toBe('getPreferences');
@@ -101,7 +101,7 @@ describe('IonicCordova', () => {
 
       it('should call the failure function when passed a bad config', async done => {
         mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         const badConfig = {
           appId: 26
         };
@@ -118,7 +118,7 @@ describe('IonicCordova', () => {
 
       it('should update preferences when called', async done => {
         mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         expect(await pluginBase.deploy._pluginConfig).toEqual(pluginConfig);
         const newConfig = {
           appId: 'newappid',
@@ -150,7 +150,7 @@ describe('IonicCordova', () => {
 
       it('should update preferences multiple times when called more than once', async done => {
         mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         expect(await pluginBase.deploy._pluginConfig).toEqual(pluginConfig);
         mockPluginAPI.IonicDeploy.syncPreferences = callbackMock(undefined, true)
 
@@ -188,7 +188,7 @@ describe('IonicCordova', () => {
 
       it('should call failure when initialization has failed to get preferences', async done => {
         mockPluginAPI.IonicCordova.getPreferences = callbackMock('some error', false)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         const newConfig = {
           appId: 'newappid',
           debug: 'true',
@@ -221,7 +221,7 @@ describe('IonicCordova', () => {
 
       it('should throw when passed a bad config', async () => {
         mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         const badConfig = {
           appId: 26
         };
@@ -230,7 +230,7 @@ describe('IonicCordova', () => {
 
       it('should update preferences when called', async () => {
         mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         expect(pluginBase.deploy._pluginConfig).resolves.toBe(pluginConfig);
         const newConfig = {
           appId: 'newappid',
@@ -246,7 +246,7 @@ describe('IonicCordova', () => {
 
       it('should reject when initilization has failed to get preferences', async () => {
         mockPluginAPI.IonicCordova.getPreferences = callbackMock('some error', false)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         const newConfig = {
           appId: 'newappid',
           debug: 'true',
@@ -259,7 +259,7 @@ describe('IonicCordova', () => {
       it('should update preferences multiple times when called more than once', async () => {
 
         mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
-        const pluginBase = new IonicCordova();
+        const pluginBase = IonicCordova;
         expect(pluginBase.deploy._pluginConfig).resolves.toBe(pluginConfig);
 
         let newConfig = {

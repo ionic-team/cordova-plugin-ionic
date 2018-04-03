@@ -46,9 +46,9 @@
   ],
   "dependencies": {
     "mkpath": ">=1.0.0",
-    "xml2js": ">=0.4",
     "node-version-compare": ">=1.0.1",
-    "plist": ">=1.2.0"
+    "plist": ">=1.2.0",
+    "xml2js": ">=0.4"
   },
   "author": "Ionic",
   "contributors": [

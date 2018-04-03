@@ -22,14 +22,26 @@ export interface IDeployConfig {
   channel?: string;
 }
 
-export interface IPluginConfig {
+export interface ISavedPreferences {
   appId: string;
   debug: string;
   host: string;
   channel: string;
   updateMethod: string;
   maxVersions: number;
-  versionId?: string;
+  currentVersionId?: string;
+  availableUpdate?: CheckDeviceResponse;
+}
+
+export interface IStorePreferences {
+  appId?: string;
+  debug?: string;
+  host?: string;
+  channel?: string;
+  updateMethod?: string;
+  maxVersions?: number;
+  currentVersionId?: string;
+  availableUpdate?: CheckDeviceResponse;
 }
 
 export interface CallbackFunction<T> { (result?: T): void; }
@@ -47,7 +59,7 @@ export interface ISnapshotInfo {
   versionId: string; // NOTE: deprecating deploy_uuid in favor of versionId
   channel: string;
   binary_version: string;
-  binaryVersion: string; // NOTE: deprecating deploy_uuid in favor of versionId
+  binaryVersion: string; // NOTE: binary_version in favor of binaryVersion
 }
 
 export interface ISyncOptions {

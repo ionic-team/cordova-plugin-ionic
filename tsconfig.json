@@ -2,8 +2,8 @@
   "compilerOptions": {
     "allowUnreachableCode": false,
     "noImplicitAny": true,
-    "declaration": true,
-    "importHelpers": true,
+    "declaration": false,
+    "importHelpers": false,
     "module": "commonjs",
     "outDir": "dist",
     "moduleResolution": "node",

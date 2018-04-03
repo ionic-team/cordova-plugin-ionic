@@ -8,8 +8,9 @@ import {
   IDeployConfig,
   IDeployPluginAPI,
   IPluginBaseAPI,
-  IPluginConfig,
+  ISavedPreferences,
   ISnapshotInfo,
+  IStorePreferences,
   ISyncOptions,
 } from './definitions';
 
@@ -29,15 +30,38 @@ import {
 
 class IonicDeploy implements IDeployPluginAPI {
 
-  private _pluginConfig: Promise<IPluginConfig>;
+  private _savedPreferences: Promise<ISavedPreferences>;
   private _parent: IPluginBaseAPI;
-  public  PLUGIN_VERSION = '5.0.0';
+  private _PREFS_KEY = '_ionicDeploySavedPrefs';
+  public PLUGIN_VERSION = '5.0.0';
 
   constructor(parent: IPluginBaseAPI) {
     this._parent = parent;
-    this._pluginConfig = new Promise((resolve, reject) => {
-      cordova.exec(resolve, reject, 'IonicCordova', 'getPreferences');
+    this._savedPreferences = new Promise((resolve, reject) => {
+      try {
+        const prefsString = localStorage.getItem(this._PREFS_KEY);
+        if (!prefsString) {
+          cordova.exec(prefs => {
+            resolve(prefs);
+            this._syncPrefs();
+          }, reject, 'IonicCordovaCommon', 'getPreferences');
+          return;
+        }
+        const savedPreferences = JSON.parse(prefsString);
+        resolve(savedPreferences);
+      } catch (e) {
+        reject(e.message);
+      }
     });
+  }
+
+  private async _syncPrefs(prefs: IStorePreferences = {}) {
+    const currentPrefs = await this._savedPreferences;
+    if (currentPrefs) {
+      Object.assign(currentPrefs, prefs);
+    }
+    localStorage.setItem(this._PREFS_KEY, JSON.stringify(currentPrefs));
+    return currentPrefs;
   }
 
   init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>) {
@@ -54,10 +78,10 @@ class IonicDeploy implements IDeployPluginAPI {
     if (!isPluginConfig(config)) {
       throw new Error('Invalid Config Object');
     }
-    const pluginConfig = Object.assign(await this._pluginConfig, config);
-    const stringConfig = JSON.stringify(pluginConfig);
+    // TODO: make sure the user can't overwrite protected things
+    Object.assign(await this._savedPreferences, config);
     return new Promise( (resolve, reject) => {
-      cordova.exec(resolve, reject, 'IonicDeploy', 'syncPreferences', [stringConfig]);
+      this._syncPrefs();
     });
   }
 
@@ -72,17 +96,17 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
-    const pluginConfig = await this._pluginConfig;
+    const savedPreferences = await this._savedPreferences;
     const appInfo = await this._parent.getAppDetails();
-    const endpoint = `${pluginConfig.host}/apps/${pluginConfig.appId}/channels/check-device`;
+    const endpoint = `${savedPreferences.host}/apps/${savedPreferences.appId}/channels/check-device`;
     const device_details = {
       binary_version: appInfo.bundleVersion,
       platform: appInfo.platform,
-      snapshot: pluginConfig.versionId
+      snapshot: savedPreferences.currentVersionId
     };
     const body = {
-      channel_name: pluginConfig.channel,
-      app_id: pluginConfig.appId,
+      channel_name: savedPreferences.channel,
+      app_id: savedPreferences.appId,
       device: device_details,
       plugin_version: this.PLUGIN_VERSION,
       manifest: true
@@ -93,7 +117,7 @@ class IonicDeploy implements IDeployPluginAPI {
       headers: new Headers({
         'Content-Type': 'application/json'
       }),
-      body: body
+      body: JSON.stringify(body)
     });
 
     let jsonResp;
@@ -102,6 +126,11 @@ class IonicDeploy implements IDeployPluginAPI {
     }
     if (resp.ok) {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
+      if (checkDeviceResp.available && checkDeviceResp.url) {
+        const prefs = await this._savedPreferences;
+        prefs.availableUpdate = checkDeviceResp;
+        this._syncPrefs();
+      }
       return checkDeviceResp;
     }
 
@@ -167,7 +196,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo> {
-    const versionId = (await this._pluginConfig).versionId;
+    const versionId = (await this._savedPreferences).currentVersionId;
     if (typeof versionId === 'string') {
       return this.getVersionById(versionId);
     }
@@ -226,7 +255,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
     // TODO:
-    // const updateMethod = syncOptions.updateMethod || this._pluginConfig.updateMethod;
+    // const updateMethod = syncOptions.updateMethod || this._savedPreferences.updateMethod;
     // await checkForUpdate();
     // if update available and not stored locally
     //   await downloadUpdate();
@@ -249,7 +278,7 @@ class IonicDeploy implements IDeployPluginAPI {
  * All features of the Ionic Cordova plugin are registered here, along with some low level error tracking features used
  * by the monitoring service.
  */
-export class IonicCordova implements IPluginBaseAPI {
+class IonicCordova implements IPluginBaseAPI {
 
   public deploy: IDeployPluginAPI;
 
@@ -268,14 +297,11 @@ export class IonicCordova implements IPluginBaseAPI {
   }
 
   async getAppDetails(): Promise<IAppInfo> {
-    // TODO: Implement me
-    // cordova.exec(success, failure, 'IonicCordovaCommon', 'getAppInfo');
-    return {
-      platform: 'todo',
-      platformVersion: 'todo',
-      version: 'todo',
-      bundleName: 'todo',
-      bundleVersion: 'todo'
-    };
+    return new Promise<IAppInfo>( (resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'getAppInfo');
+    });
   }
 }
+
+const instance = new IonicCordova();
+export = instance;
