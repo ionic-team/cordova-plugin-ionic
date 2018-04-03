@@ -48,3 +48,7 @@ export interface ISnapshotInfo {
   binary_version: string;
   binaryVersion: string; // NOTE: deprecating deploy_uuid in favor of versionId
 }
+
+export interface ISyncOptions {
+  updateMethod?: string;
+}

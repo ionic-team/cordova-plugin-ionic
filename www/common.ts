@@ -9,6 +9,7 @@ import {
   IPluginBaseAPI,
   IPluginConfig,
   ISnapshotInfo,
+  ISyncOptions,
 } from './definitions';
 
 import {
@@ -186,6 +187,24 @@ class IonicDeploy implements IDeployPluginAPI {
     // TODO: Implement
     // cordova.exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
     return 'Implement me please';
+  }
+
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+    // TODO:
+    // const updateMethod = syncOptions.updateMethod || this._pluginConfig.updateMethod;
+    // await checkForUpdate();
+    // if update available and not stored locally
+    //   await downloadUpdate();
+    //   await extractUpdate();
+    //   if updateMethod === 'auto'
+    //     await reloadApp();
+    return {
+      deploy_uuid: 'TODO',
+      versionId: 'TODO',
+      channel: 'todo',
+      binary_version: 'todo',
+      binaryVersion: 'todo'
+    };
   }
 }
 
