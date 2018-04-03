@@ -64,6 +64,12 @@ describe('IonicCordova', () => {
       };
     });
 
+    it('should have a parent object', async () => {
+      mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
+      const pluginBase = new IonicCordova();
+      expect(pluginBase.deploy._parent).toBeDefined();
+    });
+
     it('should set preferences on successful init of deploy plugin', async () => {
       mockPluginAPI.IonicCordova.getPreferences = callbackMock(pluginConfig, true)
       const pluginBase = new IonicCordova();

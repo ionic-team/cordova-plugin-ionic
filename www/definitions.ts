@@ -11,6 +11,7 @@ export interface IDeployPluginAPI {
 
 export interface IPluginBaseAPI {
   getAppInfo(success: Function, failure: Function): void;
+  getAppDetails(): Promise<IAppInfo>;
   deploy: IDeployPluginAPI;
 }
 
@@ -51,4 +52,11 @@ export interface ISnapshotInfo {
 
 export interface ISyncOptions {
   updateMethod?: string;
+}
+
+export interface CheckDeviceResponse {
+  available: boolean;
+  snapshot?: string;
+  url?: string;
+  integrity?: string;
 }
