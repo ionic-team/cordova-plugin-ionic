@@ -85,4 +85,5 @@
     </platform>
 
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
+    <dependency id="cordova-plugin-file" version="^6.0.1"/>
 </plugin>

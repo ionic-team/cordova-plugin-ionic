@@ -44,6 +44,17 @@ export interface IStorePreferences {
   availableUpdate?: CheckDeviceResponse;
 }
 
+export interface ManifestFileEntry {
+  integrity: string;
+  href: string;
+  size: number;
+}
+
+export interface FetchManifestResp {
+  manifestBlob: Blob;
+  fileBaseUrl: string;
+}
+
 export interface CallbackFunction<T> { (result?: T): void; }
 
 export interface IAppInfo {

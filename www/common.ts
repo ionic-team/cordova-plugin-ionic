@@ -1,9 +1,13 @@
+/// <reference types="cordova-plugin-file" />
+/// <reference types="cordova" />
 
 declare const cordova: Cordova;
+declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
 
 import {
   CallbackFunction,
   CheckDeviceResponse,
+  FetchManifestResp,
   IAppInfo,
   IDeployConfig,
   IDeployPluginAPI,
@@ -12,6 +16,7 @@ import {
   ISnapshotInfo,
   IStorePreferences,
   ISyncOptions,
+  ManifestFileEntry,
 } from './definitions';
 
 import {
@@ -33,6 +38,7 @@ class IonicDeploy implements IDeployPluginAPI {
   private _savedPreferences: Promise<ISavedPreferences>;
   private _parent: IPluginBaseAPI;
   private _PREFS_KEY = '_ionicDeploySavedPrefs';
+  private _fileManager: FileManager = new FileManager();
   public PLUGIN_VERSION = '5.0.0';
 
   constructor(parent: IPluginBaseAPI) {
@@ -148,9 +154,54 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async downloadUpdate(): Promise<string> {
-    // TODO: Implement me
-    // cordova.exec(success, failure, 'IonicDeploy', 'download');
-    return 'Implment me please!';
+    const prefs = await this._savedPreferences;
+    if (prefs.availableUpdate && prefs.availableUpdate.available && prefs.availableUpdate.url) {
+      const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
+      const manifestString = await this._fileManager.createFile(
+        'ionic_manifests',
+        prefs.availableUpdate.snapshot + '-manifest.json',
+        manifestBlob
+      );
+      const manifestJson = JSON.parse(manifestString);
+      await this._downloadFilesFromManifest(fileBaseUrl, manifestJson);
+    }
+    return 'false';
+  }
+
+  private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[]) {
+    return Promise.all(manifest.map( file => {
+      if (file.size === 0) {
+        return '';
+      }
+      const base = new URL(baseUrl);
+      const newUrl = new URL(file.href, baseUrl);
+      newUrl.search = base.search;
+      return fetch( newUrl.toString(), {
+        method: 'GET',
+        integrity: file.integrity,
+      }).then( async (resp: Response) => {
+        return this._fileManager.createFile(
+          'ionic_snapshot_files',
+          this._cleanHash(file.integrity),
+          await resp.blob()
+        );
+      });
+    }));
+  }
+
+  private _cleanHash(hash: string): string {
+    return hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  }
+
+  private async _fetchManifest(url: string): Promise<FetchManifestResp> {
+    const resp = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+    });
+    return {
+      manifestBlob: await resp.blob(),
+      fileBaseUrl: resp.url
+    };
   }
 
   extract(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
@@ -270,6 +321,79 @@ class IonicDeploy implements IDeployPluginAPI {
       binaryVersion: 'todo'
     };
   }
+}
+
+class FileManager {
+
+  async mkDirP(path: string): Promise<DirectoryEntry> {
+    const dirs = path.split('/');
+    const newDir = dirs.pop();
+    if (dirs.length > 0) {
+      await this.mkDirP(dirs.join('/'));
+    }
+    if (newDir !== undefined) {
+      const dirEntry = await this._getRootDir();
+      return new Promise<DirectoryEntry>( (resolve, reject) => {
+        dirEntry.getDirectory(newDir, { create: true }, (subDirEntry: DirectoryEntry) => {
+          resolve(subDirEntry);
+        }, reject);
+      });
+    }
+    throw new Error('Got undefined new directory name');
+  }
+
+  async readFile(fileEntry: FileEntry): Promise<string> {
+
+    return new Promise<string>( (resolve, reject) => {
+      fileEntry.file( (file) => {
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+
+        reader.readAsText(file);
+
+      }, reject);
+    });
+  }
+
+  async _getRootDir(): Promise<DirectoryEntry> {
+    return new Promise<DirectoryEntry>( (resolve, reject) => {
+      resolveLocalFileSystemURL(cordova.file.dataDirectory, (rootDirEntry: Entry) => {
+        resolve(rootDirEntry as DirectoryEntry);
+      }, reject);
+    });
+  }
+
+  async createFile(path: string, fileName: string, dataBlob: Blob): Promise<string> {
+    // Creates a new file or returns the file if it already exists.
+    const dirEntry = await this.mkDirP(path);
+    return new Promise<string>( (resolve, reject) => {
+      dirEntry.getFile(fileName, {create: true, exclusive: false}, async (fileEntry: FileEntry) => {
+        await this.writeFile(fileEntry, dataBlob);
+        console.log(fileEntry.nativeURL);
+        resolve(this.readFile(fileEntry));
+      }, reject);
+
+    });
+  }
+
+
+  async writeFile(fileEntry: FileEntry, dataBlob: Blob) {
+    return new Promise( (resolve, reject) => {
+      fileEntry.createWriter( (fileWriter: FileWriter) => {
+
+        fileWriter.onwriteend = resolve;
+
+        fileWriter.onerror = (e: ProgressEvent) => {
+          reject(e.toString());
+        };
+        fileWriter.write(dataBlob);
+      });
+    });
+  }
+
 }
 
 /**
