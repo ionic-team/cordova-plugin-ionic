@@ -189,8 +189,9 @@ class IonicDeploy implements IDeployPluginAPI {
     }));
   }
 
-  private _cleanHash(hash: string): string {
-    return hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  private _cleanHash(metadata: string): string {
+    const hashes = metadata.split(' ');
+    return hashes[0].replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   private async _fetchManifest(url: string): Promise<FetchManifestResp> {
