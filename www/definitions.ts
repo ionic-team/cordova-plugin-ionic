@@ -31,6 +31,8 @@ export interface ISavedPreferences {
   maxVersions: number;
   currentVersionId?: string;
   availableUpdate?: CheckDeviceResponse;
+  pendingUpdate?: string;
+  updateReady?: string;
 }
 
 export interface IStorePreferences {
