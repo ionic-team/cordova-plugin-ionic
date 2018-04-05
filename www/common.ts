@@ -270,6 +270,14 @@ class IonicDeploy implements IDeployPluginAPI {
       this._getManifestName(versionId)
     );
     const manifest = JSON.parse(manifestString);
+    const snapshotDir = this.getSnapshotCacheDir(versionId);
+    try {
+      const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
+      console.log(`directory found for snapshot ${versionId} deleting`);
+      await (new Promise( (resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
+    } catch (e) {
+      console.log('No directory found for snapshot no need to delete');
+    }
 
     await Promise.all(manifest.map( async (file: ManifestFileEntry) => {
       const splitPath = file.href.split('/');
@@ -278,7 +286,7 @@ class IonicDeploy implements IDeployPluginAPI {
       if (splitPath.length > 0) {
         path = splitPath.join('/');
       }
-      path = this.getSnapshotCacheDir(versionId) + (path ? ('/' + path) : '');
+      path =  snapshotDir + (path ? ('/' + path) : '');
       if (fileName) {
         return this._fileManager.copyTo(
           this.getFileCacheDir(),
@@ -306,9 +314,50 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async reloadApp(): Promise<string> {
-    // TODO: Implement me
-    // cordova.exec(success, failure, 'IonicDeploy', 'redirect');
-    return 'Implment me please!';
+    const prefs = await this._savedPreferences;
+    // const cordovaResp = await (new Promise<string>( (resolve, reject) => {
+    //   if (prefs.updateReady) {
+    //     cordova.exec(
+    //       resolve,
+    //       reject,
+    //       'IonicCordovaCommon',
+    //       'reloadApp',
+    //       [`${this.getSnapshotCacheDir(prefs.updateReady)}/index.html`]
+    //     );
+    //   } else {
+    //     reject("No update available for reload");
+    //   }
+    // }));
+    if (prefs.updateReady) {
+      const snapshotDir = this.getSnapshotCacheDir(prefs.updateReady);
+      await this._swizzleCordovaReference(snapshotDir);
+      const newLocation = new URL(`${snapshotDir}/index.html`);
+      console.log(`Redirecting window to ${newLocation}`);
+      window.location.pathname = newLocation.pathname;
+      console.log('deleting update ready key');
+      delete prefs.updateReady;
+      return 'true';
+    } else {
+      throw new Error('No update available for reload');
+    }
+  }
+
+  private async _swizzleCordovaReference(snapshotDir: string) {
+    const parser = new DOMParser();
+    const indexFile = await this._fileManager.getFile(snapshotDir, `index.html`);
+    const parsedIndexFile = parser.parseFromString(indexFile, 'text/html');
+    const scripts = parsedIndexFile.getElementsByTagName('script');
+    Array.from(scripts).forEach( (script: HTMLScriptElement) => {
+      if (script.src.indexOf('cordova.js') > -1) {
+        const fileUrl = new URL(`${cordova.file.applicationDirectory}/www/cordova.js`);
+        const srcUrl = new URL(window.location.origin);
+        srcUrl.pathname = fileUrl.pathname;
+        script.src = srcUrl.href;
+      }
+    });
+    const s = new XMLSerializer();
+    const htmlString = s.serializeToString(parsedIndexFile);
+    await this._fileManager.getFile(snapshotDir, 'index.html', true, new Blob([htmlString], {type: 'text/html'}));
   }
 
   info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>) {
@@ -388,6 +437,10 @@ class IonicDeploy implements IDeployPluginAPI {
     //   await extractUpdate();
     //   if updateMethod === 'auto'
     //     await reloadApp();
+    await this.checkForUpdate();
+    await this.downloadUpdate();
+    await this.extractUpdate();
+    await this.reloadApp();
     return {
       deploy_uuid: 'TODO',
       versionId: 'TODO',
