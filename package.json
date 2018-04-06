@@ -34,7 +34,7 @@
     "precommit": "npm run lint",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "watch": "watch 'tsc && ./apply-changes.sh' . --ignoreDirectoryPattern='\\W*(tmp|tests|node_modules|dist)\\W*'"
+    "watch": "watch 'tsc && ./apply-changes.sh' ./www"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",
