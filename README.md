@@ -33,3 +33,12 @@ The plugin will be available on `window` as `IonicCordova`
 * `IonicCordova.deploy.getVersions(success, failure)` - List downloaded versions on this device.
 * `IonicCordova.deploy.deleteVersion(uuid, success, failure)` - Delete a downloaded version by UUID from this device.
 
+## Local Development
+
+```bash
+npm install
+npm run create-dev
+npm run watch
+```
+
+This will create a blank Ionic app in a local `tmp` directory with the plugin and dependencies installed, and the iOS platform added.  Native plugin code is installed with `--link` and any changes to the typescript in `www` will be copied over into the app's `platforms/ios` directory.
