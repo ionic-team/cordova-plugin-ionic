@@ -32,13 +32,13 @@
 
     NSLog(@"Called getPreferences");
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
-    [json setObject:@"899d5d17" forKey:@"appId"];
+    [json setObject:@"4e6b62ff" forKey:@"appId"];
     [json setObject:@"false" forKey:@"debug"];
     [json setObject:@"Master" forKey:@"channel"];
     [json setObject:@"https://api-staging.ionicjs.com" forKey:@"host"];
     [json setObject:@"auto" forKey:@"updateMethod"];
     [json setObject:@5 forKey:@"maxVersions"];
-    [json setObject:@"9a42c8c7-c30a-4d1e-bf5c-1031af621a9a" forKey:@"currentVersionId"];
+    [json setObject:@"2622e7d7-9d39-496c-ad95-87f76b31f10f" forKey:@"currentVersionId"];
 
     NSLog(@"Json: %@", json);
 
