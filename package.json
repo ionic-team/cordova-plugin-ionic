@@ -28,12 +28,13 @@
   },
   "scripts": {
     "build": "npm run clean && tsc",
+    "create-dev": "./create-local-app.sh",
     "clean": "rimraf dist",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "precommit": "npm run lint",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "watch": "tsc -w"
+    "watch": "watch 'tsc && ./apply-changes.sh' . --ignoreDirectoryPattern='\\W*(tmp|tests|node_modules|dist)\\W*'"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",

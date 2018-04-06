@@ -13,13 +13,10 @@ npm run build
 
 # Create a blank ionic app cd
 ionic start tmp blank --type=ionic-angular --pro-id=${APP_ID} --cordova
-cp apply-changes.sh tmp/apply-changes.sh
 cd tmp
+npm run build
 
 # Add cordova platform and install the plugin
 cordova platform add ios
 cordova plugin add .. --save --variable APP_ID="${APP_ID}" --variable CHANNEL_NAME="${CHANNEL}" --variable UPDATE_METHOD="${UPDATE_METHOD}" --variable WARN_DEBUG="false" --link
 cordova prepare ios
-
-# watch for new changes
-npm run watch
