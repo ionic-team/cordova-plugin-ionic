@@ -27,13 +27,13 @@
     }
   },
   "scripts": {
+    "build": "npm run clean && tsc",
     "clean": "rimraf dist",
     "lint": "tslint --config tslint.json --project tsconfig.json",
-    "test": "jest",
-    "watch": "tsc -w",
-    "build": "npm run clean && tsc",
+    "precommit": "npm run lint",
     "prepublishOnly": "npm run build",
-    "precommit": "npm run lint"
+    "test": "jest",
+    "watch": "tsc -w"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",
