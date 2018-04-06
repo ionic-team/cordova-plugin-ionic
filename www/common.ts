@@ -27,6 +27,22 @@ import {
 // getPreferences
 // syncPreferences
 
+
+class Path {
+    join(...paths: string[]): string {
+        let fullPath: string = paths.shift() || '';
+        for (const path of paths) {
+            if (fullPath && fullPath.slice(-1) !== '/') {
+                fullPath += '/';
+            }
+            fullPath = path.slice(0, 1) !== '/' ? fullPath + path : fullPath + path.slice(1);
+        }
+        return fullPath;
+    }
+
+}
+const path = new Path();
+
 /**
  * LIVE UPDATE API
  *
@@ -66,15 +82,15 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   getFileCacheDir(): string {
-    return cordova.file.cacheDirectory + this.FILE_CACHE;
+    return path.join(cordova.file.cacheDirectory, this.FILE_CACHE);
   }
 
   getManifestCacheDir(): string {
-    return cordova.file.dataDirectory + this.MANIFEST_CACHE;
+    return path.join(cordova.file.dataDirectory, this.MANIFEST_CACHE);
   }
 
   getSnapshotCacheDir(versionId: string): string {
-    return `${cordova.file.dataDirectory}/${this.SNAPSHOT_CACHE}/${versionId}`;
+    return path.join(cordova.file.dataDirectory, this.SNAPSHOT_CACHE, versionId);
   }
 
   private async _syncPrefs(prefs: IStorePreferences = {}) {
