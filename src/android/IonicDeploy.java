@@ -338,10 +338,10 @@ public class IonicDeploy extends CordovaPlugin {
       return true;
     } else if (action.equals("extract")) {
       logMessage("EXTRACT", "Extracting update");
-      final String uuid = this.getUUID("");
+      final String upstream_uuid = this.prefs.getString("upstream_uuid", "");
       cordova.getThreadPool().execute(new Runnable() {
         public void run() {
-          unzip("www.zip", uuid, callbackContext);
+          unzip("www.zip", upstream_uuid, callbackContext);
         }
       });
       return true;
@@ -804,11 +804,10 @@ public class IonicDeploy extends CordovaPlugin {
    * Extract the downloaded archive
    *
    * @param zip
-   * @param location
+   * @param upstream_uuid
    */
-  private void unzip(String zip, String location, CallbackContext callbackContext) {
+  private void unzip(String zip, String upstream_uuid, CallbackContext callbackContext) {
     SharedPreferences prefs = getPreferences();
-    String upstream_uuid = prefs.getString("upstream_uuid", "");
 
     logMessage("UNZIP", upstream_uuid);
 
@@ -833,7 +832,7 @@ public class IonicDeploy extends CordovaPlugin {
       ZipEntry zipEntry = null;
 
       // Make the version directory in internal storage
-      File versionDir = this.myContext.getDir(location, Context.MODE_PRIVATE);
+      File versionDir = this.myContext.getDir(upstream_uuid, Context.MODE_PRIVATE);
 
 
       Boolean partialUpdate = false;
@@ -1297,7 +1296,7 @@ public class IonicDeploy extends CordovaPlugin {
       // Request shared preferences for this app id
       SharedPreferences prefs = getPreferences();
 
-      final String uuid = prefs.getString("upstream_uuid", "");
+      final String upstream_uuid = prefs.getString("upstream_uuid", "");
 
       if (this.callbackContext != null) {
         this.callbackContext.success("true");
@@ -1305,7 +1304,7 @@ public class IonicDeploy extends CordovaPlugin {
         logMessage("EXTRACT", "Extracting update");
         cordova.getThreadPool().execute(new Runnable() {
           public void run() {
-            deploy.unzip("www.zip", uuid, null);
+            deploy.unzip("www.zip", upstream_uuid, null);
           }
         });
       }
