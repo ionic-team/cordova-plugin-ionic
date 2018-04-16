@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.1.4
+
+* Fix `checkAndApply` bug on Android (PR #77)
+
 ## 4.1.3
 
 * Fix broken release (4.1.2)
