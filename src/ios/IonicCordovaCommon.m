@@ -35,7 +35,7 @@
     [json setObject:@"false" forKey:@"debug"];
     [json setObject:@"Master" forKey:@"channel"];
     [json setObject:@"https://api-staging.ionicjs.com" forKey:@"host"];
-    [json setObject:@"auto" forKey:@"updateMethod"];
+    [json setObject:@"none" forKey:@"updateMethod"];
     [json setObject:@5 forKey:@"maxVersions"];
     [json setObject:@"2622e7d7-9d39-496c-ad95-87f76b31f10f" forKey:@"currentVersionId"];
     NSLog(@"Json: %@", json);

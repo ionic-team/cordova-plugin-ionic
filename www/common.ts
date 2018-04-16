@@ -3,6 +3,7 @@
 
 declare const cordova: Cordova;
 declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
+declare const IonicWebView: any;
 
 import {
   CallbackFunction,
@@ -74,7 +75,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   _handleInitialPreferenceState(prefs: ISavedPreferences) {
-    this.sync();
+    this.sync({updateMethod: prefs.updateMethod});
   }
 
   _initPreferences(): Promise<ISavedPreferences> {
@@ -182,6 +183,7 @@ class IonicDeploy implements IDeployPluginAPI {
     }
     if (resp.ok) {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
+      console.log('CHECK RESP', checkDeviceResp);
       if (checkDeviceResp.available && checkDeviceResp.url) {
         savedPreferences.availableUpdate = checkDeviceResp;
         await this._syncPrefs();
@@ -312,6 +314,8 @@ class IonicDeploy implements IDeployPluginAPI {
       console.log('No directory found for snapshot no need to delete');
     }
 
+    await this._copyBaseAppDir(versionId);
+    console.log('Successful Swizzle');
     await Promise.all(manifest.map( async (file: ManifestFileEntry) => {
       const splitPath = file.href.split('/');
       const fileName = splitPath.pop();
@@ -321,6 +325,13 @@ class IonicDeploy implements IDeployPluginAPI {
       }
       path =  snapshotDir + (path ? ('/' + path) : '');
       if (fileName) {
+        try {
+          await this._fileManager.removeFile(path, fileName);
+          console.log(`removed old file at ${path}/${fileName}`);
+        } catch (e) {
+          console.log(`brand new file ${path}/${fileName}`);
+        }
+
         return this._fileManager.copyTo(
           this.getFileCacheDir(),
           this._cleanHash(file.integrity),
@@ -330,6 +341,7 @@ class IonicDeploy implements IDeployPluginAPI {
       }
       throw new Error('No file name found');
     }));
+    console.log('Successful recreate');
     prefs.updateReady = prefs.pendingUpdate;
     delete prefs.pendingUpdate;
     await this._syncPrefs();
@@ -348,49 +360,41 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async reloadApp(): Promise<string> {
     const prefs = await this._savedPreferences;
-    // const cordovaResp = await (new Promise<string>( (resolve, reject) => {
-    //   if (prefs.updateReady) {
-    //     cordova.exec(
-    //       resolve,
-    //       reject,
-    //       'IonicCordovaCommon',
-    //       'reloadApp',
-    //       [`${this.getSnapshotCacheDir(prefs.updateReady)}/index.html`]
-    //     );
-    //   } else {
-    //     reject("No update available for reload");
-    //   }
-    // }));
     if (prefs.updateReady) {
-      const snapshotDir = this.getSnapshotCacheDir(prefs.updateReady);
-      await this._swizzleCordovaReference(snapshotDir);
-      const newLocation = new URL(`${snapshotDir}/index.html`);
-      console.log(`Redirecting window to ${newLocation}`);
-      window.location.pathname = newLocation.pathname;
-      console.log('deleting update ready key');
+      prefs.currentVersionId = prefs.updateReady;
       delete prefs.updateReady;
+      await this._syncPrefs();
+    }
+    if (prefs.currentVersionId) {
+      const snapshotDir = this.getSnapshotCacheDir(prefs.currentVersionId);
+      if (IonicWebView) {
+        const newLocation = new URL(snapshotDir);
+        console.log('setting new server root');
+        console.log(newLocation.pathname);
+        IonicWebView.setWebRoot(newLocation.pathname);
+        window.location.reload();
+      } else {
+        const newLocation = new URL(`${snapshotDir}/index.html`);
+        console.log(`No IonicWebView detected...assuming Android redirecting window to ${newLocation}`);
+        window.location.pathname = newLocation.pathname;
+      }
       return 'true';
     } else {
-      throw new Error('No update available for reload');
+      window.location.reload();
+      return 'true';
     }
   }
 
-  private async _swizzleCordovaReference(snapshotDir: string) {
-    const parser = new DOMParser();
-    const indexFile = await this._fileManager.getFile(snapshotDir, `index.html`);
-    const parsedIndexFile = parser.parseFromString(indexFile, 'text/html');
-    const scripts = parsedIndexFile.getElementsByTagName('script');
-    Array.from(scripts).forEach( (script: HTMLScriptElement) => {
-      if (script.src.indexOf('cordova.js') > -1) {
-        const fileUrl = new URL(`${cordova.file.applicationDirectory}/www/cordova.js`);
-        const srcUrl = new URL(window.location.origin);
-        srcUrl.pathname = fileUrl.pathname;
-        script.src = srcUrl.href;
+  private async _copyBaseAppDir(versionId: string) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        const rootAppDirEntry = await this._fileManager.getDirectory(`${cordova.file.applicationDirectory}/www`, false);
+        const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
+        rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, resolve, reject);
+      } catch (e) {
+        reject(e);
       }
     });
-    const s = new XMLSerializer();
-    const htmlString = s.serializeToString(parsedIndexFile);
-    await this._fileManager.getFile(snapshotDir, 'index.html', true, new Blob([htmlString], {type: 'text/html'}));
   }
 
   info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>) {
@@ -461,23 +465,18 @@ class IonicDeploy implements IDeployPluginAPI {
     return 'Implement me please';
   }
 
-  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+  async sync(syncOptions: ISyncOptions = {updateMethod: 'background'}): Promise<ISnapshotInfo> {
     await this.checkForUpdate();
 
     // TODO: Get API override if present
     const prefs = await this._syncPrefs();
-    const updateMethod =  syncOptions.updateMethod || prefs.updateMethod
+    const updateMethod =  syncOptions.updateMethod || prefs.updateMethod;
 
-    console.log("PREFS", prefs);
-    console.log("UPDATE METHOD", updateMethod);
-
-    if (updateMethod !== this.UPDATE_NONE && prefs.availableUpdate && prefs.availableUpdate.available) {
-      console.log("DOWNLOADING");
+    if (prefs.availableUpdate && prefs.availableUpdate.available) {
       await this.downloadUpdate();
       await this.extractUpdate();
 
       if (updateMethod === this.UPDATE_AUTO) {
-        console.log("RELOADING");
         await this.reloadApp();
       }
     }
@@ -572,6 +571,13 @@ class FileManager {
     const newDirEntry = await this.getDirectory(newPath);
     return new Promise( (resolve, reject) => {
       fileEntry.copyTo(newDirEntry, newFileName, resolve, reject);
+    });
+  }
+
+  async removeFile(path: string, filename: string) {
+    const fileEntry = await this.getFileEntry(path, filename);
+    return new Promise( (resolve, reject) => {
+      fileEntry.remove(resolve, reject);
     });
   }
 
