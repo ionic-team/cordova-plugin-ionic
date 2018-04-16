@@ -29,7 +29,6 @@
 
 - (void) getPreferences:(CDVInvokedUrlCommand*)command
 {
-
     NSLog(@"Called getPreferences");
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
     [json setObject:@"4e6b62ff" forKey:@"appId"];
@@ -39,7 +38,6 @@
     [json setObject:@"auto" forKey:@"updateMethod"];
     [json setObject:@5 forKey:@"maxVersions"];
     [json setObject:@"2622e7d7-9d39-496c-ad95-87f76b31f10f" forKey:@"currentVersionId"];
-
     NSLog(@"Json: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];

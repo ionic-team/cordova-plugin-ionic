@@ -59,10 +59,26 @@ class IonicDeploy implements IDeployPluginAPI {
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   public PLUGIN_VERSION = '5.0.0';
+  public NO_VERSION_DEPLOYED = 'none';
+  public UNKNOWN_BINARY_VERSION = 'unknown';
+
+  // Update method constants
+  public UPDATE_AUTO = 'auto';
+  public UPDATE_BACKGROUND = 'background';
+  public UPDATE_NONE = 'none';
 
   constructor(parent: IPluginBaseAPI) {
     this._parent = parent;
-    this._savedPreferences = new Promise((resolve, reject) => {
+    this._savedPreferences = this._initPreferences();
+    this._savedPreferences.then(this._handleInitialPreferenceState.bind(this));
+  }
+
+  _handleInitialPreferenceState(prefs: ISavedPreferences) {
+    this.sync();
+  }
+
+  _initPreferences(): Promise<ISavedPreferences> {
+    return new Promise((resolve, reject) => {
       try {
         const prefsString = localStorage.getItem(this._PREFS_KEY);
         if (!prefsString) {
@@ -78,7 +94,6 @@ class IonicDeploy implements IDeployPluginAPI {
         reject(e.message);
       }
     });
-
   }
 
   getFileCacheDir(): string {
@@ -94,8 +109,11 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   private async _syncPrefs(prefs: IStorePreferences = {}) {
+    const appInfo = await this._parent.getAppDetails();
     const currentPrefs = await this._savedPreferences;
+
     if (currentPrefs) {
+      currentPrefs.binaryVersion = appInfo.bundleVersion;
       Object.assign(currentPrefs, prefs);
     }
     localStorage.setItem(this._PREFS_KEY, JSON.stringify(currentPrefs));
@@ -165,9 +183,8 @@ class IonicDeploy implements IDeployPluginAPI {
     if (resp.ok) {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
       if (checkDeviceResp.available && checkDeviceResp.url) {
-        const prefs = await this._savedPreferences;
-        prefs.availableUpdate = checkDeviceResp;
-        this._syncPrefs();
+        savedPreferences.availableUpdate = checkDeviceResp;
+        await this._syncPrefs();
       }
       return checkDeviceResp;
     }
@@ -445,31 +462,39 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
-    // TODO:
-    // const updateMethod = syncOptions.updateMethod || this._savedPreferences.updateMethod;
-    // await checkForUpdate();
-    // if update available and not stored locally
-    //   await downloadUpdate();
-    //   await extractUpdate();
-    //   if updateMethod === 'auto'
-    //     await reloadApp();
     await this.checkForUpdate();
-    await this.downloadUpdate();
-    await this.extractUpdate();
-    await this.reloadApp();
+
+    // TODO: Get API override if present
+    const prefs = await this._syncPrefs();
+    const updateMethod =  syncOptions.updateMethod || prefs.updateMethod
+
+    console.log("PREFS", prefs);
+    console.log("UPDATE METHOD", updateMethod);
+
+    if (updateMethod !== this.UPDATE_NONE && prefs.availableUpdate && prefs.availableUpdate.available) {
+      console.log("DOWNLOADING");
+      await this.downloadUpdate();
+      await this.extractUpdate();
+
+      if (updateMethod === this.UPDATE_AUTO) {
+        console.log("RELOADING");
+        await this.reloadApp();
+      }
+    }
+
     return {
-      deploy_uuid: 'TODO',
-      versionId: 'TODO',
-      channel: 'todo',
-      binary_version: 'todo',
-      binaryVersion: 'todo'
+      deploy_uuid: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
+      versionId: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
+      channel: prefs.channel,
+      binary_version: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION,
+      binaryVersion: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION
     };
   }
 }
 
 class FileManager {
 
-  getDirectory(path: string, createDirectory = true): Promise<DirectoryEntry> {
+  async getDirectory(path: string, createDirectory = true): Promise<DirectoryEntry> {
     return new Promise<DirectoryEntry>((resolve, reject) => {
       resolveLocalFileSystemURL(
         path,
@@ -477,8 +502,12 @@ class FileManager {
         async () => {
           const components = path.split('/');
           const child = components.pop() as string;
-          const parent = (await this.getDirectory(components.join('/'), createDirectory)) as DirectoryEntry;
-          parent.getDirectory(child, { create: createDirectory }, resolve, reject);
+          try {
+            const parent = (await this.getDirectory(components.join('/'), createDirectory)) as DirectoryEntry;
+            parent.getDirectory(child, { create: createDirectory }, resolve, reject);
+          } catch (e) {
+            reject(e);
+          }
         }
       );
     });

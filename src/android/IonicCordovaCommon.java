@@ -55,6 +55,8 @@ public class IonicCordovaCommon extends CordovaPlugin {
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
     if(action.equals("getAppInfo")) {
       this.getAppInfo(args, callbackContext);
+    } else if(action.equals("getPreferences")) {
+      this.getPreferences(callbackContext);
     }
     return true;
   }
@@ -82,6 +84,28 @@ public class IonicCordovaCommon extends CordovaPlugin {
       Log.d(TAG, "Got package info. Version: " + version + ", bundleName: " + name + ", versionCode: " + versionCode);
     } catch(Exception ex) {
       Log.e(TAG, "Unable to get package info", ex);
+    }
+
+    final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
+
+    return j;
+  }
+
+  public JSONObject getPreferences(CallbackContext callbackContext) throws JSONException {
+    JSONObject j = new JSONObject();
+
+    try {
+      j.put("appId", "4e6b62ff");
+      j.put("debug", "false");
+      j.put("channel", "Master");
+      j.put("host", "https://api-staging.ionicjs.com");
+      j.put("updateMethod", "auto");
+      j.put("maxVersions", 5);
+      j.put("currentVersionId", "2622e7d7-9d39-496c-ad95-87f76b31f10f")
+    } catch(Exception ex) {
+      Log.e(TAG, "Unable to get preferences", ex);
     }
 
     final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
