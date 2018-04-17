@@ -27,7 +27,7 @@
     }
   },
   "scripts": {
-    "apply-dev": "npm run clean && tsc && ./apply-changes.sh",
+    "apply-dev": "npm run build && ./apply-changes.sh",
     "build": "npm run clean && tsc",
     "create-dev": "./create-local-app.sh",
     "clean": "rimraf dist",
