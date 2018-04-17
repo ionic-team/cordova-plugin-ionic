@@ -83,10 +83,19 @@ class IonicDeploy implements IDeployPluginAPI {
       try {
         const prefsString = localStorage.getItem(this._PREFS_KEY);
         if (!prefsString) {
-          cordova.exec(prefs => {
-            resolve(prefs);
-            this._syncPrefs();
-          }, reject, 'IonicCordovaCommon', 'getPreferences');
+          //cordova.exec(prefs => {
+          //  resolve(prefs);
+          //  this._syncPrefs();
+          //}, reject, 'IonicCordovaCommon', 'getPreferences');
+          resolve({
+            appId: '4e6b62ff',
+            debug: 'false',
+            channel: 'Master',
+            host: 'https://api-staging.ionicjs.com',
+            updateMethod: 'none',
+            maxVersions: 5,
+            currentVersionId: '2622e7d7-9d39-496c-ad95-87f76b31f10f'
+          });
           return;
         }
         const savedPreferences = JSON.parse(prefsString);
@@ -235,11 +244,12 @@ class IonicDeploy implements IDeployPluginAPI {
         this._cleanHash(file.integrity)
       );
       if (alreadyExists) {
-        console.log(`file ${file.href} with hash ${file.integrity} already exists`);
+        console.log(`file ${file.href} with size ${file.size} already exists`);
         return;
       } else {
-        console.log(`file ${file.href} with hash ${file.integrity} didn't exist`);
+        console.log(`file ${file.href} with size ${file.size} didn't exist`);
       }
+
       // if it's 0 size file just create it
       if (file.size === 0) {
         return this._fileManager.getFile(
@@ -367,16 +377,16 @@ class IonicDeploy implements IDeployPluginAPI {
     }
     if (prefs.currentVersionId) {
       const snapshotDir = this.getSnapshotCacheDir(prefs.currentVersionId);
-      if (IonicWebView) {
+      if (cordova.platformId !== 'ios') {
+        const newLocation = new URL(`${snapshotDir}/index.html`);
+        console.log(`Redirecting window to ${newLocation}`);
+        window.location.pathname = newLocation.pathname;
+      } else {
         const newLocation = new URL(snapshotDir);
         console.log('setting new server root');
         console.log(newLocation.pathname);
         IonicWebView.setWebRoot(newLocation.pathname);
         window.location.reload();
-      } else {
-        const newLocation = new URL(`${snapshotDir}/index.html`);
-        console.log(`No IonicWebView detected...assuming Android redirecting window to ${newLocation}`);
-        window.location.pathname = newLocation.pathname;
       }
       return 'true';
     } else {
@@ -472,7 +482,7 @@ class IonicDeploy implements IDeployPluginAPI {
     const prefs = await this._syncPrefs();
     const updateMethod =  syncOptions.updateMethod || prefs.updateMethod;
 
-    if (prefs.availableUpdate && prefs.availableUpdate.available) {
+    if (updateMethod !== this.UPDATE_NONE && prefs.availableUpdate && prefs.availableUpdate.available) {
       await this.downloadUpdate();
       await this.extractUpdate();
 
@@ -551,7 +561,6 @@ class FileManager {
         if (dataBlob) {
           await this.writeFile(fileEntry, dataBlob);
         }
-        console.log(fileEntry.nativeURL);
         resolve(fileEntry);
       }, reject);
     });
@@ -585,12 +594,31 @@ class FileManager {
     return new Promise( (resolve, reject) => {
       fileEntry.createWriter( (fileWriter: FileWriter) => {
 
-        fileWriter.onwriteend = resolve;
+        const status = {done: 0};
+        let chunks = 10;
+        let offset = Math.floor(dataBlob.size/chunks);
+
+        // Maxumum chunk size 100kB
+        while (offset > (1024 * 100)) {
+          chunks += 1;
+          offset = Math.floor(dataBlob.size/chunks);
+        }
+
+        fileWriter.onwriteend = (file) => {
+          status.done += 1;
+          if (status.done > 100) {
+            resolve();
+          } else {
+            fileWriter.seek(fileWriter.length);
+            fileWriter.write(dataBlob.slice(status.done * offset, (status.done * offset) + offset));
+          }
+        };
 
         fileWriter.onerror = (e: ProgressEvent) => {
           reject(e.toString());
         };
-        fileWriter.write(dataBlob);
+
+        fileWriter.write(dataBlob.slice(0, offset));
       });
     });
   }
