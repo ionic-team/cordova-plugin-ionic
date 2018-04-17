@@ -27,6 +27,7 @@
     }
   },
   "scripts": {
+    "apply-dev": "npm run clean && tsc && ./apply-changes.sh",
     "build": "npm run clean && tsc",
     "create-dev": "./create-local-app.sh",
     "clean": "rimraf dist",
@@ -34,7 +35,8 @@
     "precommit": "npm run lint",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "watch": "watch 'tsc && ./apply-changes.sh' ./www"
+    "watch": "tsc -w",
+    "watch-dev": "watch 'npm run apply-dev' ./www"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",

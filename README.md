@@ -38,7 +38,26 @@ The plugin will be available on `window` as `IonicCordova`
 ```bash
 npm install
 npm run create-dev
-npm run watch
 ```
 
 This will create a blank Ionic app in a local `tmp` directory with the plugin and dependencies installed, and the iOS platform added.  Native plugin code is installed with `--link` and any changes to the typescript in `www` will be copied over into the app's `platforms/ios` directory.
+
+### Some other helpful dev commands
+
+```bash
+npm run apply-dev
+```
+
+Updates the linked plugin in the `tmp` test app with your JavaScript changes
+
+```bash
+npm run watch
+```
+
+Watches for Typescript changes
+
+```bash
+npm run watch-dev
+```
+
+Watches for Typescript changes, then runs the `apply-dev` script to propogate them to the testing app.
