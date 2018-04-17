@@ -101,9 +101,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("debug", "false");
       j.put("channel", "Master");
       j.put("host", "https://api-staging.ionicjs.com");
-      j.put("updateMethod", "auto");
+      j.put("updateMethod", "none");
       j.put("maxVersions", 5);
-      j.put("currentVersionId", "2622e7d7-9d39-496c-ad95-87f76b31f10f")
+      j.put("currentVersionId", "2622e7d7-9d39-496c-ad95-87f76b31f10f");
     } catch(Exception ex) {
       Log.e(TAG, "Unable to get preferences", ex);
     }

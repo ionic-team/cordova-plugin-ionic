@@ -40,7 +40,7 @@ npm install
 npm run create-dev
 ```
 
-This will create a blank Ionic app in a local `tmp` directory with the plugin and dependencies installed, and the iOS platform added.  Native plugin code is installed with `--link` and any changes to the typescript in `www` will be copied over into the app's `platforms/ios` directory.
+This will create a blank Ionic app in a local `tmp` directory with the plugin and dependencies installed, and the iOS platform added.  Native plugin code is installed with `--link` and any changes to the typescript in `www` will be copied over into the app's `platforms/ios` and `platforms/android` directories.
 
 ### Some other helpful dev commands
 
