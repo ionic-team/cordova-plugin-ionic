@@ -616,7 +616,6 @@ class FileManager {
         fileWriter.onwriteend = (file) => {
           status.done += 1;
           if (status.done == chunks) {
-            console.log("Wrote file:", fileEntry.fullPath);
             resolve();
           } else {
             fileWriter.seek(fileWriter.length);
