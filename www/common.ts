@@ -204,7 +204,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  async downloadUpdate(): Promise<string> {
+  async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
     const prefs = await this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.available && prefs.availableUpdate.url && prefs.availableUpdate.snapshot) {
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
@@ -228,8 +228,8 @@ class IonicDeploy implements IDeployPluginAPI {
     return versionId + '-manifest.json';
   }
 
-  private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[]) {
-    console.log("Downloading update...");
+  private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[], progress?: CallbackFunction<string>) {
+    console.log('Downloading update...');
 
     const downloads = await Promise.all(manifest.map( async file => {
       const alreadyExists = await this._fileManager.fileExists(
@@ -264,16 +264,16 @@ class IonicDeploy implements IDeployPluginAPI {
       });
     }));
 
-    const now = new Date()
+    const now = new Date();
 
-    for (let download of downloads) {
+    for (const download of downloads) {
       if (download) {
         await this._fileManager.getFile(
           this.getFileCacheDir(),
           download.hash,
           true,
           download.blob
-        )
+        );
       }
     }
 
@@ -550,7 +550,6 @@ class FileManager {
         };
 
         reader.readAsText(file);
-
       }, reject);
     });
   }
@@ -605,17 +604,17 @@ class FileManager {
 
         const status = {done: 0};
         let chunks = 1;
-        let offset = Math.floor(dataBlob.size/chunks);
+        let offset = Math.floor(dataBlob.size / chunks);
 
         // Maximum chunk size 512kb
         while (offset > (1024 * 512)) {
           chunks *= 2;
-          offset = Math.floor(dataBlob.size/chunks);
+          offset = Math.floor(dataBlob.size / chunks);
         }
 
         fileWriter.onwriteend = (file) => {
           status.done += 1;
-          if (status.done == chunks) {
+          if (status.done === chunks) {
             resolve();
           } else {
             fileWriter.seek(fileWriter.length);
