@@ -83,23 +83,14 @@ class IonicDeploy implements IDeployPluginAPI {
       try {
         const prefsString = localStorage.getItem(this._PREFS_KEY);
         if (!prefsString) {
-          //cordova.exec(prefs => {
-          //  resolve(prefs);
-          //  this._syncPrefs();
-          //}, reject, 'IonicCordovaCommon', 'getPreferences');
-          resolve({
-            appId: '4e6b62ff',
-            debug: 'false',
-            channel: 'Master',
-            host: 'https://api-staging.ionicjs.com',
-            updateMethod: 'none',
-            maxVersions: 5,
-            currentVersionId: '2622e7d7-9d39-496c-ad95-87f76b31f10f'
-          });
-          return;
+          cordova.exec(prefs => {
+            resolve(prefs);
+            this._syncPrefs();
+          }, reject, 'IonicCordovaCommon', 'getPreferences');
+        } else {
+          const savedPreferences = JSON.parse(prefsString);
+          resolve(savedPreferences);
         }
-        const savedPreferences = JSON.parse(prefsString);
-        resolve(savedPreferences);
       } catch (e) {
         reject(e.message);
       }
@@ -238,7 +229,9 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[]) {
-    return Promise.all(manifest.map( async file => {
+    console.log("Downloading update...");
+
+    const downloads = await Promise.all(manifest.map( async file => {
       const alreadyExists = await this._fileManager.fileExists(
         this.getFileCacheDir(),
         this._cleanHash(file.integrity)
@@ -246,18 +239,14 @@ class IonicDeploy implements IDeployPluginAPI {
       if (alreadyExists) {
         console.log(`file ${file.href} with size ${file.size} already exists`);
         return;
-      } else {
-        console.log(`file ${file.href} with size ${file.size} didn't exist`);
       }
 
       // if it's 0 size file just create it
       if (file.size === 0) {
-        return this._fileManager.getFile(
-          this.getFileCacheDir(),
-          this._cleanHash(file.integrity),
-          true,
-          new Blob()
-        );
+        return {
+          hash: this._cleanHash(file.integrity),
+          blob: new Blob()
+        };
       }
 
       // otherwise get it from internets
@@ -268,14 +257,27 @@ class IonicDeploy implements IDeployPluginAPI {
         method: 'GET',
         integrity: file.integrity,
       }).then( async (resp: Response) => {
-        return this._fileManager.getFile(
-          this.getFileCacheDir(),
-          this._cleanHash(file.integrity),
-          true,
-          await resp.blob()
-        );
+        return {
+          hash: this._cleanHash(file.integrity),
+          blob: await resp.blob()
+        };
       });
     }));
+
+    const now = new Date()
+
+    for (let download of downloads) {
+      if (download) {
+        await this._fileManager.getFile(
+          this.getFileCacheDir(),
+          download.hash,
+          true,
+          download.blob
+        )
+      }
+    }
+
+    console.log(`Wrote files in ${(new Date().getTime() - now.getTime()) / 1000} seconds.`);
   }
 
   private _cleanHash(metadata: string): string {
@@ -400,6 +402,7 @@ class IonicDeploy implements IDeployPluginAPI {
       try {
         const rootAppDirEntry = await this._fileManager.getDirectory(`${cordova.file.applicationDirectory}/www`, false);
         const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
+        console.log(snapshotCacheDirEntry);
         rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, resolve, reject);
       } catch (e) {
         reject(e);
@@ -513,7 +516,13 @@ class FileManager {
           const child = components.pop() as string;
           try {
             const parent = (await this.getDirectory(components.join('/'), createDirectory)) as DirectoryEntry;
-            parent.getDirectory(child, { create: createDirectory }, resolve, reject);
+            parent.getDirectory(child, { create: createDirectory }, async entry => {
+              if (entry.fullPath === path) {
+                resolve(entry);
+              } else {
+                resolve(await this.getDirectory(path, createDirectory));
+              }
+            }, reject);
           } catch (e) {
             reject(e);
           }
@@ -598,15 +607,16 @@ class FileManager {
         let chunks = 1;
         let offset = Math.floor(dataBlob.size/chunks);
 
-        // Maxumum chunk size 1MB
-        while (offset > (1024 * 1000)) {
+        // Maximum chunk size 512kb
+        while (offset > (1024 * 512)) {
           chunks *= 2;
           offset = Math.floor(dataBlob.size/chunks);
         }
 
         fileWriter.onwriteend = (file) => {
           status.done += 1;
-          if (status.done > 100) {
+          if (status.done == chunks) {
+            console.log("Wrote file:", fileEntry.fullPath);
             resolve();
           } else {
             fileWriter.seek(fileWriter.length);
