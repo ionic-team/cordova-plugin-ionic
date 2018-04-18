@@ -196,7 +196,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   download(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
     console.warn('This function has been deprecated in favor of IonicCordova.delpoy.downloadUpdate.');
-    this.downloadUpdate().then(
+    this.downloadUpdate(success).then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -215,7 +215,7 @@ class IonicDeploy implements IDeployPluginAPI {
         manifestBlob
       );
       const manifestJson = JSON.parse(manifestString);
-      await this._downloadFilesFromManifest(fileBaseUrl, manifestJson);
+      await this._downloadFilesFromManifest(fileBaseUrl, manifestJson, progress);
       prefs.pendingUpdate = prefs.availableUpdate.snapshot;
       delete prefs.availableUpdate;
       await this._syncPrefs();
@@ -230,6 +230,10 @@ class IonicDeploy implements IDeployPluginAPI {
 
   private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[], progress?: CallbackFunction<string>) {
     console.log('Downloading update...');
+    let size = 0, downloaded = 0;
+    manifest.forEach(i => {
+      size += i.size;
+    });
 
     const downloads = await Promise.all(manifest.map( async file => {
       const alreadyExists = await this._fileManager.fileExists(
@@ -238,11 +242,23 @@ class IonicDeploy implements IDeployPluginAPI {
       );
       if (alreadyExists) {
         console.log(`file ${file.href} with size ${file.size} already exists`);
+
+        // Update progress
+        downloaded += file.size;
+        if (progress) {
+          progress(Math.floor((downloaded / size) * 50).toString());
+        }
         return;
       }
 
       // if it's 0 size file just create it
       if (file.size === 0) {
+        // Update progress
+        downloaded += file.size;
+        if (progress) {
+          progress(Math.floor((downloaded / size) * 50).toString());
+        }
+
         return {
           hash: this._cleanHash(file.integrity),
           blob: new Blob()
@@ -257,6 +273,12 @@ class IonicDeploy implements IDeployPluginAPI {
         method: 'GET',
         integrity: file.integrity,
       }).then( async (resp: Response) => {
+        // Update progress
+        downloaded += file.size;
+        if (progress) {
+          progress(Math.floor((downloaded / size) * 50).toString());
+        }
+
         return {
           hash: this._cleanHash(file.integrity),
           blob: await resp.blob()
@@ -265,6 +287,7 @@ class IonicDeploy implements IDeployPluginAPI {
     }));
 
     const now = new Date();
+    downloaded = 0;
 
     for (const download of downloads) {
       if (download) {
@@ -274,6 +297,12 @@ class IonicDeploy implements IDeployPluginAPI {
           true,
           download.blob
         );
+
+        // Update progress
+        downloaded += download.blob.size;
+        if (progress) {
+          progress(Math.floor(((downloaded / size) * 50) + 50).toString());
+        }
       }
     }
 
@@ -298,7 +327,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   extract(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
     console.warn('This function has been deprecated in favor of IonicCordova.delpoy.extractUpdate.');
-    this.extractUpdate().then(
+    this.extractUpdate(success).then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -306,7 +335,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  async extractUpdate(): Promise<string> {
+  async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
     const prefs = await this._savedPreferences;
     if (!prefs.pendingUpdate) {
       throw new Error('No pending update to extract');
@@ -316,7 +345,11 @@ class IonicDeploy implements IDeployPluginAPI {
       this.getManifestCacheDir(),
       this._getManifestName(versionId)
     );
-    const manifest = JSON.parse(manifestString);
+    const manifest: ManifestFileEntry[] = JSON.parse(manifestString);
+    let size = 0, extracted = 0;
+    manifest.forEach(i => {
+      size += i.size;
+    });
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     try {
       const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
@@ -339,11 +372,15 @@ class IonicDeploy implements IDeployPluginAPI {
       if (fileName) {
         try {
           await this._fileManager.removeFile(path, fileName);
-          console.log(`removed old file at ${path}/${fileName}`);
         } catch (e) {
-          console.log(`brand new file ${path}/${fileName}`);
+          console.log(`New file ${path}/${fileName}`);
         }
 
+        // Update progress
+        extracted += file.size;
+        if (progress) {
+          progress(Math.floor((extracted / size) * 100).toString());
+        }
         return this._fileManager.copyTo(
           this.getFileCacheDir(),
           this._cleanHash(file.integrity),
