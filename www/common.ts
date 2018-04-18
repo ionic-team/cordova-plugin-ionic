@@ -595,12 +595,12 @@ class FileManager {
       fileEntry.createWriter( (fileWriter: FileWriter) => {
 
         const status = {done: 0};
-        let chunks = 10;
+        let chunks = 1;
         let offset = Math.floor(dataBlob.size/chunks);
 
-        // Maxumum chunk size 100kB
-        while (offset > (1024 * 100)) {
-          chunks += 1;
+        // Maxumum chunk size 1MB
+        while (offset > (1024 * 1000)) {
+          chunks *= 2;
           offset = Math.floor(dataBlob.size/chunks);
         }
 
