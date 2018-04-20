@@ -454,9 +454,9 @@ static NSOperationQueue *delegateQueue;
     NSString *uuid = [prefs objectForKey:@"uuid"];
 
     if(upstream_uuid != nil && [self hasVersion:upstream_uuid]) {
-        [self updateVersionLabel:NOTHING_TO_IGNORE];
         [prefs setObject: upstream_uuid forKey: @"uuid"];
         [prefs synchronize];
+        [self updateVersionLabel:NOTHING_TO_IGNORE];
         if (self.callbackId) {
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
         }
@@ -502,6 +502,9 @@ static NSOperationQueue *delegateQueue;
             return;
         }
 
+        [prefs setObject: upstream_uuid forKey: @"uuid"];
+        [prefs synchronize];
+
         [self saveVersion:upstream_uuid];
         [self excludeVersionFromBackup:uuid];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
@@ -509,9 +512,6 @@ static NSOperationQueue *delegateQueue;
 
         NSLog(@"Unzipped...");
         NSLog(@"Removing www.zip %d", success);
-
-        [prefs setObject: upstream_uuid forKey: @"uuid"];
-        [prefs synchronize];
 
         if (self.callbackId) {
             if (success) {
