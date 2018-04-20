@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.1.5
+
+* Fix UUID storage bug on iOS (PR #79)
+
 ## 4.1.4
 
 * Fix `checkAndApply` bug on Android (PR #77)
