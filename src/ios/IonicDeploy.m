@@ -452,14 +452,12 @@ static NSOperationQueue *delegateQueue;
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSString *upstream_uuid = [prefs objectForKey:@"upstream_uuid"];
     NSString *uuid = [prefs objectForKey:@"uuid"];
+    BOOL success = true;
 
     if(upstream_uuid != nil && [self hasVersion:upstream_uuid]) {
         [prefs setObject: upstream_uuid forKey: @"uuid"];
         [prefs synchronize];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
-        if (self.callbackId) {
-            [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
-        }
     } else {
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
         NSString *libraryDirectory = [paths objectAtIndex:0];
@@ -508,25 +506,25 @@ static NSOperationQueue *delegateQueue;
         [self saveVersion:upstream_uuid];
         [self excludeVersionFromBackup:uuid];
         [self updateVersionLabel:NOTHING_TO_IGNORE];
-        BOOL success = [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+        success = [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
 
         NSLog(@"Unzipped...");
         NSLog(@"Removing www.zip %d", success);
+    }
 
-        if (self.callbackId) {
-            if (success) {
-                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
-            } else {
-                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error extracting deploy"] callbackId:self.callbackId];
-            }
-        } else if ([self.auto_update isEqualToString:@"auto"]) {
-            if ([self isDebug]) {
-                [prefs setBool:NO forKey:@"show_splash"];
-                [prefs synchronize];
-                [self showDebugDialog];
-            } else {
-                [self doRedirect];
-            }
+    if (self.callbackId) {
+        if (success) {
+            [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"true"] callbackId:self.callbackId];
+        } else {
+            [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error extracting deploy"] callbackId:self.callbackId];
+        }
+    } else if ([self.auto_update isEqualToString:@"auto"]) {
+        if ([self isDebug]) {
+            [prefs setBool:NO forKey:@"show_splash"];
+            [prefs synchronize];
+            [self showDebugDialog];
+        } else {
+            [self doRedirect];
         }
     }
 }
