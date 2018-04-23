@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.1.6
+
+* Fix redirect bug in extract when version already exists (PR #82)
+
 ## 4.1.5
 
 * Fix UUID storage bug on iOS (PR #79)
