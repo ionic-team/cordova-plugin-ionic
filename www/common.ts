@@ -5,6 +5,13 @@ declare const cordova: Cordova;
 declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
 declare const IonicWebView: any;
 
+enum UpdateMethod {
+  BACKGROUND = 'background',
+  AUTO = 'auto',
+  NONE = 'none',
+}
+
+
 import {
   CallbackFunction,
   CheckDeviceResponse,
@@ -63,32 +70,54 @@ class IonicDeploy implements IDeployPluginAPI {
   public NO_VERSION_DEPLOYED = 'none';
   public UNKNOWN_BINARY_VERSION = 'unknown';
 
-  // Update method constants
-  public UPDATE_AUTO = 'auto';
-  public UPDATE_BACKGROUND = 'background';
-  public UPDATE_NONE = 'none';
-
   constructor(parent: IPluginBaseAPI) {
     this._parent = parent;
     this._savedPreferences = this._initPreferences();
-    this._savedPreferences.then(this._handleInitialPreferenceState.bind(this));
+    this._savedPreferences.then(this._syncPrefs.bind(this), console.error);
   }
 
-  _handleInitialPreferenceState(prefs: ISavedPreferences) {
-    this.sync({updateMethod: prefs.updateMethod});
+  async _handleInitialPreferenceState(prefs: ISavedPreferences) {
+    const updateMethod = prefs.updateMethod;
+    switch (updateMethod) {
+      case UpdateMethod.AUTO:
+        // NOTE: call sync with background as override to avoid sync
+        // reloading the app and manually reload always once sync has
+        // set the correct currentVersionId
+        console.log('calling _sync');
+        await this._sync(prefs, {updateMethod: UpdateMethod.BACKGROUND});
+        console.log('calling _reload');
+        await this._reloadApp(prefs);
+        console.log('done _reloading');
+        break;
+      case UpdateMethod.NONE:
+        // TODO: nothing? maybe later to recover from borked updated we may want to checkForUpdate
+        // and allow api to override
+        break;
+      default:
+        // NOTE: default anything that doesn't explicitly match to background updates
+        if (prefs.currentVersionId) {
+          this._reloadApp(prefs);
+        }
+        this._sync(prefs, {updateMethod: UpdateMethod.BACKGROUND});
+        return;
+    }
   }
 
-  _initPreferences(): Promise<ISavedPreferences> {
-    return new Promise((resolve, reject) => {
+  async _initPreferences(): Promise<ISavedPreferences> {
+    return new Promise<ISavedPreferences>(async (resolve, reject) => {
       try {
         const prefsString = localStorage.getItem(this._PREFS_KEY);
         if (!prefsString) {
-          cordova.exec(prefs => {
+          cordova.exec(async (prefs) => {
+            console.log('got prefs from native');
+            await this._handleInitialPreferenceState(prefs);
+            console.log('done handling init');
             resolve(prefs);
-            this._syncPrefs();
           }, reject, 'IonicCordovaCommon', 'getPreferences');
         } else {
           const savedPreferences = JSON.parse(prefsString);
+          console.log('got prefs from storage');
+          await this._handleInitialPreferenceState(savedPreferences);
           resolve(savedPreferences);
         }
       } catch (e) {
@@ -112,13 +141,16 @@ class IonicDeploy implements IDeployPluginAPI {
   private async _syncPrefs(prefs: IStorePreferences = {}) {
     const appInfo = await this._parent.getAppDetails();
     const currentPrefs = await this._savedPreferences;
-
     if (currentPrefs) {
       currentPrefs.binaryVersion = appInfo.bundleVersion;
       Object.assign(currentPrefs, prefs);
     }
-    localStorage.setItem(this._PREFS_KEY, JSON.stringify(currentPrefs));
-    return currentPrefs;
+    return this._savePrefs(currentPrefs);
+  }
+
+  private _savePrefs(prefs: IStorePreferences) {
+    localStorage.setItem(this._PREFS_KEY, JSON.stringify(prefs));
+    return prefs;
   }
 
   init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>) {
@@ -153,17 +185,21 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
-    const savedPreferences = await this._savedPreferences;
+    const prefs = await this._savedPreferences;
+    return this._checkForUpdate(prefs);
+  }
+
+  private async _checkForUpdate(prefs: ISavedPreferences): Promise<CheckDeviceResponse> {
     const appInfo = await this._parent.getAppDetails();
-    const endpoint = `${savedPreferences.host}/apps/${savedPreferences.appId}/channels/check-device`;
+    const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
     const device_details = {
       binary_version: appInfo.bundleVersion,
       platform: appInfo.platform,
-      snapshot: savedPreferences.currentVersionId
+      snapshot: prefs.currentVersionId
     };
     const body = {
-      channel_name: savedPreferences.channel,
-      app_id: savedPreferences.appId,
+      channel_name: prefs.channel,
+      app_id: prefs.appId,
       device: device_details,
       plugin_version: this.PLUGIN_VERSION,
       manifest: true
@@ -185,8 +221,8 @@ class IonicDeploy implements IDeployPluginAPI {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
       console.log('CHECK RESP', checkDeviceResp);
       if (checkDeviceResp.available && checkDeviceResp.url) {
-        savedPreferences.availableUpdate = checkDeviceResp;
-        await this._syncPrefs();
+        prefs.availableUpdate = checkDeviceResp;
+        this._savePrefs(prefs);
       }
       return checkDeviceResp;
     }
@@ -206,6 +242,10 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
     const prefs = await this._savedPreferences;
+    return this._downloadUpdate(prefs, progress);
+  }
+
+  private async _downloadUpdate(prefs: ISavedPreferences, progress?: CallbackFunction<string>): Promise<string> {
     if (prefs.availableUpdate && prefs.availableUpdate.available && prefs.availableUpdate.url && prefs.availableUpdate.snapshot) {
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
       const manifestString = await this._fileManager.getFile(
@@ -218,7 +258,7 @@ class IonicDeploy implements IDeployPluginAPI {
       await this._downloadFilesFromManifest(fileBaseUrl, manifestJson, progress);
       prefs.pendingUpdate = prefs.availableUpdate.snapshot;
       delete prefs.availableUpdate;
-      await this._syncPrefs();
+      this._savePrefs(prefs);
       return 'true';
     }
     throw new Error('No available updates');
@@ -337,6 +377,10 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
     const prefs = await this._savedPreferences;
+    return this._extractUpdate(prefs, progress);
+  }
+
+  private async _extractUpdate(prefs: ISavedPreferences, progress?: CallbackFunction<string>): Promise<string> {
     if (!prefs.pendingUpdate) {
       throw new Error('No pending update to extract');
     }
@@ -393,7 +437,7 @@ class IonicDeploy implements IDeployPluginAPI {
     console.log('Successful recreate');
     prefs.updateReady = prefs.pendingUpdate;
     delete prefs.pendingUpdate;
-    await this._syncPrefs();
+    this._savePrefs(prefs);
     return 'true';
   }
 
@@ -409,10 +453,14 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async reloadApp(): Promise<string> {
     const prefs = await this._savedPreferences;
+    return this._reloadApp(prefs);
+  }
+
+  private async _reloadApp(prefs: ISavedPreferences): Promise<string> {
     if (prefs.updateReady) {
       prefs.currentVersionId = prefs.updateReady;
       delete prefs.updateReady;
-      await this._syncPrefs();
+      this._savePrefs(prefs);
     }
     if (prefs.currentVersionId) {
       const snapshotDir = this.getSnapshotCacheDir(prefs.currentVersionId);
@@ -515,19 +563,25 @@ class IonicDeploy implements IDeployPluginAPI {
     return 'Implement me please';
   }
 
-  async sync(syncOptions: ISyncOptions = {updateMethod: 'background'}): Promise<ISnapshotInfo> {
-    await this.checkForUpdate();
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
 
-    // TODO: Get API override if present
-    const prefs = await this._syncPrefs();
-    const updateMethod =  syncOptions.updateMethod || prefs.updateMethod;
+    const prefs = await this._savedPreferences;
+    return this._sync(prefs, syncOptions);
+  }
 
-    if (updateMethod !== this.UPDATE_NONE && prefs.availableUpdate && prefs.availableUpdate.available) {
-      await this.downloadUpdate();
-      await this.extractUpdate();
+  private async _sync(prefs: ISavedPreferences, syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
 
-      if (updateMethod === this.UPDATE_AUTO) {
-        await this.reloadApp();
+    // TODO: Get API override if present?
+    const updateMethod = syncOptions.updateMethod || prefs.updateMethod;
+
+    await this._checkForUpdate(prefs);
+
+    if (prefs.availableUpdate && prefs.availableUpdate.available) {
+      await this._downloadUpdate(prefs);
+      await this._extractUpdate(prefs);
+
+      if (updateMethod === UpdateMethod.AUTO) {
+        await this._reloadApp(prefs);
       }
     }
 

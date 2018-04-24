@@ -21,14 +21,13 @@ export interface IDeployConfig {
   host?: string;
   channel?: string;
 }
-
 export interface ISavedPreferences {
   appId: string;
   binaryVersion?: string;
   debug: string;
   host: string;
   channel: string;
-  updateMethod: string;
+  updateMethod: 'none' | 'auto' | 'background';
   maxVersions: number;
   currentVersionId?: string;
   availableUpdate?: CheckDeviceResponse;
@@ -77,7 +76,7 @@ export interface ISnapshotInfo {
 }
 
 export interface ISyncOptions {
-  updateMethod?: string;
+  updateMethod?: 'background' | 'auto';
 }
 
 export interface CheckDeviceResponse {
