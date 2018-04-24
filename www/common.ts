@@ -3,7 +3,6 @@
 
 declare const cordova: Cordova;
 declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
-declare const IonicWebView: any;
 
 enum UpdateMethod {
   BACKGROUND = 'background',
@@ -462,24 +461,24 @@ class IonicDeploy implements IDeployPluginAPI {
       delete prefs.updateReady;
       this._savePrefs(prefs);
     }
+    if (prefs.currentVersionId && this._isRunningVersion(prefs.currentVersionId)) {
+      console.log(`Already running version ${prefs.currentVersionId}`);
+      return 'true';
+    }
     if (prefs.currentVersionId) {
       const snapshotDir = this.getSnapshotCacheDir(prefs.currentVersionId);
-      if (cordova.platformId !== 'ios') {
-        const newLocation = new URL(`${snapshotDir}/index.html`);
-        console.log(`Redirecting window to ${newLocation}`);
-        window.location.pathname = newLocation.pathname;
-      } else {
-        const newLocation = new URL(snapshotDir);
-        console.log('setting new server root');
-        console.log(newLocation.pathname);
-        IonicWebView.setWebRoot(newLocation.pathname);
-        window.location.reload();
-      }
+      const newLocation = new URL(`${snapshotDir}/index.html`);
+      console.log(`Redirecting window to ${newLocation}`);
+      window.location.pathname = newLocation.pathname;
       return 'true';
     } else {
       window.location.reload();
       return 'true';
     }
+  }
+
+  private _isRunningVersion(versionId: string) {
+    return window.location.pathname.includes(versionId);
   }
 
   private async _copyBaseAppDir(versionId: string) {
