@@ -1,14 +1,14 @@
 export interface IDeployPluginAPI {
   /* v4 API */
-  init(config: any, success: Function, failure: Function): void;
-  check(success: Function, failure: Function): void;
-  download(success: Function, failure: Function): void;
-  extract(success: Function, failure: Function): void;
-  redirect(success: Function, failure: Function): void;
-  info(success: Function, failure: Function): void;
-  getVersions(success: Function, failure: Function): void;
-  deleteVersion(version: string, success: Function, failure: Function): void;
-  parseUpdate(jsonResponse: any, success: Function, failure: Function): void;
+  init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>): void;
+  check(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
+  download(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
+  extract(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
+  redirect(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
+  info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>): void;
+  getVersions(success: CallbackFunction<string[]>, failure: CallbackFunction<string>): void;
+  deleteVersion(version: string, success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
+  parseUpdate(jsonResponse: any, success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
 
   /* v5 API */
   configure(config: IDeployConfig): Promise<any>;
