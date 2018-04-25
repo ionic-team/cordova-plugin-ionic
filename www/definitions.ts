@@ -21,7 +21,7 @@ export interface IDeployConfig {
   host?: string;
   channel?: string;
 }
-export interface ISavedPreferences {
+export interface INativePreferences {
   appId: string;
   binaryVersion?: string;
   debug: string;
@@ -29,21 +29,21 @@ export interface ISavedPreferences {
   channel: string;
   updateMethod: 'none' | 'auto' | 'background';
   maxVersions: number;
-  currentVersionId?: string;
-  availableUpdate?: CheckDeviceResponse;
-  pendingUpdate?: string;
-  updateReady?: string;
 }
 
-export interface IStorePreferences {
-  appId?: string;
-  debug?: string;
-  host?: string;
-  channel?: string;
-  updateMethod?: string;
-  maxVersions?: number;
+export interface IAvailableUpdate {
+  binaryVersion: string;
+  channel: string;
+  path: string;
+  state: string;
+  url: string;
+  versionId: string;
+}
+
+export interface ISavedPreferences extends INativePreferences {
   currentVersionId?: string;
-  availableUpdate?: CheckDeviceResponse;
+  availableUpdate?: IAvailableUpdate;
+  updates: { [versionId: string]: IAvailableUpdate };
 }
 
 export interface ManifestFileEntry {
