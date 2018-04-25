@@ -665,7 +665,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   /* v4 API */
 
-  init(config: any, success: Function, failure: Function): void {
+  init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.configure.');
     this.configure(config).then(
       result => success(),
@@ -675,7 +675,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  check(success: Function, failure: Function): void {
+  check(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.checkForUpdate.');
     this.checkForUpdate().then(
       result => success(String(result.available)),
@@ -685,9 +685,9 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  download(success: Function, failure: Function): void {
+  download(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.downloadUpdate.');
-    this.downloadUpdate().then(
+    this.downloadUpdate(success).then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -695,9 +695,9 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  extract(success: Function, failure: Function): void {
+  extract(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.extractUpdate.');
-    this.extractUpdate().then(
+    this.extractUpdate(success).then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -705,7 +705,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  redirect(success: Function, failure: Function): void {
+  redirect(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.reloadApp.');
     this.reloadApp().then(
       result => success(result),
@@ -715,7 +715,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  info(success: Function, failure: Function): void {
+  info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.getCurrentVersion.');
     this.getCurrentVersion().then(
       result => success(result),
@@ -725,7 +725,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  getVersions(success: Function, failure: Function): void {
+  getVersions(success: CallbackFunction<string[]>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.getAvailableVersions.');
     this.getAvailableVersions().then(
       results => success(results.map(result => result.versionId)),
@@ -735,7 +735,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  deleteVersion(version: string, success: Function, failure: Function): void {
+  deleteVersion(version: string, success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.deleteVersionById.');
     this.deleteVersionById(version).then(
       result => success(result),
@@ -745,7 +745,7 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  parseUpdate(jsonResponse: any, success: Function, failure: Function): void {
+  parseUpdate(jsonResponse: any, success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     // TODO
   }
 
@@ -763,12 +763,12 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).deleteVersionById(version);
   }
 
-  async downloadUpdate(): Promise<string> {
-    return (await this.delegate).downloadUpdate();
+  async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
+    return (await this.delegate).downloadUpdate(progress);
   }
 
-  async extractUpdate(): Promise<string> {
-    return (await this.delegate).extractUpdate();
+  async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
+    return (await this.delegate).extractUpdate(progress);
   }
 
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
