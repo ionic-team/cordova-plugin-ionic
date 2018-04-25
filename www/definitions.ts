@@ -1,4 +1,5 @@
-export interface IDeployPluginV4 {
+export interface IDeployPluginAPI {
+  /* v4 API */
   init(config: any, success: Function, failure: Function): void;
   check(success: Function, failure: Function): void;
   download(success: Function, failure: Function): void;
@@ -8,9 +9,8 @@ export interface IDeployPluginV4 {
   getVersions(success: Function, failure: Function): void;
   deleteVersion(version: string, success: Function, failure: Function): void;
   parseUpdate(jsonResponse: any, success: Function, failure: Function): void;
-}
 
-export interface IDeployPluginV5 {
+  /* v5 API */
   configure(config: IDeployConfig): Promise<any>;
   checkForUpdate(): Promise<CheckDeviceResponse>;
   downloadUpdate(): Promise<string>;
@@ -24,8 +24,7 @@ export interface IDeployPluginV5 {
 export interface IPluginBaseAPI {
   getAppInfo(success: Function, failure: Function): void;
   getAppDetails(): Promise<IAppInfo>;
-  deploy: IDeployPluginV4;
-  deploy5: IDeployPluginV5;
+  deploy: IDeployPluginAPI;
 }
 
 export interface IDeployConfig {
