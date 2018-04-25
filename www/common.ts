@@ -22,8 +22,7 @@ import {
   FetchManifestResp,
   IAppInfo,
   IDeployConfig,
-  IDeployPluginV4,
-  IDeployPluginV5,
+  IDeployPluginAPI,
   INativePreferences,
   IPluginBaseAPI,
   ISavedPreferences,
@@ -62,10 +61,10 @@ const path = new Path();
  * The plugin API for the live updates feature.
  */
 
-class IonicDeployV5 implements IDeployPluginV5 {
+class IonicDeployImpl {
 
-  private _savedPreferences: Promise<ISavedPreferences>;
-  private _parent: IPluginBaseAPI;
+  private readonly appInfo: IAppInfo;
+  private _savedPreferences: ISavedPreferences;
   private _PREFS_KEY = '_ionicDeploySavedPrefs';
   private _fileManager: FileManager = new FileManager();
   public FILE_CACHE = 'ionic_snapshot_files';
@@ -75,32 +74,22 @@ class IonicDeployV5 implements IDeployPluginV5 {
   public NO_VERSION_DEPLOYED = 'none';
   public UNKNOWN_BINARY_VERSION = 'unknown';
 
-  constructor(parent: IPluginBaseAPI) {
-    this._parent = parent;
-    document.addEventListener('deviceready', this.onLoad.bind(this));
+  constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
+    this.appInfo = appInfo;
+    this._savedPreferences = preferences;
   }
 
-  onLoad() {
-    document.addEventListener('resume', this.onResume.bind(this));
-    this.onResume();
-  }
-
-  onResume() {
-    this._savedPreferences = this._initPreferences();
-    this._savedPreferences.then(this._syncPrefs.bind(this), console.error).then(this._reloadApp.bind(this));
-  }
-
-  async _handleInitialPreferenceState(prefs: ISavedPreferences) {
-    const updateMethod = prefs.updateMethod;
+  async _handleInitialPreferenceState() {
+    const updateMethod = this._savedPreferences.updateMethod;
     switch (updateMethod) {
       case UpdateMethod.AUTO:
         // NOTE: call sync with background as override to avoid sync
         // reloading the app and manually reload always once sync has
         // set the correct currentVersionId
         console.log('calling _sync');
-        await this._sync(prefs, {updateMethod: UpdateMethod.BACKGROUND});
+        await this.sync({updateMethod: UpdateMethod.BACKGROUND});
         console.log('calling _reload');
-        await this._reloadApp(prefs);
+        await this.reloadApp();
         console.log('done _reloading');
         break;
       case UpdateMethod.NONE:
@@ -109,36 +98,12 @@ class IonicDeployV5 implements IDeployPluginV5 {
         break;
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
-        if (prefs.currentVersionId) {
-          this._reloadApp(prefs);
+        if (this._savedPreferences.currentVersionId) {
+          this.reloadApp();
         }
-        this._sync(prefs, {updateMethod: UpdateMethod.BACKGROUND});
+        this.sync({updateMethod: UpdateMethod.BACKGROUND});
         return;
     }
-  }
-
-  async _initPreferences(): Promise<ISavedPreferences> {
-    return new Promise<ISavedPreferences>(async (resolve, reject) => {
-      try {
-        const prefsString = localStorage.getItem(this._PREFS_KEY);
-        if (!prefsString) {
-          cordova.exec(async (nativePrefs: INativePreferences) => {
-            const prefs: ISavedPreferences = {...nativePrefs, updates: {}};
-            console.log('got prefs from native');
-            await this._handleInitialPreferenceState(prefs);
-            console.log('done handling init');
-            resolve(prefs);
-          }, reject, 'IonicCordovaCommon', 'getPreferences');
-        } else {
-          const savedPreferences = JSON.parse(prefsString);
-          console.log('got prefs from storage');
-          await this._handleInitialPreferenceState(savedPreferences);
-          resolve(savedPreferences);
-        }
-      } catch (e) {
-        reject(e.message);
-      }
-    });
   }
 
   getFileCacheDir(): string {
@@ -154,8 +119,8 @@ class IonicDeployV5 implements IDeployPluginV5 {
   }
 
   private async _syncPrefs(prefs: ISavedPreferences) {
-    const appInfo = await this._parent.getAppDetails();
-    const currentPrefs = await this._savedPreferences;
+    const appInfo = this.appInfo;
+    const currentPrefs = this._savedPreferences;
     if (currentPrefs) {
       currentPrefs.binaryVersion = appInfo.bundleVersion;
       Object.assign(currentPrefs, prefs);
@@ -173,19 +138,15 @@ class IonicDeployV5 implements IDeployPluginV5 {
       throw new Error('Invalid Config Object');
     }
     // TODO: make sure the user can't overwrite protected things
-    Object.assign(await this._savedPreferences, config);
+    Object.assign(this._savedPreferences, config);
     return new Promise( async (resolve, reject) => {
-      this._syncPrefs(await this._savedPreferences);
+      this._syncPrefs(this._savedPreferences);
     });
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
-    const prefs = await this._savedPreferences;
-    return this._checkForUpdate(prefs);
-  }
-
-  private async _checkForUpdate(prefs: ISavedPreferences): Promise<CheckDeviceResponse> {
-    const appInfo = await this._parent.getAppDetails();
+    const prefs = this._savedPreferences;
+    const appInfo = this.appInfo;
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
     const device_details = {
       binary_version: appInfo.bundleVersion,
@@ -233,11 +194,7 @@ class IonicDeployV5 implements IDeployPluginV5 {
   }
 
   async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
-    const prefs = await this._savedPreferences;
-    return this._downloadUpdate(prefs, progress);
-  }
-
-  private async _downloadUpdate(prefs: ISavedPreferences, progress?: CallbackFunction<string>): Promise<string> {
+    const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
       const manifestString = await this._fileManager.getFile(
@@ -357,11 +314,7 @@ class IonicDeployV5 implements IDeployPluginV5 {
   }
 
   async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
-    const prefs = await this._savedPreferences;
-    return this._extractUpdate(prefs, progress);
-  }
-
-  private async _extractUpdate(prefs: ISavedPreferences, progress?: CallbackFunction<string>): Promise<string> {
+    const prefs = this._savedPreferences;
     if (!prefs.availableUpdate || prefs.availableUpdate.state !== 'pending') {
       throw new Error('No pending update to extract');
     }
@@ -423,11 +376,7 @@ class IonicDeployV5 implements IDeployPluginV5 {
   }
 
   async reloadApp(): Promise<string> {
-    const prefs = await this._savedPreferences;
-    return this._reloadApp(prefs);
-  }
-
-  private async _reloadApp(prefs: ISavedPreferences): Promise<string> {
+    const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
       prefs.currentVersionId = prefs.availableUpdate.versionId;
       this._savePrefs(prefs);
@@ -468,7 +417,7 @@ class IonicDeployV5 implements IDeployPluginV5 {
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo> {
-    const versionId = (await this._savedPreferences).currentVersionId;
+    const versionId = this._savedPreferences.currentVersionId;
     if (typeof versionId === 'string') {
       return this.getVersionById(versionId);
     }
@@ -506,27 +455,22 @@ class IonicDeployV5 implements IDeployPluginV5 {
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
-
-    const prefs = await this._savedPreferences;
-    return this._sync(prefs, syncOptions);
-  }
-
-  private async _sync(prefs: ISavedPreferences, syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+    const prefs = this._savedPreferences;
 
     // TODO: Get API override if present?
     const updateMethod = syncOptions.updateMethod || prefs.updateMethod;
 
-    await this._checkForUpdate(prefs);
+    await this.checkForUpdate();
 
     if (prefs.availableUpdate) {
       if (prefs.availableUpdate.state === UpdateState.Available) {
-        await this._downloadUpdate(prefs);
+        await this.downloadUpdate();
       }
       if (prefs.availableUpdate.state === UpdateState.Pending) {
-        await this._extractUpdate(prefs);
+        await this.extractUpdate();
       }
       if (prefs.availableUpdate.state === UpdateState.Ready && updateMethod === UpdateMethod.AUTO) {
-        await this._reloadApp(prefs);
+        await this.reloadApp();
       }
     }
 
@@ -669,16 +613,61 @@ class FileManager {
 
 }
 
-class IonicDeployV4 implements IDeployPluginV4 {
-  private delegate: IDeployPluginV5;
+class IonicDeploy implements IDeployPluginAPI {
+  private _PREFS_KEY = '_ionicDeploySavedPrefs';
+  private parent: IPluginBaseAPI;
+  private delegate: Promise<IonicDeployImpl>;
 
-  constructor(delegate: IDeployPluginV5) {
-    this.delegate = delegate;
+  constructor(parent: IPluginBaseAPI) {
+    this.parent = parent;
+    this.delegate = this.initialize();
+    document.addEventListener('deviceready', this.onLoad.bind(this));
   }
+
+  async initialize() {
+    const preferences = await this._initPreferences();
+    const appInfo = await this.parent.getAppDetails();
+    const delegate = new IonicDeployImpl(appInfo, preferences);
+    await delegate._handleInitialPreferenceState();
+    return delegate;
+  }
+
+  async onLoad() {
+    document.addEventListener('resume', this.onResume.bind(this));
+    await this.onResume();
+  }
+
+  async onResume() {
+    await this.reloadApp();
+  }
+
+  async _initPreferences(): Promise<ISavedPreferences> {
+    return new Promise<ISavedPreferences>(async (resolve, reject) => {
+      try {
+        const prefsString = localStorage.getItem(this._PREFS_KEY);
+        if (!prefsString) {
+          cordova.exec(async (nativePrefs: INativePreferences) => {
+            const prefs: ISavedPreferences = {...nativePrefs, updates: {}};
+            console.log('got prefs from native');
+            console.log('done handling init');
+            resolve(prefs);
+          }, reject, 'IonicCordovaCommon', 'getPreferences');
+        } else {
+          const savedPreferences = JSON.parse(prefsString);
+          console.log('got prefs from storage');
+          resolve(savedPreferences);
+        }
+      } catch (e) {
+        reject(e.message);
+      }
+    });
+  }
+
+  /* v4 API */
 
   init(config: any, success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.configure.');
-    this.delegate.configure(config).then(
+    this.configure(config).then(
       result => success(),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -688,7 +677,7 @@ class IonicDeployV4 implements IDeployPluginV4 {
 
   check(success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.checkForUpdate.');
-    this.delegate.checkForUpdate().then(
+    this.checkForUpdate().then(
       result => success(String(result.available)),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -698,7 +687,7 @@ class IonicDeployV4 implements IDeployPluginV4 {
 
   download(success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.downloadUpdate.');
-    this.delegate.downloadUpdate().then(
+    this.downloadUpdate().then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -708,7 +697,7 @@ class IonicDeployV4 implements IDeployPluginV4 {
 
   extract(success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.extractUpdate.');
-    this.delegate.extractUpdate().then(
+    this.extractUpdate().then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -718,7 +707,7 @@ class IonicDeployV4 implements IDeployPluginV4 {
 
   redirect(success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.reloadApp.');
-    this.delegate.reloadApp().then(
+    this.reloadApp().then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -728,7 +717,7 @@ class IonicDeployV4 implements IDeployPluginV4 {
 
   info(success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.getCurrentVersion.');
-    this.delegate.getCurrentVersion().then(
+    this.getCurrentVersion().then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -738,7 +727,7 @@ class IonicDeployV4 implements IDeployPluginV4 {
 
   getVersions(success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.getAvailableVersions.');
-    this.delegate.getAvailableVersions().then(
+    this.getAvailableVersions().then(
       results => success(results.map(result => result.versionId)),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -748,7 +737,7 @@ class IonicDeployV4 implements IDeployPluginV4 {
 
   deleteVersion(version: string, success: Function, failure: Function): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.deleteVersionById.');
-    this.delegate.deleteVersionById(version).then(
+    this.deleteVersionById(version).then(
       result => success(result),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
@@ -759,7 +748,42 @@ class IonicDeployV4 implements IDeployPluginV4 {
   parseUpdate(jsonResponse: any, success: Function, failure: Function): void {
     // TODO
   }
+
+  /* v5 API */
+
+  async checkForUpdate(): Promise<CheckDeviceResponse> {
+    return (await this.delegate).checkForUpdate();
+  }
+
+  async configure(config: IDeployConfig): Promise<any> {
+    return (await this.delegate).configure(config);
+  }
+
+  async deleteVersionById(version: string): Promise<string> {
+    return (await this.delegate).deleteVersionById(version);
+  }
+
+  async downloadUpdate(): Promise<string> {
+    return (await this.delegate).downloadUpdate();
+  }
+
+  async extractUpdate(): Promise<string> {
+    return (await this.delegate).extractUpdate();
+  }
+
+  async getAvailableVersions(): Promise<ISnapshotInfo[]> {
+    return (await this.delegate).getAvailableVersions();
+  }
+
+  async getCurrentVersion(): Promise<ISnapshotInfo> {
+    return (await this.delegate).getCurrentVersion();
+  }
+
+  async reloadApp(): Promise<string> {
+    return (await this.delegate).reloadApp();
+  }
 }
+
 
 /**
  * BASE API
@@ -769,12 +793,10 @@ class IonicDeployV4 implements IDeployPluginV4 {
  */
 class IonicCordova implements IPluginBaseAPI {
 
-  public deploy: IDeployPluginV4;
-  public deploy5: IDeployPluginV5;
+  public deploy: IDeployPluginAPI;
 
   constructor() {
-    this.deploy5 = new IonicDeployV5(this);
-    this.deploy = new IonicDeployV4(this.deploy5);
+      this.deploy = new IonicDeploy(this);
   }
 
   getAppInfo(success: CallbackFunction<IAppInfo>, failure: CallbackFunction<string>) {
