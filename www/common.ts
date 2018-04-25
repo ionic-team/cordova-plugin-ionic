@@ -22,7 +22,8 @@ import {
   FetchManifestResp,
   IAppInfo,
   IDeployConfig,
-  IDeployPluginAPI,
+  IDeployPluginV4,
+  IDeployPluginV5,
   INativePreferences,
   IPluginBaseAPI,
   ISavedPreferences,
@@ -61,7 +62,7 @@ const path = new Path();
  * The plugin API for the live updates feature.
  */
 
-class IonicDeploy implements IDeployPluginAPI {
+class IonicDeployV5 implements IDeployPluginV5 {
 
   private _savedPreferences: Promise<ISavedPreferences>;
   private _parent: IPluginBaseAPI;
@@ -167,16 +168,6 @@ class IonicDeploy implements IDeployPluginAPI {
     return prefs;
   }
 
-  init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.configure.');
-    this.configure(config).then(
-      result => success(),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
   async configure(config: IDeployConfig) {
     if (!isPluginConfig(config)) {
       throw new Error('Invalid Config Object');
@@ -186,16 +177,6 @@ class IonicDeploy implements IDeployPluginAPI {
     return new Promise( async (resolve, reject) => {
       this._syncPrefs(await this._savedPreferences);
     });
-  }
-
-  check(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.checkForUpdate.');
-    this.checkForUpdate().then(
-      result => success(String(result.available)),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
@@ -249,16 +230,6 @@ class IonicDeploy implements IDeployPluginAPI {
     }
 
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
-  }
-
-  download(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.downloadUpdate.');
-    this.downloadUpdate(success).then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
   }
 
   async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
@@ -385,16 +356,6 @@ class IonicDeploy implements IDeployPluginAPI {
     };
   }
 
-  extract(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.extractUpdate.');
-    this.extractUpdate(success).then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
   async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
     const prefs = await this._savedPreferences;
     return this._extractUpdate(prefs, progress);
@@ -461,16 +422,6 @@ class IonicDeploy implements IDeployPluginAPI {
     return 'true';
   }
 
-  redirect(success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.reloadApp.');
-    this.reloadApp().then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
   async reloadApp(): Promise<string> {
     const prefs = await this._savedPreferences;
     return this._reloadApp(prefs);
@@ -516,16 +467,6 @@ class IonicDeploy implements IDeployPluginAPI {
     });
   }
 
-  info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.getCurrentVersion.');
-    this.getCurrentVersion().then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
   async getCurrentVersion(): Promise<ISnapshotInfo> {
     const versionId = (await this._savedPreferences).currentVersionId;
     if (typeof versionId === 'string') {
@@ -546,16 +487,6 @@ class IonicDeploy implements IDeployPluginAPI {
     };
   }
 
-  getVersions(success: CallbackFunction<string[]>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.getAvailableVersions.');
-    this.getAvailableVersions().then(
-      results => success(results.map(result => result.versionId)),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
     // TODO: Implement
     // cordova.exec(success, failure, 'IonicDeploy', 'getVersions');
@@ -566,16 +497,6 @@ class IonicDeploy implements IDeployPluginAPI {
       binary_version: 'todo',
       binaryVersion: 'todo'
     }];
-  }
-
-  deleteVersion(versionId: string, success: CallbackFunction<string>, failure: CallbackFunction<string>) {
-    console.warn('This function has been deprecated in favor of IonicCordova.delpoy.deleteVersionById.');
-    this.deleteVersionById(versionId).then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
   }
 
   async deleteVersionById(versionId: string): Promise<string> {
@@ -748,6 +669,98 @@ class FileManager {
 
 }
 
+class IonicDeployV4 implements IDeployPluginV4 {
+  private delegate: IDeployPluginV5;
+
+  constructor(delegate: IDeployPluginV5) {
+    this.delegate = delegate;
+  }
+
+  init(config: any, success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.configure.');
+    this.delegate.configure(config).then(
+      result => success(),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  check(success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.checkForUpdate.');
+    this.delegate.checkForUpdate().then(
+      result => success(String(result.available)),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  download(success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.downloadUpdate.');
+    this.delegate.downloadUpdate().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  extract(success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.extractUpdate.');
+    this.delegate.extractUpdate().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  redirect(success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.reloadApp.');
+    this.delegate.reloadApp().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  info(success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.getCurrentVersion.');
+    this.delegate.getCurrentVersion().then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  getVersions(success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.getAvailableVersions.');
+    this.delegate.getAvailableVersions().then(
+      results => success(results.map(result => result.versionId)),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  deleteVersion(version: string, success: Function, failure: Function): void {
+    console.warn('This function has been deprecated in favor of IonicCordova.deploy.deleteVersionById.');
+    this.delegate.deleteVersionById(version).then(
+      result => success(result),
+      err => {
+        typeof err === 'string' ? failure(err) : failure(err.message);
+      }
+    );
+  }
+
+  parseUpdate(jsonResponse: any, success: Function, failure: Function): void {
+    // TODO
+  }
+}
+
 /**
  * BASE API
  *
@@ -756,10 +769,12 @@ class FileManager {
  */
 class IonicCordova implements IPluginBaseAPI {
 
-  public deploy: IDeployPluginAPI;
+  public deploy: IDeployPluginV4;
+  public deploy5: IDeployPluginV5;
 
   constructor() {
-    this.deploy = new IonicDeploy(this);
+    this.deploy5 = new IonicDeployV5(this);
+    this.deploy = new IonicDeployV4(this.deploy5);
   }
 
   getAppInfo(success: CallbackFunction<IAppInfo>, failure: CallbackFunction<string>) {
