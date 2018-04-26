@@ -34,11 +34,6 @@ export interface FetchManifestResp {
   fileBaseUrl: string;
 }
 
-/**
- * A callback function to handle the result.
- */
-export interface CallbackFunction<T> { (result?: T): void; }
-
 export interface ISyncOptions {
   updateMethod?: 'background' | 'auto';
 }

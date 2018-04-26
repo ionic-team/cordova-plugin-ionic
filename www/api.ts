@@ -1,6 +1,3 @@
-import {
-    CallbackFunction
-} from './definitions';
 /**
  * The Public API for the deploy Plugin
  */
@@ -112,8 +109,6 @@ export interface IDeployPluginAPI {
    * @since v5.0.0
    *
    * @param config The new configuration for the plugin on this device.
-   *
-   * @returns A promise that resolves with void on success or rejects with an error.
    */
   configure(config: IDeployConfig): Promise<void>;
 
@@ -121,8 +116,6 @@ export interface IDeployPluginAPI {
    * @description Check for available updates for the currently configured app id and channel.
    *
    * @since v5.0.0
-   *
-   * @returns A promise that resolves with an [object describes if an update is available](#checkdeviceresponse) on success or rejects with an error.
    */
   checkForUpdate(): Promise<CheckDeviceResponse>;
 
@@ -132,8 +125,6 @@ export interface IDeployPluginAPI {
    * @since v5.0.0
    *
    * @param progress A progress callback function which will be called with a number representing the percent of completion of the download and prepare.
-   *
-   * @returns A promise that resolves on success or rejects with an error.
    */
   downloadUpdate(progress?: CallbackFunction<string>): Promise<string>;
 
@@ -141,8 +132,6 @@ export interface IDeployPluginAPI {
    * @description Reload the app if a more recent version of the app is available.
    *
    * @since v5.0.0
-   *
-   * @returns A promise that resolves on success or rejects with an error.
    */
   reloadApp(): Promise<string>;
 
@@ -151,8 +140,6 @@ export interface IDeployPluginAPI {
    * @description Get info about the currently deployed update.
    *
    * @since v5.0.0
-   *
-   * @returns A promise that resolves with [ISnapshotInfo](#isnapshotinfo) on success or rejects with an error.
    */
   getCurrentVersion(): Promise<ISnapshotInfo>;
 
@@ -160,8 +147,6 @@ export interface IDeployPluginAPI {
    * @description Get a list of the snapshots available on the device.
    *
    * @since v5.0.0
-   *
-   * @returns A promise that resolves with a list of [ISnapshotInfo](#isnapshotinfo) on success or rejects with an error.
    */
   getAvailableVersions(): Promise<ISnapshotInfo[]>;
 
@@ -169,8 +154,6 @@ export interface IDeployPluginAPI {
    * @description Remove the files specific to a snapshot from the device.
    *
    * @param version The versionId
-   *
-   * @returns A promise that resolves on success or rejects with an error.
    */
   deleteVersionById(versionId: string): Promise<string>;
 }
@@ -314,3 +297,8 @@ export interface IAppInfo {
    */
   bundleVersion: string;
 }
+
+/**
+ * A callback function to handle the result.
+ */
+export interface CallbackFunction<T> { (result?: T): void; }

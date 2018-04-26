@@ -37,7 +37,7 @@
     "test": "jest",
     "watch": "tsc -w",
     "watch-dev": "watch 'npm run apply-dev' ./www",
-    "docs": "typedoc --theme markdown --mdEngine github --name \"Cordova Plugin Ionic\" --readme none --hideGenerator --out docs/ www/api.ts"
+    "docs": "./scripts/docs.sh"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",
