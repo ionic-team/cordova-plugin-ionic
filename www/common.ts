@@ -817,4 +817,5 @@ class IonicCordova implements IPluginBaseAPI {
 }
 
 const instance = new IonicCordova();
+cordova.exec(() => {}, console.error, 'IonicCordovaCommon', 'clearRevertTimer');
 export = instance;
