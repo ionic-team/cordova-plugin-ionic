@@ -64,11 +64,6 @@
             <feature name="IonicCordovaCommon">
                 <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true" />
             </feature>
-
-            <feature name="IonicDeploy">
-                <param name="android-package" value="com.ionicframework.deploy.IonicDeploy"/>
-                <param name="onload" value="true"/>
-            </feature>
         </config-file>
 
         <config-file target="res/values/strings.xml" parent="/resources">
