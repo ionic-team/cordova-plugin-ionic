@@ -27,13 +27,22 @@
 @interface IonicCordovaCommon : CDVPlugin
 
 /**
+ * Cancel the reversion to the bundled version of the app, signaling a successful deploy.
+ *
+ * @param command
+ *
+ * The callback id used when calling back into JavaScript.
+ */
+- (void) clearRevertTimer:(CDVInvokedUrlCommand*)command;
+
+/**
  * Get basic app information.  Used for the Ionic monitoring service.
  *
  * @param command
  *
  * The callback id used when calling back into JavaScript.
  */
-- (void)getAppInfo:(CDVInvokedUrlCommand*)command;
+- (void) getAppInfo:(CDVInvokedUrlCommand*)command;
 
 /**
  * Get cordova plugin preferences and state information.
@@ -42,6 +51,21 @@
  *
  * The callback id used when calling back into JavaScript.
  */
-- (void)getPreferences:(CDVInvokedUrlCommand *)command;
+- (void) getPreferences:(CDVInvokedUrlCommand *)command;
+
+
+/**
+ * Load base version of the app iff the javascript initialize flag isn't cleared.
+ *
+ * @param force
+ *
+ * Whether to force the load regardless of the flag.
+ */
+- (void) loadInitialVersion:(BOOL)force;
+
+/**
+ * Load base version of the app.
+ */
+- (void) loadInitialVersion;
 
 @end

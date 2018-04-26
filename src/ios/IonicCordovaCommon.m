@@ -1,12 +1,33 @@
 #import "IonicCordovaCommon.h"
 #import <Cordova/CDVPluginResult.h>
 
-@implementation IonicCordovaCommon
-
 NSString *const NO_DEPLOY_LABEL = @"none";
 
-- (void) getAppInfo:(CDVInvokedUrlCommand*)command
-{
+@interface IonicCordovaCommon()
+
+@property Boolean revert_to_base;
+
+@end
+
+@implementation IonicCordovaCommon
+
+- (void) pluginInitialize {
+    self.revert_to_base = true;
+
+    // Kick off a timer to revert broken updates
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 10 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
+        [self loadInitialVersion:NO];
+    })));
+}
+
+- (void) clearRevertTimer:(CDVInvokedUrlCommand*)command {
+    self.revert_to_base = false;
+    
+    NSLog(@"Cleared revert flag.");
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"] callbackId:command.callbackId];
+}
+
+- (void) getAppInfo:(CDVInvokedUrlCommand*)command {
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
     NSString* platformVersion = [[UIDevice currentDevice] systemVersion];
     NSString* version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -29,8 +50,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 
 }
 
-- (void) getPreferences:(CDVInvokedUrlCommand*)command
-{
+- (void) getPreferences:(CDVInvokedUrlCommand*)command {
     // Get preferences
     NSString *appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     NSString *debug = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonDebug"]];
@@ -51,6 +71,16 @@ NSString *const NO_DEPLOY_LABEL = @"none";
     NSLog(@"Got app preferences: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
+}
+
+- (void) loadInitialVersion:(BOOL)force {
+    if (force || self.revert_to_base) {
+        [self loadInitialVersion];
+    }
+}
+
+- (void) loadInitialVersion {
+    NSLog(@"LOADING BUNDLED VERSION");
 }
 
 @end
