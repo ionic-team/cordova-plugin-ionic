@@ -1,12 +1,37 @@
 #import "IonicCordovaCommon.h"
 #import <Cordova/CDVPluginResult.h>
-
-@implementation IonicCordovaCommon
+#import <objc/message.h>
 
 NSString *const NO_DEPLOY_LABEL = @"none";
 
-- (void) getAppInfo:(CDVInvokedUrlCommand*)command
-{
+@interface IonicCordovaCommon()
+
+@property Boolean revertToBase;
+@property NSString *baseIndexPath;
+
+@end
+
+@implementation IonicCordovaCommon
+
+- (void) pluginInitialize {
+    self.revertToBase = true;
+    self.baseIndexPath = [[NSBundle mainBundle] pathForResource:@"www/index" ofType:@"html"];
+
+    // Kick off a timer to revert broken updates
+    int rollbackTimeout = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonRollbackTimeout"] intValue];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) rollbackTimeout * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
+        [self loadInitialVersion:NO];
+    })));
+}
+
+- (void) clearRevertTimer:(CDVInvokedUrlCommand*)command {
+    self.revertToBase = false;
+    
+    NSLog(@"Cleared revert flag.");
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"] callbackId:command.callbackId];
+}
+
+- (void) getAppInfo:(CDVInvokedUrlCommand*)command {
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
     NSString* platformVersion = [[UIDevice currentDevice] systemVersion];
     NSString* version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -29,8 +54,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 
 }
 
-- (void) getPreferences:(CDVInvokedUrlCommand*)command
-{
+- (void) getPreferences:(CDVInvokedUrlCommand*)command {
     // Get preferences
     NSString *appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     NSString *debug = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonDebug"]];
@@ -51,6 +75,22 @@ NSString *const NO_DEPLOY_LABEL = @"none";
     NSLog(@"Got app preferences: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
+}
+
+- (void) loadInitialVersion:(BOOL)force {
+    if (force || self.revertToBase) {
+        [self loadInitialVersion];
+    }
+}
+
+- (void) loadInitialVersion {
+    NSLog(@"Redirecting to bundled index.html");
+    dispatch_async(dispatch_get_main_queue(), ^(void) {
+        NSLog(@"Reloading the web view.");
+        SEL reloadSelector = NSSelectorFromString(@"reload");
+        ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
+        [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.baseIndexPath]]];
+    });
 }
 
 @end
