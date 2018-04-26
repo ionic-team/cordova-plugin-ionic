@@ -72,6 +72,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
     switch(action) {
+      case "clearRevertTimer":
+        this.clearRevertTimer(callbackContext);
+        break;
       case "getAppInfo":
         this.getAppInfo(callbackContext);
         break;
