@@ -37,7 +37,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
     NSString *host = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
     NSString *updateMethod = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
     NSString *channel = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
-    int maxV = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue];
+    NSString *maxV = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"]];
 
     // Build the preferences json object
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
@@ -46,7 +46,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
     [json setObject:channel forKey:@"channel"];
     [json setObject:host forKey:@"host"];
     [json setObject:updateMethod forKey:@"updateMethod"];
-    [json setValue:maxV forKey:<#(nonnull NSString *)#> forKey:@"maxVersions"];
+    [json setObject:maxV forKey:@"maxVersions"];
     [json setObject:NO_DEPLOY_LABEL forKey:@"currentVersionId"];
     NSLog(@"Got app preferences: %@", json);
 
