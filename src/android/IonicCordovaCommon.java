@@ -63,15 +63,21 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * @return                  True if the action was valid, false if not.
    */
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    if(action.equals("getAppInfo")) {
-      this.getAppInfo(args, callbackContext);
-    } else if(action.equals("getPreferences")) {
-      this.getPreferences(callbackContext);
+    switch(action) {
+      case "getAppInfo":
+        this.getAppInfo(callbackContext);
+        break;
+      case "getPreferences":
+        this.getPreferences(callbackContext);
+        break;
+      default:
+        return false;
     }
+
     return true;
   }
 
-  public JSONObject getAppInfo(JSONArray args, CallbackContext callbackContext) throws JSONException {
+  public JSONObject getAppInfo(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
 
     try {
