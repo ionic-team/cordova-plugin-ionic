@@ -5,33 +5,30 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.PluginResult;
-import org.apache.cordova.PluginResult.Status;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Build;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 public class IonicCordovaCommon extends CordovaPlugin {
   public static final String TAG = "IonicCordovaCommon";
+
+  private Context myContext = null;
+  private SharedPreferences prefs = null;
+
+  private String appId;
+  private String debug;
+  private String channel;
+  private String host;
+  private String updateMethod;
+  private int maxVersions;
+  private String currentVersionId;
 
   /**
    * Sets the context of the Command. This can then be used to do things like
@@ -41,7 +38,34 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * @param webView The CordovaWebView Cordova is running in.
    */
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-      super.initialize(cordova, webView);
+    super.initialize(cordova, webView);
+    this.myContext = this.cordova.getActivity().getApplicationContext();
+    this.prefs = getPreferences();
+
+    this.appId = prefs.getString("app_id", getStringResourceByName("ionic_app_id"));
+    this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
+    this.currentVersionId = prefs.getString("uuid", "NO_DEPLOY_AVAILABLE");
+    this.debug = prefs.getString("debug", getStringResourceByName("ionic_debug"));
+    this.host = getStringResourceByName("ionic_update_api");
+    this.updateMethod = getStringResourceByName("ionic_update_method");
+
+    try {
+      this.maxVersions = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
+    } catch(NumberFormatException e) {
+      this.maxVersions = 3;
+    }
+  }
+
+  private SharedPreferences getPreferences() {
+    SharedPreferences prefs = this.myContext.getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
+    return prefs;
+  }
+
+  private String getStringResourceByName(String aString) {
+    Activity activity = cordova.getActivity();
+    String packageName = activity.getPackageName();
+    int resId = activity.getResources().getIdentifier(aString, "string", packageName);
+    return activity.getString(resId);
   }
 
   /**
@@ -97,13 +121,13 @@ public class IonicCordovaCommon extends CordovaPlugin {
     JSONObject j = new JSONObject();
 
     try {
-      j.put("appId", "4e6b62ff");
-      j.put("debug", "false");
-      j.put("channel", "Master");
-      j.put("host", "https://api-staging.ionicjs.com");
-      j.put("updateMethod", "none");
-      j.put("maxVersions", 5);
-      j.put("currentVersionId", "2622e7d7-9d39-496c-ad95-87f76b31f10f");
+      j.put("appId", appId);
+      j.put("debug", debug);
+      j.put("channel", channel);
+      j.put("host", host);
+      j.put("updateMethod", updateMethod);
+      j.put("maxVersions", maxVersions);
+      j.put("currentVersionId", currentVersionId);
     } catch(Exception ex) {
       Log.e(TAG, "Unable to get preferences", ex);
     }
