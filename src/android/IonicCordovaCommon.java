@@ -9,7 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
-import android.content.SharedPreferences;
 import android.util.Log;
 import android.app.Activity;
 import android.content.Context;
@@ -29,16 +28,6 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
-  }
-
-  /**
-   * Grabs the shared preferences object for the IonicCordova plugin.
-   * 
-   * @return The SharedPreferences object
-   */
-  private SharedPreferences getPreferences() {
-    Context cxt = this.cordova.getActivity().getApplicationContext();
-    return cxt.getSharedPreferences("com.ionic.common.preferences", Context.MODE_PRIVATE);
   }
 
   /**
