@@ -5,14 +5,14 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 
 @interface IonicCordovaCommon()
 
-@property Boolean revert_to_base;
+@property Boolean revertToBase;
 
 @end
 
 @implementation IonicCordovaCommon
 
 - (void) pluginInitialize {
-    self.revert_to_base = true;
+    self.revertToBase = true;
 
     // Kick off a timer to revert broken updates
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 10 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
@@ -21,7 +21,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 }
 
 - (void) clearRevertTimer:(CDVInvokedUrlCommand*)command {
-    self.revert_to_base = false;
+    self.revertToBase = false;
     
     NSLog(@"Cleared revert flag.");
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"] callbackId:command.callbackId];
@@ -74,7 +74,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 }
 
 - (void) loadInitialVersion:(BOOL)force {
-    if (force || self.revert_to_base) {
+    if (force || self.revertToBase) {
         [self loadInitialVersion];
     }
 }

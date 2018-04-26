@@ -11,13 +11,15 @@ import org.json.JSONException;
 
 import android.util.Log;
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.os.Build;
+import android.os.Handler;
 
 public class IonicCordovaCommon extends CordovaPlugin {
   public static final String NO_DEPLOY_LABEL = "none";
   public static final String TAG = "IonicCordovaCommon";
+
+  private boolean revertToBase;
 
   /**
    * Sets the context of the Command. This can then be used to do things like
@@ -28,6 +30,23 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
+    this.revertToBase = true;
+
+    // Make a runnable to check if a rollback is needed
+    class DelayedRollback implements Runnable {
+      IonicCordovaCommon weak;
+      DelayedRollback(IonicCordovaCommon ionic) { this.weak = ionic; }
+      public void run() {
+        weak.loadInitialVersion(false);
+      }
+    }
+
+    // Instantiate the runnable and handler
+    DelayedRollback delayed = new DelayedRollback(this);
+    Handler handler = new Handler();
+
+    // Kick off our rollback check after 10 seconds
+    handler.postDelayed(delayed, 10000);
   }
 
   /**
@@ -67,12 +86,24 @@ public class IonicCordovaCommon extends CordovaPlugin {
   }
 
   /**
+   * Cancel the reversion to the bundled version of the app, signaling a successful deploy.
+   * 
+   * @param callbackContext The callback id used when calling back into JavaScript.
+   */
+  public void clearRevertTimer(CallbackContext callbackContext) {
+    this.revertToBase = false;
+
+    final PluginResult result = new PluginResult(PluginResult.Status.OK, "success");
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
+  }
+
+  /**
    * Get basic app information.  Used for the Ionic monitoring service.
    *
    * @param callbackContext The callback id used when calling back into JavaScript.
-   * @return                True
    */
-  public Boolean getAppInfo(CallbackContext callbackContext) throws JSONException {
+  public void getAppInfo(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
 
     try {
@@ -96,17 +127,14 @@ public class IonicCordovaCommon extends CordovaPlugin {
       Log.e(TAG, "Unable to get package info", ex);
       callbackContext.error(ex.toString());
     }
-
-    return true;
   }
 
   /**
    * Get cordova plugin preferences and state information.
    *
    * @param callbackContext The callback id used when calling back into JavaScript.
-   * @return                True
    */
-  public Boolean getPreferences(CallbackContext callbackContext) throws JSONException {
+  public void getPreferences(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
     int maxV;
 
@@ -136,7 +164,15 @@ public class IonicCordovaCommon extends CordovaPlugin {
       Log.e(TAG, "Unable to get preferences", ex);
       callbackContext.error(ex.toString());
     }
+  }
 
-    return true;
+  private void loadInitialVersion(boolean force) {
+    if (force || this.revertToBase) {
+      this.loadInitialVersion();
+    }
+  }
+
+  private void loadInitialVersion() {
+    Log.d(TAG, "LOADING INITIAL VERSION");
   }
 }
