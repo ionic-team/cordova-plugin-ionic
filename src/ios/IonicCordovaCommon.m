@@ -3,6 +3,8 @@
 
 @implementation IonicCordovaCommon
 
+NSString *const NO_DEPLOY_LABEL = @"none";
+
 - (void) getAppInfo:(CDVInvokedUrlCommand*)command
 {
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
@@ -29,16 +31,24 @@
 
 - (void) getPreferences:(CDVInvokedUrlCommand*)command
 {
-    NSLog(@"Called getPreferences");
+    // Get preferences
+    NSString *appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
+    NSString *debug = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonDebug"]];
+    NSString *host = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
+    NSString *updateMethod = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
+    NSString *channel = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
+    int maxV = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue];
+
+    // Build the preferences json object
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
-    [json setObject:@"4e6b62ff" forKey:@"appId"];
-    [json setObject:@"false" forKey:@"debug"];
-    [json setObject:@"Master" forKey:@"channel"];
-    [json setObject:@"https://api-staging.ionicjs.com" forKey:@"host"];
-    [json setObject:@"auto" forKey:@"updateMethod"];
-    [json setObject:@5 forKey:@"maxVersions"];
-    [json setObject:@"2622e7d7-9d39-496c-ad95-87f76b31f10f" forKey:@"currentVersionId"];
-    NSLog(@"Json: %@", json);
+    [json setObject:appId forKey:@"appId"];
+    [json setObject:debug forKey:@"debug"];
+    [json setObject:channel forKey:@"channel"];
+    [json setObject:host forKey:@"host"];
+    [json setObject:updateMethod forKey:@"updateMethod"];
+    [json setValue:maxV forKey:<#(nonnull NSString *)#> forKey:@"maxVersions"];
+    [json setObject:NO_DEPLOY_LABEL forKey:@"currentVersionId"];
+    NSLog(@"Got app preferences: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
 }
