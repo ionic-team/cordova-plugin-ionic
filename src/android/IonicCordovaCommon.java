@@ -83,7 +83,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * @param callbackContext The callback id used when calling back into JavaScript.
    * @return                True
    */
-  public JSONObject getAppInfo(CallbackContext callbackContext) throws JSONException {
+  public Boolean getAppInfo(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
 
     try {
@@ -117,7 +117,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * @param callbackContext The callback id used when calling back into JavaScript.
    * @return                True
    */
-  public JSONObject getPreferences(CallbackContext callbackContext) throws JSONException {
+  public Boolean getPreferences(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
     int maxV;
 
@@ -128,7 +128,8 @@ public class IonicCordovaCommon extends CordovaPlugin {
     }
 
     try {
-      j.put("appId", getStringResourceByName("ionic_app_id"));
+      String appId = getStringResourceByName("ionic_app_id");
+      j.put("appId", appId);
       j.put("debug", getStringResourceByName("ionic_debug"));
       j.put("channel", getStringResourceByName("ionic_channel_name"));
       j.put("host", getStringResourceByName("ionic_update_api"));
@@ -138,6 +139,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
       // Until we update prefs in native-land, the only possible UUID here is 'none'
       j.put("currentVersionId", IonicCordovaCommon.NO_DEPLOY_LABEL);
 
+      Log.d(TAG, "Got prefs for AppID: " + appId);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
       result.setKeepCallback(false);
       callbackContext.sendPluginResult(result);
