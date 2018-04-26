@@ -170,6 +170,8 @@ public class IonicCordovaCommon extends CordovaPlugin {
   }
 
   private void loadInitialVersion(boolean force) {
+    Log.d(TAG, "Checking if rollback is needed");
+
     if (force || this.revertToBase) {
       this.loadInitialVersion();
     }
@@ -177,5 +179,13 @@ public class IonicCordovaCommon extends CordovaPlugin {
 
   private void loadInitialVersion() {
     Log.d(TAG, "LOADING INITIAL VERSION");
+    IonicCordovaCommon self = this;
+    cordova.getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        webView.loadUrlIntoView("file:///android_asset/www/index.html", false);
+        webView.clearHistory();
+      }
+    });
   }
 }
