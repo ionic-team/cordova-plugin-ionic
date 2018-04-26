@@ -1,11 +1,13 @@
 #import "IonicCordovaCommon.h"
 #import <Cordova/CDVPluginResult.h>
+#import <objc/message.h>
 
 NSString *const NO_DEPLOY_LABEL = @"none";
 
 @interface IonicCordovaCommon()
 
 @property Boolean revertToBase;
+@property NSString *baseIndexPath;
 
 @end
 
@@ -13,6 +15,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 
 - (void) pluginInitialize {
     self.revertToBase = true;
+    self.baseIndexPath = [[NSBundle mainBundle] pathForResource:@"www/index" ofType:@"html"];
 
     // Kick off a timer to revert broken updates
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 10 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
@@ -80,7 +83,13 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 }
 
 - (void) loadInitialVersion {
-    NSLog(@"LOADING BUNDLED VERSION");
+    NSLog(@"Redirecting to bundled index.html");
+    dispatch_async(dispatch_get_main_queue(), ^(void) {
+        NSLog(@"Reloading the web view.");
+        SEL reloadSelector = NSSelectorFromString(@"reload");
+        ((id (*)(id, SEL))objc_msgSend)(self.webView, reloadSelector);
+        [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.baseIndexPath]]];
+    });
 }
 
 @end
