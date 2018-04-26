@@ -18,18 +18,21 @@ enum UpdateState {
 
 import {
   CallbackFunction,
-  CheckDeviceResponse,
   FetchManifestResp,
-  IAppInfo,
-  IDeployConfig,
-  IDeployPluginAPI,
   INativePreferences,
-  IPluginBaseAPI,
   ISavedPreferences,
-  ISnapshotInfo,
   ISyncOptions,
   ManifestFileEntry,
 } from './definitions';
+
+import {
+  CheckDeviceResponse,
+  IAppInfo,
+  IDeployConfig,
+  IDeployPluginAPI,
+  IPluginBaseAPI,
+  ISnapshotInfo,
+} from './api';
 
 import {
   isPluginConfig
@@ -139,9 +142,7 @@ class IonicDeployImpl {
     }
     // TODO: make sure the user can't overwrite protected things
     Object.assign(this._savedPreferences, config);
-    return new Promise( async (resolve, reject) => {
-      this._syncPrefs(this._savedPreferences);
-    });
+    await this._syncPrefs(this._savedPreferences);
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
@@ -798,7 +799,7 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).checkForUpdate();
   }
 
-  async configure(config: IDeployConfig): Promise<any> {
+  async configure(config: IDeployConfig): Promise<void> {
     return (await this.delegate).configure(config);
   }
 
@@ -840,7 +841,9 @@ class IonicCordova implements IPluginBaseAPI {
 
   constructor() {
       this.deploy = new IonicDeploy(this);
+      this.deploy.getAvailableVersions();
   }
+
 
   getAppInfo(success: CallbackFunction<IAppInfo>, failure: CallbackFunction<string>) {
     console.warn('This function has been deprecated in favor of IonicCordova.getAppDetails.');

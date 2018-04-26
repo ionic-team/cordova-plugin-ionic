@@ -36,7 +36,8 @@
     "prepublishOnly": "npm run build",
     "test": "jest",
     "watch": "tsc -w",
-    "watch-dev": "watch 'npm run apply-dev' ./www"
+    "watch-dev": "watch 'npm run apply-dev' ./www",
+    "docs": "typedoc --theme markdown --mdEngine github --name \"Cordova Plugin Ionic\" --readme none --hideGenerator --out docs/ www/api.ts"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",
@@ -77,6 +78,8 @@
     "ts-jest": "^22.4.2",
     "tslint": "^5.9.1",
     "tslint-ionic-rules": "0.0.14",
+    "typedoc": "^0.11.1",
+    "typedoc-plugin-markdown": "^1.1.6",
     "typescript": "^2.6.2",
     "watch": "^1.0.2"
   },
