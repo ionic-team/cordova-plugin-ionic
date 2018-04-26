@@ -134,6 +134,8 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("host", getStringResourceByName("ionic_update_api"));
       j.put("updateMethod", getStringResourceByName("ionic_update_method"));
       j.put("maxVersions", maxV);
+
+      // Until we update prefs in native-land, the only possible UUID here is 'none'
       j.put("currentVersionId", IonicCordovaCommon.NO_DEPLOY_LABEL);
 
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
