@@ -9,7 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
-import android.content.SharedPreferences;
 import android.util.Log;
 import android.app.Activity;
 import android.content.Context;
@@ -17,18 +16,8 @@ import android.content.pm.PackageInfo;
 import android.os.Build;
 
 public class IonicCordovaCommon extends CordovaPlugin {
+  public static final String NO_DEPLOY_LABEL = "none";
   public static final String TAG = "IonicCordovaCommon";
-
-  private Context myContext = null;
-  private SharedPreferences prefs = null;
-
-  private String appId;
-  private String debug;
-  private String channel;
-  private String host;
-  private String updateMethod;
-  private int maxVersions;
-  private String currentVersionId;
 
   /**
    * Sets the context of the Command. This can then be used to do things like
@@ -39,28 +28,14 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
-    this.myContext = this.cordova.getActivity().getApplicationContext();
-    this.prefs = getPreferences();
-
-    this.appId = prefs.getString("app_id", getStringResourceByName("ionic_app_id"));
-    this.channel = prefs.getString("channel", getStringResourceByName("ionic_channel_name"));
-    this.currentVersionId = prefs.getString("uuid", "NO_DEPLOY_AVAILABLE");
-    this.debug = prefs.getString("debug", getStringResourceByName("ionic_debug"));
-    this.host = getStringResourceByName("ionic_update_api");
-    this.updateMethod = getStringResourceByName("ionic_update_method");
-
-    try {
-      this.maxVersions = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
-    } catch(NumberFormatException e) {
-      this.maxVersions = 3;
-    }
   }
 
-  private SharedPreferences getPreferences() {
-    SharedPreferences prefs = this.myContext.getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
-    return prefs;
-  }
-
+  /**
+   * Grabs a string from the activity's resources.
+   * 
+   * @param aString The name of the resource to retrieve
+   * @return        The string contents of the resource
+   */
   private String getStringResourceByName(String aString) {
     Activity activity = cordova.getActivity();
     String packageName = activity.getPackageName();
@@ -77,15 +52,27 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * @return                  True if the action was valid, false if not.
    */
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    if(action.equals("getAppInfo")) {
-      this.getAppInfo(args, callbackContext);
-    } else if(action.equals("getPreferences")) {
-      this.getPreferences(callbackContext);
+    switch(action) {
+      case "getAppInfo":
+        this.getAppInfo(callbackContext);
+        break;
+      case "getPreferences":
+        this.getPreferences(callbackContext);
+        break;
+      default:
+        return false;
     }
+
     return true;
   }
 
-  public JSONObject getAppInfo(JSONArray args, CallbackContext callbackContext) throws JSONException {
+  /**
+   * Get basic app information.  Used for the Ionic monitoring service.
+   *
+   * @param callbackContext The callback id used when calling back into JavaScript.
+   * @return                True
+   */
+  public Boolean getAppInfo(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
 
     try {
@@ -95,10 +82,6 @@ public class IonicCordovaCommon extends CordovaPlugin {
       int versionCode = pInfo.versionCode;
       String platformVersion = String.valueOf(Build.VERSION.RELEASE);
 
-      /*
-      String appName = this.cordova.getActivity().getApplicationInfo().loadLabel(this.cordova.getActivity().getPackageManager());
-      */
-
       j.put("platform", "android");
       j.put("platformVersion", platformVersion);
       j.put("version", versionCode);
@@ -106,36 +89,54 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("bundleVersion", version);
 
       Log.d(TAG, "Got package info. Version: " + version + ", bundleName: " + name + ", versionCode: " + versionCode);
+      final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
     } catch(Exception ex) {
       Log.e(TAG, "Unable to get package info", ex);
+      callbackContext.error(ex.toString());
     }
 
-    final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
-    result.setKeepCallback(false);
-    callbackContext.sendPluginResult(result);
-
-    return j;
+    return true;
   }
 
-  public JSONObject getPreferences(CallbackContext callbackContext) throws JSONException {
+  /**
+   * Get cordova plugin preferences and state information.
+   *
+   * @param callbackContext The callback id used when calling back into JavaScript.
+   * @return                True
+   */
+  public Boolean getPreferences(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
+    int maxV;
 
     try {
-      j.put("appId", appId);
-      j.put("debug", debug);
-      j.put("channel", channel);
-      j.put("host", host);
-      j.put("updateMethod", updateMethod);
-      j.put("maxVersions", maxVersions);
-      j.put("currentVersionId", currentVersionId);
-    } catch(Exception ex) {
-      Log.e(TAG, "Unable to get preferences", ex);
+      maxV = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
+    } catch(NumberFormatException e) {
+      maxV = 2;
     }
 
-    final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
-    result.setKeepCallback(false);
-    callbackContext.sendPluginResult(result);
+    try {
+      String appId = getStringResourceByName("ionic_app_id");
+      j.put("appId", appId);
+      j.put("debug", getStringResourceByName("ionic_debug"));
+      j.put("channel", getStringResourceByName("ionic_channel_name"));
+      j.put("host", getStringResourceByName("ionic_update_api"));
+      j.put("updateMethod", getStringResourceByName("ionic_update_method"));
+      j.put("maxVersions", maxV);
 
-    return j;
+      // Until we update prefs in native-land, the only possible UUID here is 'none'
+      j.put("currentVersionId", IonicCordovaCommon.NO_DEPLOY_LABEL);
+
+      Log.d(TAG, "Got prefs for AppID: " + appId);
+      final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
+    } catch(Exception ex) {
+      Log.e(TAG, "Unable to get preferences", ex);
+      callbackContext.error(ex.toString());
+    }
+
+    return true;
   }
 }

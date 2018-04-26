@@ -76,7 +76,6 @@
         </config-file>
 
         <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common" />
-        <source-file src="src/android/IonicDeploy.java" target-dir="src/com/ionicframework/deploy" />
     </platform>
 
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
