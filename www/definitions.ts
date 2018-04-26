@@ -1,38 +1,3 @@
-export interface IDeployPluginAPI {
-  /* v4 API */
-  init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>): void;
-  check(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
-  download(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
-  extract(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
-  redirect(success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
-  info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>): void;
-  getVersions(success: CallbackFunction<string[]>, failure: CallbackFunction<string>): void;
-  deleteVersion(version: string, success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
-  parseUpdate(jsonResponse: any, success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
-
-  /* v5 API */
-  configure(config: IDeployConfig): Promise<any>;
-  checkForUpdate(): Promise<CheckDeviceResponse>;
-  downloadUpdate(): Promise<string>;
-  extractUpdate(): Promise<string>;
-  reloadApp(): Promise<string>;
-  getCurrentVersion(): Promise<ISnapshotInfo>;
-  getAvailableVersions(): Promise<ISnapshotInfo[]>;
-  deleteVersionById(version: string): Promise<string>;
-}
-
-export interface IPluginBaseAPI {
-  getAppInfo(success: Function, failure: Function): void;
-  getAppDetails(): Promise<IAppInfo>;
-  deploy: IDeployPluginAPI;
-}
-
-export interface IDeployConfig {
-  appId?: string;
-  debug?: string;
-  host?: string;
-  channel?: string;
-}
 export interface INativePreferences {
   appId: string;
   binaryVersion?: string;
@@ -69,31 +34,6 @@ export interface FetchManifestResp {
   fileBaseUrl: string;
 }
 
-export interface CallbackFunction<T> { (result?: T): void; }
-
-export interface IAppInfo {
-  platform: string;
-  platformVersion: string;
-  version: string;
-  bundleName: string;
-  bundleVersion: string;
-}
-
-export interface ISnapshotInfo {
-  deploy_uuid: string;
-  versionId: string; // NOTE: deprecating deploy_uuid in favor of versionId
-  channel: string;
-  binary_version: string;
-  binaryVersion: string; // NOTE: binary_version in favor of binaryVersion
-}
-
 export interface ISyncOptions {
   updateMethod?: 'background' | 'auto';
-}
-
-export interface CheckDeviceResponse {
-  available: boolean;
-  snapshot?: string;
-  url?: string;
-  integrity?: string;
 }
