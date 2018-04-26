@@ -319,11 +319,7 @@ class IonicDeployImpl {
       throw new Error('No pending update to extract');
     }
     const versionId = prefs.availableUpdate.versionId;
-    const manifestString = await this._fileManager.getFile(
-      this.getManifestCacheDir(),
-      this._getManifestName(versionId)
-    );
-    const manifest: ManifestFileEntry[] = JSON.parse(manifestString);
+    const manifest = await this.readManifest(versionId);
     let size = 0, extracted = 0;
     manifest.forEach(i => {
       size += i.size;
@@ -373,6 +369,14 @@ class IonicDeployImpl {
     prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
     this._savePrefs(prefs);
     return 'true';
+  }
+
+  private async readManifest(versionId: string): Promise<ManifestFileEntry[]> {
+    const manifestString = await this._fileManager.getFile(
+      this.getManifestCacheDir(),
+      this._getManifestName(versionId)
+    );
+    return JSON.parse(manifestString);
   }
 
   async reloadApp(): Promise<string> {
@@ -451,7 +455,46 @@ class IonicDeployImpl {
   async deleteVersionById(versionId: string): Promise<string> {
     // TODO: Implement
     // cordova.exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
-    return 'Implement me please';
+
+    // TODO: check if versionId === currentVersionId
+
+    const prefs = this._savedPreferences;
+    delete prefs.updates[versionId];
+    this._savePrefs(prefs);
+
+    // delete snapshot directory
+    const snapshotDir = this.getSnapshotCacheDir(versionId);
+    const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
+    console.log(`directory found for snapshot ${versionId} deleting`);
+    await (new Promise((resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
+
+    // delete manifest
+    const manifestFile = await this._fileManager.getFileEntry(
+      this.getManifestCacheDir(),
+      this._getManifestName(versionId)
+    );
+    await new Promise((resolve, reject) => manifestFile.remove(resolve, reject));
+
+    // cleanup file cache
+    const hashes = new Set<string>();
+    for (const versionId of Object.keys(prefs.updates)) {
+      for (const entry of await this.readManifest(versionId)) {
+        hashes.add(this._cleanHash(entry.integrity));
+      }
+    }
+
+    const fileDir = this.getFileCacheDir();
+    const cacheDirEntry = await this._fileManager.getDirectory(fileDir, false);
+    const reader = cacheDirEntry.createReader();
+    const entries = await new Promise<Entry[]>((resolve, reject) => reader.readEntries(resolve, reject));
+    for (const entry of entries) {
+      if (hashes.has(entry.name) || !entry.isFile) {
+        continue;
+      }
+      await new Promise((resolve, reject) => entry.remove(resolve, reject));
+    }
+
+    return 'true';
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
