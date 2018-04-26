@@ -37,7 +37,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
     NSString *host = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
     NSString *updateMethod = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
     NSString *channel = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
-    NSString *maxV = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] valueForKey:@"IonMaxVersions"]];
+    NSString *maxV = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"]];
 
     // Build the preferences json object
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
