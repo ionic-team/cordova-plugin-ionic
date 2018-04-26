@@ -77,6 +77,12 @@ public class IonicCordovaCommon extends CordovaPlugin {
     return true;
   }
 
+  /**
+   * Get basic app information.  Used for the Ionic monitoring service.
+   *
+   * @param callbackContext The callback id used when calling back into JavaScript.
+   * @return                True
+   */
   public JSONObject getAppInfo(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
 
@@ -105,6 +111,12 @@ public class IonicCordovaCommon extends CordovaPlugin {
     return true;
   }
 
+  /**
+   * Get cordova plugin preferences and state information.
+   *
+   * @param callbackContext The callback id used when calling back into JavaScript.
+   * @return                True
+   */
   public JSONObject getPreferences(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
     int maxV;
