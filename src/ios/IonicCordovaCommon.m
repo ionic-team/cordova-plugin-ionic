@@ -18,7 +18,8 @@ NSString *const NO_DEPLOY_LABEL = @"none";
     self.baseIndexPath = [[NSBundle mainBundle] pathForResource:@"www/index" ofType:@"html"];
 
     // Kick off a timer to revert broken updates
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) 10 * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
+    int rollbackTimeout = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonRollbackTimeout"] intValue];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) rollbackTimeout * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
         [self loadInitialVersion:NO];
     })));
 }
