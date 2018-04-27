@@ -169,6 +169,11 @@ public class IonicCordovaCommon extends CordovaPlugin {
     }
   }
 
+  /**
+   * Checks if the base version bundled with the app should be loaded, and fires off the load if so.
+   *
+   * @param force Whether to force the load.
+   */
   private void loadInitialVersion(boolean force) {
     Log.d(TAG, "Checking if rollback is needed");
 
@@ -177,6 +182,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
     }
   }
 
+  /**
+   * Loads the version of the app bundled in the binary.
+   */
   private void loadInitialVersion() {
     Log.d(TAG, "LOADING INITIAL VERSION");
     IonicCordovaCommon self = this;
