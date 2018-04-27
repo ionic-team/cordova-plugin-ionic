@@ -22,6 +22,7 @@
     <preference name="UPDATE_API" default="https://api.ionicjs.com" />
     <preference name="UPDATE_METHOD" default="background" />
     <preference name="MAX_STORE" default="2" />
+    <preference name="ROLLBACK_TIMEOUT" default="10" />
 
     <!-- ios -->
     <platform name="ios">
@@ -55,6 +56,10 @@
             <string>$MAX_STORE</string>
         </config-file>
 
+        <config-file target="*-Info.plist" parent="IonRollbackTimeout">
+            <string>$ROLLBACK_TIMEOUT</string>
+        </config-file>
+
         <header-file src="src/ios/IonicCordovaCommon.h" />
         <source-file src="src/ios/IonicCordovaCommon.m" />
     </platform>
@@ -73,6 +78,7 @@
             <string name="ionic_update_api">$UPDATE_API</string>
             <string name="ionic_update_method">$UPDATE_METHOD</string>
             <string name="ionic_max_versions">$MAX_STORE</string>
+            <string name="ionic_rollback_timeout">$ROLLBACK_TIMEOUT</string>
         </config-file>
 
         <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common" />
