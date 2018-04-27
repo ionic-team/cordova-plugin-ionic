@@ -32,6 +32,16 @@ public class IonicCordovaCommon extends CordovaPlugin {
     super.initialize(cordova, webView);
     this.revertToBase = true;
 
+    // Get the timeout, and default to 10 sec. if you can't.
+    int rollbackTimer;
+
+    try {
+      rollbackTimer = Integer.parseInt(getStringResourceByName("ionic_rollback_timeout"));
+    } catch (NumberFormatException e) {
+      Log.d(TAG, "Couldn't read timeout from config, defaulting to 10 seconds...");
+      rollbackTimer = 10;
+    }
+
     // Make a runnable to check if a rollback is needed
     class DelayedRollback implements Runnable {
       IonicCordovaCommon weak;
@@ -46,7 +56,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
     Handler handler = new Handler();
 
     // Kick off our rollback check after 10 seconds
-    handler.postDelayed(delayed, 10000);
+    handler.postDelayed(delayed, rollbackTimer * 1000);
   }
 
   /**
