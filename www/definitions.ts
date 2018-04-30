@@ -11,6 +11,7 @@ export interface INativePreferences {
 export interface IAvailableUpdate {
   binaryVersion: string;
   channel: string;
+  lastUsed: string;
   path: string;
   state: string;
   url: string;
