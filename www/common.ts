@@ -182,6 +182,7 @@ class IonicDeployImpl {
           binaryVersion: appInfo.bundleVersion,
           channel: prefs.channel,
           state: UpdateState.Available,
+          lastUsed: new Date().toISOString(),
           path: this.getSnapshotCacheDir(checkDeviceResp.snapshot),
           url: checkDeviceResp.url,
           versionId: checkDeviceResp.snapshot
@@ -369,6 +370,7 @@ class IonicDeployImpl {
     prefs.availableUpdate.state = UpdateState.Ready;
     prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
     this._savePrefs(prefs);
+    await this.cleanupVersions();
     return 'true';
   }
 
@@ -477,6 +479,14 @@ class IonicDeployImpl {
     await new Promise((resolve, reject) => manifestFile.remove(resolve, reject));
 
     // cleanup file cache
+    await this.cleanupCache();
+
+    return 'true';
+  }
+
+  private async cleanupCache() {
+    const prefs = this._savedPreferences;
+
     const hashes = new Set<string>();
     for (const versionId of Object.keys(prefs.updates)) {
       for (const entry of await this.readManifest(versionId)) {
@@ -494,8 +504,23 @@ class IonicDeployImpl {
       }
       await new Promise((resolve, reject) => entry.remove(resolve, reject));
     }
+  }
 
-    return 'true';
+  private async cleanupVersions() {
+    const prefs = this._savedPreferences;
+
+    let updates = [];
+    for (const versionId of Object.keys(prefs.updates)) {
+      updates.push(prefs.updates[versionId]);
+    }
+
+    updates = updates.sort((a, b) => a.lastUsed.localeCompare(b.lastUsed));
+    updates = updates.reverse();
+    updates = updates.slice(prefs.maxVersions);
+
+    for (const update of updates) {
+      await this.deleteVersionById(update.versionId);
+    }
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
