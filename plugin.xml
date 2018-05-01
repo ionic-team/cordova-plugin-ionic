@@ -23,6 +23,7 @@
     <preference name="UPDATE_METHOD" default="background" />
     <preference name="MAX_STORE" default="2" />
     <preference name="ROLLBACK_TIMEOUT" default="10" />
+    <preference name="MIN_BACKGROUND_DURATION" default="30" />
 
     <!-- ios -->
     <platform name="ios">
@@ -56,8 +57,8 @@
             <string>$MAX_STORE</string>
         </config-file>
 
-        <config-file target="*-Info.plist" parent="IonRollbackTimeout">
-            <string>$ROLLBACK_TIMEOUT</string>
+        <config-file target="*-Info.plist" parent="IonMinBackgroundDuration">
+            <string>$MIN_BACKGROUND_DURATION</string>
         </config-file>
 
         <header-file src="src/ios/IonicCordovaCommon.h" />
@@ -79,6 +80,7 @@
             <string name="ionic_update_method">$UPDATE_METHOD</string>
             <string name="ionic_max_versions">$MAX_STORE</string>
             <string name="ionic_rollback_timeout">$ROLLBACK_TIMEOUT</string>
+            <string name="ionic_min_background_duration">$MIN_BACKGROUND_DURATION</string>
         </config-file>
 
         <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common" />

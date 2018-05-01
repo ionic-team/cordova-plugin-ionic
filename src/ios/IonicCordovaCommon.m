@@ -60,7 +60,8 @@
     NSString *host = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
     NSString *updateMethod = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
     NSString *channel = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
-    NSString *maxV = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"]];
+    NSNumber *maxV = [NSNumber numberWithInt:[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue]];
+    NSNumber *minBackgroundDuration = [NSNumber numberWithInt:[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMinBackgroundDuration"] intValue]];
 
     // Build the preferences json object
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
@@ -70,6 +71,7 @@
     [json setObject:host forKey:@"host"];
     [json setObject:updateMethod forKey:@"updateMethod"];
     [json setObject:maxV forKey:@"maxVersions"];
+    [json setObject:minBackgroundDuration forKey:@"minBackgroundDuration"];
     NSLog(@"Got app preferences: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
