@@ -614,12 +614,14 @@ class FileManager {
     }
     const dirEntry = await this.getDirectory(path, createFile);
     return new Promise<FileEntry>( (resolve, reject) => {
-      dirEntry.getFile(fileName, {create: createFile, exclusive: false}, async (fileEntry: FileEntry) => {
-        if (dataBlob) {
-          await this.writeFile(fileEntry, dataBlob);
-        }
-        resolve(fileEntry);
-      }, reject);
+      if (createFile && dataBlob) {
+        dirEntry.getFile(fileName + '.tmp.' + Date.now(), {create: true, exclusive: false}, async (fileEntry: FileEntry) => {
+            await this.writeFile(fileEntry, dataBlob);
+            fileEntry.moveTo(dirEntry, fileName, entry => resolve(entry as FileEntry), reject);
+          }, reject);
+      } else {
+        dirEntry.getFile(fileName, {create: createFile, exclusive: false}, resolve, reject);
+      }
     });
   }
 
