@@ -6,6 +6,7 @@ export interface INativePreferences {
   channel: string;
   updateMethod: 'none' | 'auto' | 'background';
   maxVersions: number;
+  minBackgroundDuration: number;
 }
 
 export interface IAvailableUpdate {

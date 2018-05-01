@@ -688,17 +688,18 @@ class IonicDeploy implements IDeployPluginAPI {
   private _PREFS_KEY = '_ionicDeploySavedPrefs';
   private parent: IPluginBaseAPI;
   private delegate: Promise<IonicDeployImpl>;
-  private lastPause: number;
+  private lastPause = 0;
+  private minBackgroundDuration = 0;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
     this.delegate = this.initialize();
-    this.lastPause = 0;
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
   async initialize() {
     const preferences = await this._initPreferences();
+    this.minBackgroundDuration = preferences.minBackgroundDuration;
     const appInfo = await this.parent.getAppDetails();
     const delegate = new IonicDeployImpl(appInfo, preferences);
     await delegate._handleInitialPreferenceState();
@@ -717,7 +718,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async onResume() {
     await this.reloadApp();
-    if (this.lastPause && Date.now() - this.lastPause > 30 * 1000) {
+    if (this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
       await (await this.delegate).sync();
     }
   }
