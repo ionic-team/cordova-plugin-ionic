@@ -2,7 +2,6 @@
 #import <Cordova/CDVPluginResult.h>
 #import <objc/message.h>
 
-NSString *const NO_DEPLOY_LABEL = @"none";
 
 @interface IonicCordovaCommon()
 
@@ -26,7 +25,7 @@ NSString *const NO_DEPLOY_LABEL = @"none";
 
 - (void) clearRevertTimer:(CDVInvokedUrlCommand*)command {
     self.revertToBase = false;
-    
+
     NSLog(@"Cleared revert flag.");
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"] callbackId:command.callbackId];
 }
@@ -71,7 +70,6 @@ NSString *const NO_DEPLOY_LABEL = @"none";
     [json setObject:host forKey:@"host"];
     [json setObject:updateMethod forKey:@"updateMethod"];
     [json setObject:maxV forKey:@"maxVersions"];
-    [json setObject:NO_DEPLOY_LABEL forKey:@"currentVersionId"];
     NSLog(@"Got app preferences: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];

@@ -3,10 +3,10 @@ set -o errexit
 set -o nounset
 
 # Stop CLI prompts and init config vars
-APP_ID=${IONIC_APP_ID:-6cda5a01}
-CHANNEL=${IONIC_CHANNEL:-Production}
+APP_ID=${IONIC_APP_ID:-2de70dab}
+CHANNEL=${IONIC_CHANNEL:-Master}
 CI=1
-UPDATE_METHOD=${IONIC_UPDATE_METHOD:-none}
+UPDATE_METHOD=${IONIC_UPDATE_METHOD:-auto}
 
 # Build the plugin ts
 npm run build
