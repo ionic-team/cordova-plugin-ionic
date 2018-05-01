@@ -149,11 +149,18 @@ public class IonicCordovaCommon extends CordovaPlugin {
   public void getPreferences(CallbackContext callbackContext) throws JSONException {
     JSONObject j = new JSONObject();
     int maxV;
+    int minBackgroundDuration;
 
     try {
       maxV = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
     } catch(NumberFormatException e) {
       maxV = 2;
+    }
+
+    try {
+      minBackgroundDuration = Integer.parseInt(getStringResourceByName("ionic_min_background_duration"));
+    } catch(NumberFormatException e) {
+      minBackgroundDuration = 30;
     }
 
     try {
@@ -164,6 +171,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("host", getStringResourceByName("ionic_update_api"));
       j.put("updateMethod", getStringResourceByName("ionic_update_method"));
       j.put("maxVersions", maxV);
+      j.put("minBackgroundDuration", minBackgroundDuration);
 
       Log.d(TAG, "Got prefs for AppID: " + appId);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
