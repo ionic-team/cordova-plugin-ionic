@@ -16,7 +16,6 @@ import android.os.Build;
 import android.os.Handler;
 
 public class IonicCordovaCommon extends CordovaPlugin {
-  public static final String NO_DEPLOY_LABEL = "none";
   public static final String TAG = "IonicCordovaCommon";
 
   private boolean revertToBase;
@@ -61,7 +60,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
 
   /**
    * Grabs a string from the activity's resources.
-   * 
+   *
    * @param aString The name of the resource to retrieve
    * @return        The string contents of the resource
    */
@@ -100,7 +99,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
 
   /**
    * Cancel the reversion to the bundled version of the app, signaling a successful deploy.
-   * 
+   *
    * @param callbackContext The callback id used when calling back into JavaScript.
    */
   public void clearRevertTimer(CallbackContext callbackContext) {
@@ -165,9 +164,6 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("host", getStringResourceByName("ionic_update_api"));
       j.put("updateMethod", getStringResourceByName("ionic_update_method"));
       j.put("maxVersions", maxV);
-
-      // Until we update prefs in native-land, the only possible UUID here is 'none'
-      j.put("currentVersionId", IonicCordovaCommon.NO_DEPLOY_LABEL);
 
       Log.d(TAG, "Got prefs for AppID: " + appId);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
