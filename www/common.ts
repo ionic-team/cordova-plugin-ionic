@@ -693,6 +693,7 @@ class IonicDeploy implements IDeployPluginAPI {
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
     this.delegate = this.initialize();
+    this.lastPause = 0;
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
