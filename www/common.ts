@@ -17,7 +17,6 @@ enum UpdateState {
 }
 
 import {
-  CallbackFunction,
   FetchManifestResp,
   INativePreferences,
   ISavedPreferences,
@@ -26,6 +25,7 @@ import {
 } from './definitions';
 
 import {
+  CallbackFunction,
   CheckDeviceResponse,
   IAppInfo,
   IDeployConfig,
@@ -686,6 +686,7 @@ class IonicDeploy implements IDeployPluginAPI {
   private _PREFS_KEY = '_ionicDeploySavedPrefs';
   private parent: IPluginBaseAPI;
   private delegate: Promise<IonicDeployImpl>;
+  private lastPause: number;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
@@ -702,12 +703,20 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async onLoad() {
+    document.addEventListener('pause', this.onPause.bind(this));
     document.addEventListener('resume', this.onResume.bind(this));
     await this.onResume();
   }
 
+  async onPause() {
+    this.lastPause = Date.now();
+  }
+
   async onResume() {
     await this.reloadApp();
+    if (this.lastPause && Date.now() - this.lastPause > 30 * 1000) {
+      await (await this.delegate).sync();
+    }
   }
 
   async _initPreferences(): Promise<ISavedPreferences> {
