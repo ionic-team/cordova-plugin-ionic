@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 4.1.7
+
+* Fix a redirect bug in iOS that would give the `background` update method inconsistent behavior
+
 ## 4.1.6
 
 * Fix redirect bug in extract when version already exists (PR #82)
