@@ -155,7 +155,10 @@ static NSOperationQueue *delegateQueue;
 
     if (![self.auto_update isEqualToString:@"none"] && [self parseCheckResponse:[self postDeviceDetails]]) {
         // We want to check for updates on startup
-        if (![self.auto_update isEqualToString:@"auto"]) {
+        if ([self.auto_update isEqualToString:@"auto"]) {
+            [prefs setBool:YES forKey:@"show_splash"];
+            [prefs synchronize];
+        } else {
             [prefs setBool:NO forKey:@"show_splash"];
             [prefs synchronize];
         }
@@ -163,48 +166,41 @@ static NSOperationQueue *delegateQueue;
     } else {
         [prefs setBool:NO forKey:@"show_splash"];
         [prefs synchronize];
-        NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
-        NSString *ignore = [prefs stringForKey:@"ionicdeploy_version_ignore"];
-        if (ignore == nil) {
-            ignore = NOTHING_TO_IGNORE;
-        }
+    }
 
-        if (![uuid isEqualToString:@""] && !self.ignore_deploy && ![uuid isEqualToString:ignore]) {
-            if ( uuid != nil && ![self.currentUUID isEqualToString: uuid] ) {
-                // Get target index.html
-                NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-                NSString *libraryDirectory = [paths objectAtIndex:0];
-                NSString *path = [NSString stringWithFormat:@"%@/%@/index.html", libraryDirectory, uuid];
+    NSString *uuid = [[NSUserDefaults standardUserDefaults] objectForKey:@"uuid"];
+    NSString *ignore = [prefs stringForKey:@"ionicdeploy_version_ignore"];
+    if (ignore == nil) {
+        ignore = NOTHING_TO_IGNORE;
+    }
 
-                SEL wkWebViewSelector = NSSelectorFromString(@"loadFileURL:allowingReadAccessToURL:");
-                if ([self.webView respondsToSelector:wkWebViewSelector]) {
-                    // It's a WKWebview
-                    [((WKWebView*)self.webView)
-                     evaluateJavaScript:@"window.location.href"
-                     completionHandler:^(NSString *result, NSError *error) {
-                         NSArray *indexSplit = [result componentsSeparatedByString:@"?"];
-                         NSString *currentIndex = [indexSplit objectAtIndex:0];
-                         if (![currentIndex isEqualToString:path]) {
-                             if ([self isDebug]) {
-                                 [self showDebugDialog];
-                             } else {
-                                 [self doRedirect];
-                             }
-                         }
-                     }];
+    if (![uuid isEqualToString:@""] && !self.ignore_deploy && ![uuid isEqualToString:ignore]) {
+        if ( uuid != nil && ![self.currentUUID isEqualToString: uuid] ) {
+            // Get target index.html
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+            NSString *libraryDirectory = [paths objectAtIndex:0];
+            NSString *path = [NSString stringWithFormat:@"%@/%@/index.html", libraryDirectory, uuid];
 
-                } else {
-                    // It's a UIWebView
-                    NSString *currentIndex = [((UIWebView*)self.webView) stringByEvaluatingJavaScriptFromString:@"window.location.href"];
-                    NSArray *indexSplit = [currentIndex componentsSeparatedByString:@"?"];
-                    currentIndex = [indexSplit objectAtIndex:0];
-                    if (![currentIndex isEqualToString:path]) {
-                        if ([self isDebug]) {
-                            [self showDebugDialog];
-                        } else {
-                            [self doRedirect];
-                        }
-                    }
+            SEL wkWebViewSelector = NSSelectorFromString(@"loadFileURL:allowingReadAccessToURL:");
+            if ([self.webView respondsToSelector:wkWebViewSelector]) {
+                // It's a WKWebview
+                [((WKWebView*)self.webView)
+                 evaluateJavaScript:@"window.location.href"
+                 completionHandler:^(NSString *result, NSError *error) {
+                     NSArray *indexSplit = [result componentsSeparatedByString:@"?"];
+                     NSString *currentIndex = [indexSplit objectAtIndex:0];
+                     if (![currentIndex isEqualToString:path]) {
+                         [self redirect];
+                     }
+                 }];
+
+            } else {
+                // It's a UIWebView
+                NSString *currentIndex = [((UIWebView*)self.webView) stringByEvaluatingJavaScriptFromString:@"window.location.href"];
+                NSArray *indexSplit = [currentIndex componentsSeparatedByString:@"?"];
+                currentIndex = [indexSplit objectAtIndex:0];
+                if (![currentIndex isEqualToString:path]) {
+                    [self redirect];
                 }
             }
         }
@@ -524,7 +520,7 @@ static NSOperationQueue *delegateQueue;
             [prefs synchronize];
             [self showDebugDialog];
         } else {
-            [self doRedirect];
+            [self redirect];
         }
     }
 }
@@ -545,12 +541,16 @@ static NSOperationQueue *delegateQueue;
 
 - (void) redirect:(CDVInvokedUrlCommand *)command {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:nil];
+    [self redirect];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void) redirect {
     if ([self isDebug]) {
         [self showDebugDialog];
     } else {
         [self doRedirect];
     }
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void) info:(CDVInvokedUrlCommand *)command {
