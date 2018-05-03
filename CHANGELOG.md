@@ -1,6 +1,13 @@
 Changelog
 ======
 
+# 5.0.0.alpha_1
+
+* Rewrote the plugin in Typescript.
+* Added support for application file manifests.
+* Added full support for partial update downloads, greatly decreasing network bandwidth.
+* **Deprecated old plugin API** in favor of modern promise-based API using async/await.  Existing methods are still available, but may be removed in the future.
+
 ## 4.1.7
 
 * Fix a redirect bug in iOS that would give the `background` update method inconsistent behavior

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "allowUnreachableCode": false,
+    "noImplicitAny": true,
+    "declaration": false,
+    "importHelpers": false,
+    "module": "commonjs",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "pretty": true,
+    "strict": true,
+    "target": "es6",
+    "lib": [
+      "es2016",
+      "dom"
+    ]
+  },
+  "include": ["www"]
+}
