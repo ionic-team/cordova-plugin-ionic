@@ -1,7 +1,7 @@
 Changelog
 ======
 
-# 5.0.0.alpha_1
+# 5.0.0-alpha.0
 
 * Rewrote the plugin in Typescript.
 * Added support for application file manifests.
