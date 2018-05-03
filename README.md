@@ -6,7 +6,7 @@ Supported platforms: iOS, Android
 ## Setup
 
 ```bash
-cordova plugin add cordova-plugin-ionic --save --variable APP_ID="abcd1234" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="background"
+cordova plugin add cordova-plugin-ionic@5.0.0-alpha.1 --save --variable APP_ID="abcd1234" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="background"
 ```
 
 The plugin will be available on `window` as `IonicCordova`
@@ -39,12 +39,6 @@ The plugin will be available on `window` as `IonicCordova`
 
 * [IonicCordova](docs/interfaces/_api_.ipluginbaseapi.md)
 * [IonicCordova.deploy](docs/interfaces/_api_.ideploypluginapi.md)
-
-## Setup for V5 Alpha
-
-```bash
-cordova plugin add cordova-plugin-ionic@5.0.0.alpha_1 --save --variable APP_ID="abcd1234" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="background"
-```
 
 ### External modules
 
