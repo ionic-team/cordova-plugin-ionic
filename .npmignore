@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+tmp/
+scripts/
+apply-changes.sh
+create-local-app.sh
+docs/
+tests/
