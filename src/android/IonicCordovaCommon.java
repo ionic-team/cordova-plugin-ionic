@@ -1,8 +1,16 @@
 package com.ionicframework.common;
 
 import android.app.Dialog;
-import android.app.ProgressDialog;
+import android.content.Context;
+import android.graphics.Color;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CallbackContext;
@@ -80,10 +88,6 @@ public class IonicCordovaCommon extends CordovaPlugin {
     callbackContext.sendPluginResult(result);
   }
 
-  public void clearSplashFlag(CallbackContext callbackContext) {
-    removeSplashScreen();
-  }
-
   /**
    * Executes the request and returns PluginResult.
    *
@@ -98,6 +102,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
         this.clearRevertTimer(callbackContext);
         break;
       case "clearSplashFlag":
+        this.removeSplashScreen();
         break;
       case "getAppInfo":
         this.getAppInfo(callbackContext);
@@ -253,6 +258,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
 
             fadeOut.setAnimationListener(new Animation.AnimationListener() {
               @Override
+              public void onAnimationStart(Animation animation) {}
+
+              @Override
               public void onAnimationEnd(Animation animation) {
                 if (splashDialog != null && splashDialog.isShowing()) {
                   splashDialog.dismiss();
@@ -260,6 +268,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
                   splashImageView = null;
                 }
               }
+
+              @Override
+              public void onAnimationRepeat(Animation animation) {}
             });
           } else {
             splashDialog.dismiss();
