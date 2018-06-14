@@ -12,15 +12,34 @@
 
 @implementation IonicCordovaCommon
 
++ (BOOL) shouldShowSplash {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    return [prefs boolForKey:@"downloading_update"];
+}
+
 - (void) pluginInitialize {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+
     self.revertToBase = true;
     self.baseIndexPath = [[NSBundle mainBundle] pathForResource:@"www/index" ofType:@"html"];
+
+    [prefs setBool:YES forKey:@"downloading_update"];
+    [prefs synchronize];
 
     // Kick off a timer to revert broken updates
     int rollbackTimeout = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonRollbackTimeout"] intValue];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) rollbackTimeout * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
         [self loadInitialVersion:NO];
     })));
+}
+
+- (void) clearSplashFlag:(CDVInvokedUrlCommand*)command {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    [prefs setBool:NO forKey:@"downloading_update"];
+    [prefs synchronize];  
+
+    NSLog(@"Cleared splash flag.");
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"] callbackId:command.callbackId];
 }
 
 - (void) clearRevertTimer:(CDVInvokedUrlCommand*)command {

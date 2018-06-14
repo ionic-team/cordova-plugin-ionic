@@ -94,13 +94,14 @@ class IonicDeployImpl {
         console.log('calling _reload');
         await this.reloadApp();
         console.log('done _reloading');
+        await this.hideSplash();
         break;
       case UpdateMethod.NONE:
-        // TODO: nothing? maybe later to recover from borked updated we may want to checkForUpdate
-        // and allow api to override
+        await this.hideSplash();
         break;
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
+        await this.hideSplash();
         if (this._savedPreferences.currentVersionId) {
           this.reloadApp();
         }
@@ -372,6 +373,12 @@ class IonicDeployImpl {
     this._savePrefs(prefs);
     await this.cleanupVersions();
     return 'true';
+  }
+
+  private async hideSplash(): Promise<string> {
+    return new Promise<string>( (resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
+    });
   }
 
   private async readManifest(versionId: string): Promise<ManifestFileEntry[]> {

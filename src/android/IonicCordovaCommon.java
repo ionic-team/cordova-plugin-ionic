@@ -1,5 +1,9 @@
 package com.ionicframework.common;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.widget.ImageView;
+
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -17,8 +21,10 @@ import android.os.Handler;
 
 public class IonicCordovaCommon extends CordovaPlugin {
   public static final String TAG = "IonicCordovaCommon";
+  private static Dialog splashDialog;
 
   private boolean revertToBase;
+  private ImageView splashImageView;
 
   /**
    * Sets the context of the Command. This can then be used to do things like
@@ -30,6 +36,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
     this.revertToBase = true;
+
+    // Show the splash screen
+    showSplashScreen();
 
     // Get the timeout, and default to 10 sec. if you can't.
     int rollbackTimer;
@@ -59,16 +68,20 @@ public class IonicCordovaCommon extends CordovaPlugin {
   }
 
   /**
-   * Grabs a string from the activity's resources.
+   * Cancel the reversion to the bundled version of the app, signaling a successful deploy.
    *
-   * @param aString The name of the resource to retrieve
-   * @return        The string contents of the resource
+   * @param callbackContext The callback id used when calling back into JavaScript.
    */
-  private String getStringResourceByName(String aString) {
-    Activity activity = cordova.getActivity();
-    String packageName = activity.getPackageName();
-    int resId = activity.getResources().getIdentifier(aString, "string", packageName);
-    return activity.getString(resId);
+  public void clearRevertTimer(CallbackContext callbackContext) {
+    this.revertToBase = false;
+
+    final PluginResult result = new PluginResult(PluginResult.Status.OK, "success");
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
+  }
+
+  public void clearSplashFlag(CallbackContext callbackContext) {
+    removeSplashScreen();
   }
 
   /**
@@ -84,6 +97,8 @@ public class IonicCordovaCommon extends CordovaPlugin {
       case "clearRevertTimer":
         this.clearRevertTimer(callbackContext);
         break;
+      case "clearSplashFlag":
+        break;
       case "getAppInfo":
         this.getAppInfo(callbackContext);
         break;
@@ -95,19 +110,6 @@ public class IonicCordovaCommon extends CordovaPlugin {
     }
 
     return true;
-  }
-
-  /**
-   * Cancel the reversion to the bundled version of the app, signaling a successful deploy.
-   *
-   * @param callbackContext The callback id used when calling back into JavaScript.
-   */
-  public void clearRevertTimer(CallbackContext callbackContext) {
-    this.revertToBase = false;
-
-    final PluginResult result = new PluginResult(PluginResult.Status.OK, "success");
-    result.setKeepCallback(false);
-    callbackContext.sendPluginResult(result);
   }
 
   /**
@@ -139,6 +141,19 @@ public class IonicCordovaCommon extends CordovaPlugin {
       Log.e(TAG, "Unable to get package info", ex);
       callbackContext.error(ex.toString());
     }
+  }
+
+  /**
+   * Grabs a string from the activity's resources.
+   *
+   * @param aString The name of the resource to retrieve
+   * @return        The string contents of the resource
+   */
+  private String getStringResourceByName(String aString) {
+    Activity activity = cordova.getActivity();
+    String packageName = activity.getPackageName();
+    int resId = activity.getResources().getIdentifier(aString, "string", packageName);
+    return activity.getString(resId);
   }
 
   /**
@@ -183,6 +198,18 @@ public class IonicCordovaCommon extends CordovaPlugin {
     }
   }
 
+  private int getSplashId() {
+    int drawableId = 0;
+    String splashResource = preferences.getString("SplashScreen", "screen");
+    if (splashResource != null) {
+      drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", cordova.getActivity().getClass().getPackage().getName());
+      if (drawableId == 0) {
+        drawableId = this.cordova.getActivity().getResources().getIdentifier(splashResource, "drawable", cordova.getActivity().getPackageName());
+      }
+    }
+    return drawableId;
+  }
+
   /**
    * Checks if the base version bundled with the app should be loaded, and fires off the load if so.
    *
@@ -207,6 +234,84 @@ public class IonicCordovaCommon extends CordovaPlugin {
       public void run() {
         webView.loadUrlIntoView("file:///android_asset/www/index.html", false);
         webView.clearHistory();
+      }
+    });
+  }
+
+  private void removeSplashScreen() {
+    cordova.getActivity().runOnUiThread(new Runnable() {
+      public void run() {
+        if (splashDialog != null && splashDialog.isShowing()) {
+          final int fadeSplashScreenDuration = 300;
+          if (fadeSplashScreenDuration > 0) {
+            AlphaAnimation fadeOut = new AlphaAnimation(1, 0);
+            fadeOut.setInterpolator(new DecelerateInterpolator());
+            fadeOut.setDuration(fadeSplashScreenDuration);
+
+            splashImageView.setAnimation(fadeOut);
+            splashImageView.startAnimation(fadeOut);
+
+            fadeOut.setAnimationListener(new Animation.AnimationListener() {
+              @Override
+              public void onAnimationEnd(Animation animation) {
+                if (splashDialog != null && splashDialog.isShowing()) {
+                  splashDialog.dismiss();
+                  splashDialog = null;
+                  splashImageView = null;
+                }
+              }
+            });
+          } else {
+            splashDialog.dismiss();
+            splashDialog = null;
+            splashImageView = null;
+          }
+        }
+      }
+    });
+  }
+
+  @SuppressWarnings("deprecation")
+  private void showSplashScreen() {
+    final int drawableId = getSplashId();
+
+    if (cordova.getActivity().isFinishing()) {
+      return;
+    }
+    if (splashDialog != null && splashDialog.isShowing()) {
+      return;
+    }
+    if (drawableId == 0) {
+      return;
+    }
+
+    cordova.getActivity().runOnUiThread(new Runnable() {
+      public void run() {
+        Display display = cordova.getActivity().getWindowManager().getDefaultDisplay();
+        Context context = webView.getContext();
+
+        splashImageView = new ImageView(context);
+        splashImageView.setImageResource(drawableId);
+        LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        splashImageView.setLayoutParams(layoutParams);
+
+        splashImageView.setMinimumHeight(display.getHeight());
+        splashImageView.setMinimumWidth(display.getWidth());
+        splashImageView.setBackgroundColor(preferences.getInteger("backgroundColor", Color.BLACK));
+
+        if (preferences.getBoolean("SplashMaintainAspectRatio", false)) {
+          splashImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+          splashImageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        }
+
+        splashDialog = new Dialog(context, android.R.style.Theme_Translucent_NoTitleBar);
+        if ((cordova.getActivity().getWindow().getAttributes().flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN) {
+          splashDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+        splashDialog.setContentView(splashImageView);
+        splashDialog.setCancelable(false);
+        splashDialog.show();
       }
     });
   }
