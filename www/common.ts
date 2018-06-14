@@ -94,16 +94,16 @@ class IonicDeployImpl {
         console.log('calling _reload');
         await this.reloadApp();
         console.log('done _reloading');
-        await this.hideSplash();
         break;
       case UpdateMethod.NONE:
-        await this.hideSplash();
+        this.hideSplash()
         break;
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
-        await this.hideSplash();
         if (this._savedPreferences.currentVersionId) {
           this.reloadApp();
+        } else {
+          this.hideSplash();
         }
         this.sync({updateMethod: UpdateMethod.BACKGROUND});
         return;
@@ -398,6 +398,7 @@ class IonicDeployImpl {
     if (prefs.currentVersionId) {
       if (this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
+        this.hideSplash();
         return 'true';
       }
       if (!(prefs.currentVersionId in prefs.updates)) {
@@ -696,7 +697,7 @@ class IonicDeploy implements IDeployPluginAPI {
   private parent: IPluginBaseAPI;
   private delegate: Promise<IonicDeployImpl>;
   private lastPause = 0;
-  private minBackgroundDuration = 0;
+  private minBackgroundDuration = 10;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
@@ -724,9 +725,9 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async onResume() {
-    await this.reloadApp();
     if (this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
       await (await this.delegate).sync();
+      await this.reloadApp();
     }
   }
 

@@ -19,6 +19,6 @@ npm run build
 # Add cordova platform and install the plugin
 cordova platform add ios@latest
 cordova platform add android@latest
-cordova plugin add .. --save --variable APP_ID="${APP_ID}" --variable CHANNEL_NAME="${CHANNEL}" --variable UPDATE_METHOD="${UPDATE_METHOD}" --variable WARN_DEBUG="false"
+cordova plugin add .. --save --variable APP_ID="${APP_ID}" --variable CHANNEL_NAME="${CHANNEL}" --variable UPDATE_METHOD="${UPDATE_METHOD}" --variable WARN_DEBUG="false" --link
 cordova prepare ios
 cordova prepare android
