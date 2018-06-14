@@ -61,6 +61,8 @@
             <string>$MIN_BACKGROUND_DURATION</string>
         </config-file>
 
+        <header-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.h" />
+        <source-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.m" />
         <header-file src="src/ios/IonicCordovaCommon.h" />
         <source-file src="src/ios/IonicCordovaCommon.m" />
     </platform>

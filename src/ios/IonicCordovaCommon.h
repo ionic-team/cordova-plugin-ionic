@@ -27,6 +27,22 @@
 @interface IonicCordovaCommon : CDVPlugin
 
 /**
+ * Return whether the splash screen should be visible, for instance if an update is being downloaded.
+ *
+ * @return whether the splash should be visible
+ */
++ (BOOL) shouldShowSplash;
+
+/**
+ * Mark the splash flag false (allows the splash screen to hide).
+ *
+ * @param command
+ *
+ * The callback id used when calling back into JavaScript.
+ */
+- (void) clearSplashFlag:(CDVInvokedUrlCommand*)command;
+
+/**
  * Cancel the reversion to the bundled version of the app, signaling a successful deploy.
  *
  * @param command

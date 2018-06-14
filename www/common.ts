@@ -96,13 +96,14 @@ class IonicDeployImpl {
         console.log('done _reloading');
         break;
       case UpdateMethod.NONE:
-        // TODO: nothing? maybe later to recover from borked updated we may want to checkForUpdate
-        // and allow api to override
+        this.hideSplash()
         break;
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
         if (this._savedPreferences.currentVersionId) {
           this.reloadApp();
+        } else {
+          this.hideSplash();
         }
         this.sync({updateMethod: UpdateMethod.BACKGROUND});
         return;
@@ -374,6 +375,12 @@ class IonicDeployImpl {
     return 'true';
   }
 
+  private async hideSplash(): Promise<string> {
+    return new Promise<string>( (resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
+    });
+  }
+
   private async readManifest(versionId: string): Promise<ManifestFileEntry[]> {
     const manifestString = await this._fileManager.getFile(
       this.getManifestCacheDir(),
@@ -391,6 +398,7 @@ class IonicDeployImpl {
     if (prefs.currentVersionId) {
       if (this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
+        this.hideSplash();
         return 'true';
       }
       if (!(prefs.currentVersionId in prefs.updates)) {
@@ -689,7 +697,7 @@ class IonicDeploy implements IDeployPluginAPI {
   private parent: IPluginBaseAPI;
   private delegate: Promise<IonicDeployImpl>;
   private lastPause = 0;
-  private minBackgroundDuration = 0;
+  private minBackgroundDuration = 10;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
@@ -717,9 +725,9 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async onResume() {
-    await this.reloadApp();
     if (this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
       await (await this.delegate).sync();
+      await this.reloadApp();
     }
   }
 
