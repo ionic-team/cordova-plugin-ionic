@@ -233,14 +233,15 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   private void loadInitialVersion() {
     Log.d(TAG, "LOADING INITIAL VERSION");
-    IonicCordovaCommon self = this;
-    cordova.getActivity().runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        webView.loadUrlIntoView("file:///android_asset/www/index.html", false);
-        webView.clearHistory();
-      }
-    });
+    // TODO: Reimplement this
+    // IonicCordovaCommon self = this;
+    // cordova.getActivity().runOnUiThread(new Runnable() {
+    //   @Override
+    //   public void run() {
+    //     webView.loadUrlIntoView("file:///android_asset/www/index.html", false);
+    //     webView.clearHistory();
+    //   }
+    // });
   }
 
   private void removeSplashScreen() {
@@ -248,7 +249,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
       public void run() {
         if (splashDialog != null && splashDialog.isShowing()) {
           final int fadeSplashScreenDuration = 300;
-          if (fadeSplashScreenDuration > 0) {
+          if (fadeSplashScreenDuration > 0 && splashImageView != null) {
             AlphaAnimation fadeOut = new AlphaAnimation(1, 0);
             fadeOut.setInterpolator(new DecelerateInterpolator());
             fadeOut.setDuration(fadeSplashScreenDuration);

@@ -423,7 +423,7 @@ class IonicDeployImpl {
   private async _getServerBasePath(): Promise<string> {
     return new Promise<string>( async (resolve, reject) => {
       try {
-        Ionic.WebView.getBasePath(resolve);
+        Ionic.WebView.getServerBasePath(resolve);
       } catch (e) {
        reject(e);
       }
