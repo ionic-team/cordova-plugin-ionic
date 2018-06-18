@@ -29,7 +29,8 @@
     // Kick off a timer to revert broken updates
     int rollbackTimeout = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonRollbackTimeout"] intValue];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) rollbackTimeout * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
-        [self loadInitialVersion:NO];
+        // TODO: Reimplement using new setServerBasePath() method in webview plugin
+        // [self loadInitialVersion:NO];
     })));
 }
 
@@ -104,6 +105,8 @@
 
 - (void) loadInitialVersion {
     NSLog(@"Redirecting to bundled index.html");
+    // TODO: If this happens we need to recorde the broken versionId somehow so we don't
+    // reattempt to load it later.
     dispatch_async(dispatch_get_main_queue(), ^(void) {
         NSLog(@"Reloading the web view.");
         SEL reloadSelector = NSSelectorFromString(@"reload");

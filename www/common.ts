@@ -3,6 +3,7 @@
 
 declare const cordova: Cordova;
 declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
+declare const Ionic: any;
 
 enum UpdateMethod {
   BACKGROUND = 'background',
@@ -96,7 +97,7 @@ class IonicDeployImpl {
         console.log('done _reloading');
         break;
       case UpdateMethod.NONE:
-        this.hideSplash()
+        this.hideSplash();
         break;
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
@@ -396,7 +397,7 @@ class IonicDeployImpl {
       this._savePrefs(prefs);
     }
     if (prefs.currentVersionId) {
-      if (this._isRunningVersion(prefs.currentVersionId)) {
+      if (await this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
         this.hideSplash();
         return 'true';
@@ -406,16 +407,27 @@ class IonicDeployImpl {
         return 'false';
       }
       const update = prefs.updates[prefs.currentVersionId];
-      const newLocation = new URL(`${update.path}/index.html`);
-      console.log(`Redirecting window to ${newLocation}`);
-      window.location.pathname = newLocation.pathname;
+      const newLocation = new URL(`${update.path}`);
+      Ionic.WebView.setServerBasePath(newLocation.pathname);
     }
 
     return 'true';
   }
 
-  private _isRunningVersion(versionId: string) {
-    return window.location.pathname.includes(versionId);
+  private async _isRunningVersion(versionId: string) {
+    const currentPath = await this._getServerBasePath();
+    console.log(`fetched current base path as ${currentPath}`);
+    return currentPath.includes(versionId);
+  }
+
+  private async _getServerBasePath(): Promise<string> {
+    return new Promise<string>( async (resolve, reject) => {
+      try {
+        Ionic.WebView.getBasePath(resolve);
+      } catch (e) {
+       reject(e);
+      }
+    });
   }
 
   private async _copyBaseAppDir(versionId: string) {
@@ -909,5 +921,5 @@ class IonicCordova implements IPluginBaseAPI {
 }
 
 const instance = new IonicCordova();
-cordova.exec(() => {}, console.error, 'IonicCordovaCommon', 'clearRevertTimer');
+cordova.exec(() => { console.log('Successful clear of revert timer'); }, console.error, 'IonicCordovaCommon', 'clearRevertTimer');
 export = instance;
