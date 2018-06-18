@@ -4,6 +4,7 @@ set -o nounset
 
 # Stop CLI prompts and init config vars
 APP_ID=${IONIC_APP_ID:-2de70dab}
+APP_NAME=${IONIC_APP_NAME:-testapp}
 CHANNEL=${IONIC_CHANNEL:-Master}
 CI=1
 UPDATE_METHOD=${IONIC_UPDATE_METHOD:-auto}
@@ -12,13 +13,14 @@ UPDATE_METHOD=${IONIC_UPDATE_METHOD:-auto}
 npm run build
 
 # Create a blank ionic app cd
-ionic start tmp blank --type=ionic-angular --pro-id=${APP_ID} --cordova
-cd tmp
+cd ..
+ionic start ${APP_NAME} blank --type=ionic-angular --pro-id=${APP_ID} --cordova
+cd ${APP_NAME}
 npm run build
 
 # Add cordova platform and install the plugin
 cordova platform add ios@latest
 cordova platform add android@latest
-cordova plugin add .. --save --variable APP_ID="${APP_ID}" --variable CHANNEL_NAME="${CHANNEL}" --variable UPDATE_METHOD="${UPDATE_METHOD}" --variable WARN_DEBUG="false" --link
+cordova plugin add ../cordova-plugin-ionic --save --variable APP_ID="${APP_ID}" --variable CHANNEL_NAME="${CHANNEL}" --variable UPDATE_METHOD="${UPDATE_METHOD}" --variable WARN_DEBUG="false" --link
 cordova prepare ios
 cordova prepare android
