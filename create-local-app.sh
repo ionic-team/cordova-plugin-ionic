@@ -14,11 +14,13 @@ npm run build
 
 # Create a blank ionic app cd
 cd ..
-ionic start ${APP_NAME} blank --type=ionic-angular --pro-id=${APP_ID} --cordova
+ionic start ${APP_NAME} blank --type=ionic-angular --cordova
 cd ${APP_NAME}
 npm run build
 
 # Add cordova platform and install the plugin
+cordova plugin rm cordova-plugin-ionic-webview
+cordova plugin add cordova-plugin-ionic-webview@v2.0.0-beta.1 
 cordova platform add ios@latest
 cordova platform add android@latest
 cordova plugin add ../cordova-plugin-ionic --save --variable APP_ID="${APP_ID}" --variable CHANNEL_NAME="${CHANNEL}" --variable UPDATE_METHOD="${UPDATE_METHOD}" --variable WARN_DEBUG="false" --link

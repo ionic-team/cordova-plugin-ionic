@@ -18,7 +18,7 @@ enum UpdateState {
 }
 
 import {
-  FetchManifestResp,
+  FetchManifestResp, IAvailableUpdate,
   INativePreferences,
   ISavedPreferences,
   ISyncOptions,
@@ -38,6 +38,7 @@ import {
 import {
   isPluginConfig
 } from './guards';
+
 
 // NATIVE API TODO:
 // getPreferences
@@ -142,7 +143,6 @@ class IonicDeployImpl {
     if (!isPluginConfig(config)) {
       throw new Error('Invalid Config Object');
     }
-    // TODO: make sure the user can't overwrite protected things
     Object.assign(this._savedPreferences, config);
     await this._syncPrefs(this._savedPreferences);
   }
@@ -452,36 +452,34 @@ class IonicDeployImpl {
   }
 
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
-    // TODO: Implement
-    // cordova.exec(success, failure, 'IonicDeploy', 'info');
+    const update = this._savedPreferences.updates[versionId];
+    if (!update) {
+      throw Error(`No update available with versionId ${versionId}`);
+    }
+    return this._convertToSnapshotInfo(update);
+  }
+
+  private _convertToSnapshotInfo(update: IAvailableUpdate): ISnapshotInfo {
     return {
-      deploy_uuid: 'TODO',
-      versionId: 'TODO',
-      channel: 'todo',
-      binary_version: 'todo',
-      binaryVersion: 'todo'
+      deploy_uuid: update.versionId,
+      versionId: update.versionId,
+      channel: update.channel,
+      binary_version: update.binaryVersion,
+      binaryVersion: update.binaryVersion
     };
   }
 
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
-    // TODO: Implement
-    // cordova.exec(success, failure, 'IonicDeploy', 'getVersions');
-    return [{
-      deploy_uuid: 'TODO',
-      versionId: 'TODO',
-      channel: 'todo',
-      binary_version: 'todo',
-      binaryVersion: 'todo'
-    }];
+    return Object.keys(this._savedPreferences.updates).map(k => this._convertToSnapshotInfo(this._savedPreferences.updates[k]));
   }
 
   async deleteVersionById(versionId: string): Promise<string> {
-    // TODO: Implement
-    // cordova.exec(success, failure, 'IonicDeploy', 'deleteVersion', [version]);
-
-    // TODO: check if versionId === currentVersionId
-
     const prefs = this._savedPreferences;
+
+    if (prefs.currentVersionId === versionId) {
+      throw Error(`Can't delete version with id: ${versionId} as it is the current version.`);
+    }
+
     delete prefs.updates[versionId];
     this._savePrefs(prefs);
 
@@ -847,10 +845,6 @@ class IonicDeploy implements IDeployPluginAPI {
     );
   }
 
-  parseUpdate(jsonResponse: any, success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
-    // TODO
-  }
-
   /* v5 API */
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
@@ -879,6 +873,10 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async getCurrentVersion(): Promise<ISnapshotInfo> {
     return (await this.delegate).getCurrentVersion();
+  }
+
+  async getVersionById(versionId: string): Promise<ISnapshotInfo> {
+    return (await this.delegate).getVersionById(versionId);
   }
 
   async reloadApp(): Promise<string> {
