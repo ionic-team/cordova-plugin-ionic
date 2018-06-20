@@ -6,10 +6,18 @@ Supported platforms: iOS, Android
 ## Setup
 
 ```bash
-cordova plugin add cordova-plugin-ionic@alpha --save --variable APP_ID="abcd1234" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="background"
+cordova plugin add cordova-plugin-ionic@beta --save --variable APP_ID="abcd1234" --variable CHANNEL_NAME="Master" --variable UPDATE_METHOD="background"
 ```
 
 The plugin will be available on `window` as `IonicCordova`
+
+The beta version of the plugin relies on the newest version of  `cordova-plugin-ionic-webview` you may need to remove
+the older version and update with the `beta` version.
+
+```bash
+cordova plugin rm cordova-plugin-ionic-webview
+cordova plugin add cordova-plugin-ionic-webview@beta
+```
 
 ## Live Updates
 
@@ -20,9 +28,9 @@ The plugin will be available on `window` as `IonicCordova`
 * `WARN_DEBUG` - Set false if you do not want the check when apk/ipa is in debug mode.
 * `UPDATE_API` - The location of the Ionic Pro API (only change this for development)
 * `UPDATE_METHOD` - `auto`, `background`, or `none`.  Dictates the behavior of the plugin.  `auto` will download and apply the latest update on app start, potentially leading to long splash screen loads if the connection is slow.  `background` will only download the update in the background on app start, but will allow full functionality while doing so, only redirecting users the _next_ time the app is loaded.  `none` will do nothing, leaving full plugin functionality in the hands of the developer.  **Default is `background`**
-* `MAX_STORE` - The maximum number of downloaded versions to store on the device for quick loading.  More versions means less downloading, but can increase the app size greatly.  **Default is 3 (Defaults is 2 in V5 Alpha)**
-* `MIN_BACKGROUND_DURATION` - The minimum duration in seconds after which the app in background checks for an update. **Default is 30 (New in V5 Alpha)**
-* `ROLLBACK_TIMEOUT` - The number seconds until the app will roll back to the bundle version if a broken deploy is installed. **Default is 10 (New in V5 Alpha)**
+* `MAX_STORE` - The maximum number of downloaded versions to store on the device for quick loading.  More versions means less downloading, but can increase the app size greatly.  **Default is 3 (Defaults is 2 in V5)**
+* `MIN_BACKGROUND_DURATION` - The minimum duration in seconds after which the app in background checks for an update. **Default is 30 (New in V5)**
+* `ROLLBACK_TIMEOUT` - The number seconds until the app will roll back to the bundle version if a broken deploy is installed. **Default is 10 (New in V5)**
 
 ### Cordova API
 
@@ -35,7 +43,7 @@ The plugin will be available on `window` as `IonicCordova`
 * `IonicCordova.deploy.getVersions(success, failure)` - List downloaded versions on this device.
 * `IonicCordova.deploy.deleteVersion(uuid, success, failure)` - Delete a downloaded version by UUID from this device.
 
-## API Docs for V5 Alpha release
+## API Docs for V5 release
 
 * [IonicCordova](docs/interfaces/_api_.ipluginbaseapi.md)
 * [IonicCordova.deploy](docs/interfaces/_api_.ideploypluginapi.md)
@@ -46,7 +54,7 @@ The plugin will be available on `window` as `IonicCordova`
 ---
 
 
-## Contributing to this plugin on V5 Alpha
+## Contributing to this plugin on V5
 
 ```bash
 npm install
