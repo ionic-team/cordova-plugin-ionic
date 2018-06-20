@@ -96,11 +96,6 @@ export interface IDeployPluginAPI {
    */
   deleteVersion(version: string, success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
 
-  /**
-   * @deprecated in v5.0.0
-   */
-  parseUpdate(jsonResponse: any, success: CallbackFunction<string>, failure: CallbackFunction<string>): void;
-
   /* v5 API */
 
   /**
