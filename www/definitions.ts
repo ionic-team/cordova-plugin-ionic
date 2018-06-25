@@ -1,14 +1,3 @@
-export interface INativePreferences {
-  appId: string;
-  binaryVersion?: string;
-  debug: string;
-  host: string;
-  channel: string;
-  updateMethod: 'none' | 'auto' | 'background';
-  maxVersions: number;
-  minBackgroundDuration: number;
-}
-
 export interface IAvailableUpdate {
   binaryVersion: string;
   channel: string;
@@ -19,10 +8,23 @@ export interface IAvailableUpdate {
   versionId: string;
 }
 
-export interface ISavedPreferences extends INativePreferences {
+export interface ISavedPreferences {
+  appId: string;
+  binaryVersion?: string;
+  debug: string;
+  host: string;
+  channel: string;
+  updateMethod: 'none' | 'auto' | 'background';
+  maxVersions: number;
+  minBackgroundDuration: number;
   currentVersionId?: string;
   availableUpdate?: IAvailableUpdate;
   updates: { [versionId: string]: IAvailableUpdate };
+}
+
+export interface UpdateInfo {
+  versionId: string;
+  path: string;
 }
 
 export interface ManifestFileEntry {

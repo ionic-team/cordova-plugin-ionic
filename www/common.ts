@@ -19,7 +19,6 @@ enum UpdateState {
 
 import {
   FetchManifestResp, IAvailableUpdate,
-  INativePreferences,
   ISavedPreferences,
   ISyncOptions,
   ManifestFileEntry,
@@ -38,11 +37,6 @@ import {
 import {
   isPluginConfig
 } from './guards';
-
-
-// NATIVE API TODO:
-// getPreferences
-// syncPreferences
 
 
 class Path {
@@ -70,7 +64,6 @@ class IonicDeployImpl {
 
   private readonly appInfo: IAppInfo;
   private _savedPreferences: ISavedPreferences;
-  private _PREFS_KEY = '_ionicDeploySavedPrefs';
   private _fileManager: FileManager = new FileManager();
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
@@ -134,9 +127,16 @@ class IonicDeployImpl {
     return this._savePrefs(currentPrefs);
   }
 
-  private _savePrefs(prefs: ISavedPreferences) {
-    localStorage.setItem(this._PREFS_KEY, JSON.stringify(prefs));
-    return prefs;
+  private async _savePrefs(prefs: ISavedPreferences): Promise<ISavedPreferences> {
+    return new Promise<ISavedPreferences>(async (resolve, reject) => {
+      try {
+        cordova.exec(async (savedPrefs: ISavedPreferences) => {
+          resolve(savedPrefs);
+        }, reject, 'IonicCordovaCommon', 'setPreferences', [prefs]);
+      } catch (e) {
+        reject(e.message);
+      }
+    });
   }
 
   async configure(config: IDeployConfig) {
@@ -178,7 +178,6 @@ class IonicDeployImpl {
     }
     if (resp.ok) {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
-      console.log('CHECK RESP', checkDeviceResp);
       if (checkDeviceResp.available && checkDeviceResp.url && checkDeviceResp.snapshot) {
         prefs.availableUpdate = {
           binaryVersion: appInfo.bundleVersion,
@@ -189,7 +188,7 @@ class IonicDeployImpl {
           url: checkDeviceResp.url,
           versionId: checkDeviceResp.snapshot
         };
-        this._savePrefs(prefs);
+        await this._savePrefs(prefs);
       }
       return checkDeviceResp;
     }
@@ -210,7 +209,7 @@ class IonicDeployImpl {
       const manifestJson = JSON.parse(manifestString);
       await this._downloadFilesFromManifest(fileBaseUrl, manifestJson, progress);
       prefs.availableUpdate.state = UpdateState.Pending;
-      this._savePrefs(prefs);
+      await this._savePrefs(prefs);
       return 'true';
     }
     throw new Error('No available updates');
@@ -371,7 +370,7 @@ class IonicDeployImpl {
     console.log('Successful recreate');
     prefs.availableUpdate.state = UpdateState.Ready;
     prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
-    this._savePrefs(prefs);
+    await this._savePrefs(prefs);
     await this.cleanupVersions();
     return 'true';
   }
@@ -394,11 +393,13 @@ class IonicDeployImpl {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
       prefs.currentVersionId = prefs.availableUpdate.versionId;
-      this._savePrefs(prefs);
+      delete prefs.availableUpdate;
+      await this._savePrefs(prefs);
     }
     if (prefs.currentVersionId) {
       if (await this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
+        await this._savePrefs(prefs);
         this.hideSplash();
         return 'true';
       }
@@ -407,7 +408,7 @@ class IonicDeployImpl {
         return 'false';
       }
       const update = prefs.updates[prefs.currentVersionId];
-      const newLocation = new URL(`${update.path}`);
+      const newLocation = new URL(update.path);
       Ionic.WebView.setServerBasePath(newLocation.pathname);
     }
 
@@ -481,7 +482,7 @@ class IonicDeployImpl {
     }
 
     delete prefs.updates[versionId];
-    this._savePrefs(prefs);
+    await this._savePrefs(prefs);
 
     // delete snapshot directory
     const snapshotDir = this.getSnapshotCacheDir(versionId);
@@ -703,7 +704,6 @@ class FileManager {
 }
 
 class IonicDeploy implements IDeployPluginAPI {
-  private _PREFS_KEY = '_ionicDeploySavedPrefs';
   private parent: IPluginBaseAPI;
   private delegate: Promise<IonicDeployImpl>;
   private lastPause = 0;
@@ -744,19 +744,9 @@ class IonicDeploy implements IDeployPluginAPI {
   async _initPreferences(): Promise<ISavedPreferences> {
     return new Promise<ISavedPreferences>(async (resolve, reject) => {
       try {
-        const prefsString = localStorage.getItem(this._PREFS_KEY);
-        if (!prefsString) {
-          cordova.exec(async (nativePrefs: INativePreferences) => {
-            const prefs: ISavedPreferences = {...nativePrefs, updates: {}};
-            console.log('got prefs from native');
-            console.log('done handling init');
-            resolve(prefs);
-          }, reject, 'IonicCordovaCommon', 'getPreferences');
-        } else {
-          const savedPreferences = JSON.parse(prefsString);
-          console.log('got prefs from storage');
-          resolve(savedPreferences);
-        }
+        cordova.exec(async (prefs: ISavedPreferences) => {
+          resolve(prefs);
+        }, reject, 'IonicCordovaCommon', 'getPreferences');
       } catch (e) {
         reject(e.message);
       }
@@ -919,5 +909,4 @@ class IonicCordova implements IPluginBaseAPI {
 }
 
 const instance = new IonicCordova();
-cordova.exec(() => { console.log('Successful clear of revert timer'); }, console.error, 'IonicCordovaCommon', 'clearRevertTimer');
 export = instance;

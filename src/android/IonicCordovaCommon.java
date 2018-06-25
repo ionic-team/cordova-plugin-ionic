@@ -2,6 +2,7 @@ package com.ionicframework.common;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -25,13 +26,12 @@ import android.util.Log;
 import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.os.Build;
-import android.os.Handler;
 
 public class IonicCordovaCommon extends CordovaPlugin {
   public static final String TAG = "IonicCordovaCommon";
+  private static final String  PREFS_KEY = "ionicDeploySavedPreferences";
   private static Dialog splashDialog;
 
-  private boolean revertToBase;
   private ImageView splashImageView;
 
   /**
@@ -43,49 +43,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
-    this.revertToBase = true;
 
     // Show the splash screen
     showSplashScreen();
-
-    // Get the timeout, and default to 10 sec. if you can't.
-    int rollbackTimer;
-
-    try {
-      rollbackTimer = Integer.parseInt(getStringResourceByName("ionic_rollback_timeout"));
-    } catch (NumberFormatException e) {
-      Log.d(TAG, "Couldn't read timeout from config, defaulting to 10 seconds...");
-      rollbackTimer = 10;
-    }
-
-    // Make a runnable to check if a rollback is needed
-    class DelayedRollback implements Runnable {
-      IonicCordovaCommon weak;
-      DelayedRollback(IonicCordovaCommon ionic) { this.weak = ionic; }
-      public void run() {
-        weak.loadInitialVersion(false);
-      }
-    }
-
-    // Instantiate the runnable and handler
-    DelayedRollback delayed = new DelayedRollback(this);
-    Handler handler = new Handler();
-
-    // Kick off our rollback check after 10 seconds
-    handler.postDelayed(delayed, rollbackTimer * 1000);
-  }
-
-  /**
-   * Cancel the reversion to the bundled version of the app, signaling a successful deploy.
-   *
-   * @param callbackContext The callback id used when calling back into JavaScript.
-   */
-  public void clearRevertTimer(CallbackContext callbackContext) {
-    this.revertToBase = false;
-
-    final PluginResult result = new PluginResult(PluginResult.Status.OK, "success");
-    result.setKeepCallback(false);
-    callbackContext.sendPluginResult(result);
   }
 
   /**
@@ -98,9 +58,6 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
     switch(action) {
-      case "clearRevertTimer":
-        this.clearRevertTimer(callbackContext);
-        break;
       case "clearSplashFlag":
         this.removeSplashScreen();
         break;
@@ -109,6 +66,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
         break;
       case "getPreferences":
         this.getPreferences(callbackContext);
+        break;
+      case "setPreferences":
+        this.setPreferences(callbackContext, args.getJSONObject(0));
         break;
       default:
         return false;
@@ -167,7 +127,20 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * @param callbackContext The callback id used when calling back into JavaScript.
    */
   public void getPreferences(CallbackContext callbackContext) throws JSONException {
-    JSONObject j = new JSONObject();
+
+    SharedPreferences prefs = this.cordova.getContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
+    String prefsString = prefs.getString(this.PREFS_KEY, null);
+    JSONObject j;
+    if (prefsString != null) {
+      Log.i(TAG, "Found saved prefs: " + prefsString);
+      j = new JSONObject(prefsString);
+      final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
+      return;
+    }
+
+    j = new JSONObject();
     int maxV;
     int minBackgroundDuration;
 
@@ -192,6 +165,8 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("updateMethod", getStringResourceByName("ionic_update_method"));
       j.put("maxVersions", maxV);
       j.put("minBackgroundDuration", minBackgroundDuration);
+      j.put("updates", new JSONObject("{}"));
+
 
       Log.d(TAG, "Got prefs for AppID: " + appId);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
@@ -201,6 +176,23 @@ public class IonicCordovaCommon extends CordovaPlugin {
       Log.e(TAG, "Unable to get preferences", ex);
       callbackContext.error(ex.toString());
     }
+  }
+
+  /**
+   * Set cordova plugin preferences and state information.
+   *  @param callbackContext The callback id used when calling back into JavaScript.
+   * @param newPrefs
+   */
+  public void setPreferences(CallbackContext callbackContext, JSONObject newPrefs) {
+    Log.i(TAG, "Set preferences called with prefs" + newPrefs.toString());
+    SharedPreferences prefs = this.cordova.getContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = prefs.edit();
+    editor.putString(this.PREFS_KEY, newPrefs.toString());
+    editor.commit();
+    Log.i(TAG, "preferences updated");
+    final PluginResult result = new PluginResult(PluginResult.Status.OK, newPrefs);
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
   }
 
   private int getSplashId() {
@@ -213,35 +205,6 @@ public class IonicCordovaCommon extends CordovaPlugin {
       }
     }
     return drawableId;
-  }
-
-  /**
-   * Checks if the base version bundled with the app should be loaded, and fires off the load if so.
-   *
-   * @param force Whether to force the load.
-   */
-  private void loadInitialVersion(boolean force) {
-    Log.d(TAG, "Checking if rollback is needed");
-
-    if (force || this.revertToBase) {
-      this.loadInitialVersion();
-    }
-  }
-
-  /**
-   * Loads the version of the app bundled in the binary.
-   */
-  private void loadInitialVersion() {
-    Log.d(TAG, "LOADING INITIAL VERSION");
-    // TODO: Reimplement this
-    // IonicCordovaCommon self = this;
-    // cordova.getActivity().runOnUiThread(new Runnable() {
-    //   @Override
-    //   public void run() {
-    //     webView.loadUrlIntoView("file:///android_asset/www/index.html", false);
-    //     webView.clearHistory();
-    //   }
-    // });
   }
 
   private void removeSplashScreen() {
