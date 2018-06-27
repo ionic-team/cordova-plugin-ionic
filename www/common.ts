@@ -1,3 +1,4 @@
+/// <reference path="../types/IonicCordova.d.ts" />
 /// <reference types="cordova-plugin-file" />
 /// <reference types="cordova" />
 
@@ -23,16 +24,6 @@ import {
   ISyncOptions,
   ManifestFileEntry,
 } from './definitions';
-
-import {
-  CallbackFunction,
-  CheckDeviceResponse,
-  IAppInfo,
-  IDeployConfig,
-  IDeployPluginAPI,
-  IPluginBaseAPI,
-  ISnapshotInfo,
-} from './api';
 
 import {
   isPluginConfig
@@ -68,6 +59,7 @@ class IonicDeployImpl {
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
+  // TODO: It would be nice to have this update automagically when we do a version bump
   public PLUGIN_VERSION = '5.0.0';
   public NO_VERSION_DEPLOYED = 'none';
   public UNKNOWN_BINARY_VERSION = 'unknown';
@@ -151,6 +143,7 @@ class IonicDeployImpl {
     const prefs = this._savedPreferences;
     const appInfo = this.appInfo;
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
+    // TODO: Need to send UUID device details for unique device metrics
     const device_details = {
       binary_version: appInfo.bundleVersion,
       platform: appInfo.platform,
