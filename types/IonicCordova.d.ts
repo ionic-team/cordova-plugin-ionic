@@ -295,6 +295,11 @@ interface IAppInfo {
    * The bundle version.
    */
   bundleVersion: string;
+
+  /**
+   * A generated device ID (NOT a native device ID)
+   */
+  device: string;
 }
 
 /**
