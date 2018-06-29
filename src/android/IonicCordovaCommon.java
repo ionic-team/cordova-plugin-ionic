@@ -27,12 +27,16 @@ import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 
+import java.util.UUID;
+
 public class IonicCordovaCommon extends CordovaPlugin {
   public static final String TAG = "IonicCordovaCommon";
   private static final String  PREFS_KEY = "ionicDeploySavedPreferences";
   private static Dialog splashDialog;
 
   private ImageView splashImageView;
+  private SharedPreferences prefs;
+  private String uuid;
 
   /**
    * Sets the context of the Command. This can then be used to do things like
@@ -43,6 +47,14 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
+
+    // Initialize shared preferences
+    Context cxt = this.cordova.getActivity().getApplicationContext();
+    this.prefs = cxt.getSharedPreferences("com.ionic.common.preferences", Context.MODE_PRIVATE);
+
+    // Get or generate a plugin UUID
+    this.uuid = this.prefs.getString("uuid", UUID.randomUUID().toString());
+    prefs.edit().putString("uuid", this.uuid).apply();
 
     // Show the splash screen
     showSplashScreen();
@@ -97,6 +109,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("version", versionCode);
       j.put("bundleName", name);
       j.put("bundleVersion", version);
+      j.put("device", this.uuid);
 
       Log.d(TAG, "Got package info. Version: " + version + ", bundleName: " + name + ", versionCode: " + versionCode);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
