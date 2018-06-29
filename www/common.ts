@@ -149,6 +149,7 @@ class IonicDeployImpl {
       binary_version: appInfo.bundleVersion,
       device_id: appInfo.device,
       platform: appInfo.platform,
+      platform_version: appInfo.platformVersion,
       snapshot: prefs.currentVersionId
     };
     const body = {
