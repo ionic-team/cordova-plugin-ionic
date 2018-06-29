@@ -8,6 +8,7 @@
       "ios"
     ]
   },
+  "types": "types/IonicCordova.d.ts",
   "description": "Ionic Cordova SDK",
   "engines": {
     "cordovaDependencies": {

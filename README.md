@@ -45,8 +45,8 @@ cordova plugin add cordova-plugin-ionic-webview@beta
 
 ## API Docs for V5 release
 
-* [IonicCordova](docs/interfaces/_api_.ipluginbaseapi.md)
-* [IonicCordova.deploy](docs/interfaces/_api_.ideploypluginapi.md)
+* [IonicCordova](docs/interfaces/_ioniccordova_d_.ipluginbaseapi.md)
+* [IonicCordova.deploy](docs/interfaces/_ioniccordova_d_.ideploypluginapi.md)
 
 ### External modules
 

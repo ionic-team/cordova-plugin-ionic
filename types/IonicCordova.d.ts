@@ -1,7 +1,11 @@
+interface Window {
+  IonicCordova: IPluginBaseAPI;
+}
+
 /**
  * The Public API for the deploy Plugin
  */
-export interface IDeployPluginAPI {
+interface IDeployPluginAPI {
 
   /**
    * @deprecated in v5.0.0 use [configure](#configure) in favor of this function.
@@ -156,7 +160,7 @@ export interface IDeployPluginAPI {
 /**
  * The IonicCordova Plugin API
  */
-export interface IPluginBaseAPI {
+interface IPluginBaseAPI {
   /**
    *
    * @param success
@@ -179,7 +183,7 @@ export interface IPluginBaseAPI {
 /**
  * The configuration for the deploy plugin on the device.
  */
-export interface IDeployConfig {
+interface IDeployConfig {
 
   /**
    * The [Ionic Pro](https://ionicframework.com/docs/pro/) app id.
@@ -205,7 +209,7 @@ export interface IDeployConfig {
 /**
  * Information about a snapshot
  */
-export interface ISnapshotInfo {
+interface ISnapshotInfo {
 
   /**
    * @deprecated in favor of [versionId](#versionid)
@@ -240,7 +244,7 @@ export interface ISnapshotInfo {
 /**
  * The response object describing if an update is available.
  */
-export interface CheckDeviceResponse {
+interface CheckDeviceResponse {
   /**
    * Whether or not an update is available.
    */
@@ -265,7 +269,7 @@ export interface CheckDeviceResponse {
 /**
  * Information about the application.
  */
-export interface IAppInfo {
+interface IAppInfo {
 
   /**
    * The platform that the app is currently installed on.
@@ -291,9 +295,14 @@ export interface IAppInfo {
    * The bundle version.
    */
   bundleVersion: string;
+
+  /**
+   * A generated device ID (NOT a native device ID)
+   */
+  device: string;
 }
 
 /**
  * A callback function to handle the result.
  */
-export interface CallbackFunction<T> { (result?: T): void; }
+interface CallbackFunction<T> { (result?: T): void; }
