@@ -7,7 +7,7 @@ APP_ID=${IONIC_APP_ID:-2de70dab}
 APP_NAME=${IONIC_APP_NAME:-testapp}
 CHANNEL=${IONIC_CHANNEL:-Master}
 CI=1
-UPDATE_METHOD=${IONIC_UPDATE_METHOD:-auto}
+UPDATE_METHOD=${IONIC_UPDATE_METHOD:-none}
 
 # Build the plugin ts
 npm run build
