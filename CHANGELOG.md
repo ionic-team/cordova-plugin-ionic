@@ -1,7 +1,11 @@
 Changelog
 ======
 
-# 5.0.0-alpha.0
+## 5.0.0-beta.2
+
+* Removed the deprecated API, to be added to version 4.2.0
+
+## 5.0.0-alpha.0
 
 * Rewrote the plugin in Typescript.
 * Added support for application file manifests.
