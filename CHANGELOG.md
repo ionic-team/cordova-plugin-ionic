@@ -1,6 +1,11 @@
 Changelog
 ======
 
+## 4.2.0
+
+* Rewrote the plugin entirely in TypeScript
+* Added the v5 API alongside the existing API
+
 ## 4.1.7
 
 * Fix a redirect bug in iOS that would give the `background` update method inconsistent behavior
