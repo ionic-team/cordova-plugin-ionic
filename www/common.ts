@@ -1,3 +1,4 @@
+/// <reference path="../types/IonicCordova.d.ts" />
 /// <reference types="cordova-plugin-file" />
 /// <reference types="cordova" />
 
@@ -20,19 +21,8 @@ enum UpdateState {
 import {
   FetchManifestResp, IAvailableUpdate,
   ISavedPreferences,
-  ISyncOptions,
   ManifestFileEntry,
 } from './definitions';
-
-import {
-  CallbackFunction,
-  CheckDeviceResponse,
-  IAppInfo,
-  IDeployConfig,
-  IDeployPluginAPI,
-  IPluginBaseAPI,
-  ISnapshotInfo,
-} from './api';
 
 import {
   isPluginConfig
@@ -68,6 +58,7 @@ class IonicDeployImpl {
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
+  // TODO: It would be nice to have this update automagically when we do a version bump
   public PLUGIN_VERSION = '5.0.0';
   public NO_VERSION_DEPLOYED = 'none';
   public UNKNOWN_BINARY_VERSION = 'unknown';
@@ -151,9 +142,13 @@ class IonicDeployImpl {
     const prefs = this._savedPreferences;
     const appInfo = this.appInfo;
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
+
+    // TODO: Need to send UUID device details for unique device metrics
     const device_details = {
       binary_version: appInfo.bundleVersion,
+      device_id: appInfo.device,
       platform: appInfo.platform,
+      platform_version: appInfo.platformVersion,
       snapshot: prefs.currentVersionId
     };
     const body = {
@@ -196,7 +191,7 @@ class IonicDeployImpl {
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
   }
 
-  async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
@@ -210,9 +205,9 @@ class IonicDeployImpl {
       await this._downloadFilesFromManifest(fileBaseUrl, manifestJson, progress);
       prefs.availableUpdate.state = UpdateState.Pending;
       await this._savePrefs(prefs);
-      return 'true';
+      return true;
     }
-    throw new Error('No available updates');
+    return false;
   }
 
   private _getManifestName(versionId: string) {
@@ -316,10 +311,10 @@ class IonicDeployImpl {
     };
   }
 
-  async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (!prefs.availableUpdate || prefs.availableUpdate.state !== 'pending') {
-      throw new Error('No pending update to extract');
+      return false;
     }
     const versionId = prefs.availableUpdate.versionId;
     const manifest = await this.readManifest(versionId);
@@ -372,7 +367,7 @@ class IonicDeployImpl {
     prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
     await this._savePrefs(prefs);
     await this.cleanupVersions();
-    return 'true';
+    return true;
   }
 
   private async hideSplash(): Promise<string> {
@@ -389,7 +384,7 @@ class IonicDeployImpl {
     return JSON.parse(manifestString);
   }
 
-  async reloadApp(): Promise<string> {
+  async reloadApp(): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
       prefs.currentVersionId = prefs.availableUpdate.versionId;
@@ -401,18 +396,18 @@ class IonicDeployImpl {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
         this.hideSplash();
-        return 'true';
+        return true;
       }
       if (!(prefs.currentVersionId in prefs.updates)) {
         console.error(`Missing version ${prefs.currentVersionId}`);
-        return 'false';
+        return false;
       }
       const update = prefs.updates[prefs.currentVersionId];
       const newLocation = new URL(update.path);
       Ionic.WebView.setServerBasePath(newLocation.pathname);
     }
 
-    return 'true';
+    return true;
   }
 
   private async _isRunningVersion(versionId: string) {
@@ -753,90 +748,6 @@ class IonicDeploy implements IDeployPluginAPI {
     });
   }
 
-  /* v4 API */
-
-  init(config: IDeployConfig, success: CallbackFunction<void>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.configure.');
-    this.configure(config).then(
-      result => success(),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  check(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.checkForUpdate.');
-    this.checkForUpdate().then(
-      result => success(String(result.available)),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  download(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.downloadUpdate.');
-    this.downloadUpdate(success).then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  extract(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.extractUpdate.');
-    this.extractUpdate(success).then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  redirect(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.reloadApp.');
-    this.reloadApp().then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  info(success: CallbackFunction<ISnapshotInfo>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.getCurrentVersion.');
-    this.getCurrentVersion().then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  getVersions(success: CallbackFunction<string[]>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.getAvailableVersions.');
-    this.getAvailableVersions().then(
-      results => success(results.map(result => result.versionId)),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  deleteVersion(version: string, success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
-    console.warn('This function has been deprecated in favor of IonicCordova.deploy.deleteVersionById.');
-    this.deleteVersionById(version).then(
-      result => success(result),
-      err => {
-        typeof err === 'string' ? failure(err) : failure(err.message);
-      }
-    );
-  }
-
-  /* v5 API */
-
   async checkForUpdate(): Promise<CheckDeviceResponse> {
     return (await this.delegate).checkForUpdate();
   }
@@ -849,11 +760,11 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).deleteVersionById(version);
   }
 
-  async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     return (await this.delegate).downloadUpdate(progress);
   }
 
-  async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     return (await this.delegate).extractUpdate(progress);
   }
 
@@ -869,8 +780,12 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).getVersionById(versionId);
   }
 
-  async reloadApp(): Promise<string> {
+  async reloadApp(): Promise<boolean> {
     return (await this.delegate).reloadApp();
+  }
+
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+    return (await this.delegate).sync();
   }
 }
 

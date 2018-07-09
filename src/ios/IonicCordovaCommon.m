@@ -24,7 +24,9 @@
     self.revertToBase = true;
     self.baseIndexPath = [[NSBundle mainBundle] pathForResource:@"www" ofType: nil];
 
-
+    if ([prefs stringForKey:@"uuid"] == nil) {
+        [prefs setObject:[[NSUUID UUID] UUIDString] forKey:@"uuid"];
+    }
     [prefs setBool:YES forKey:@"downloading_update"];
     [prefs synchronize];
 }
@@ -39,11 +41,13 @@
 }
 
 - (void) getAppInfo:(CDVInvokedUrlCommand*)command {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
     NSString* platformVersion = [[UIDevice currentDevice] systemVersion];
     NSString* version = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
     NSString* bundleName = [[NSBundle mainBundle] infoDictionary][@"CFBundleIdentifier"];
     NSString* bundleVersion = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
+    NSString* uuid = [prefs stringForKey:@"uuid"];
 
     if (bundleVersion == nil) {
       bundleVersion = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
@@ -51,11 +55,14 @@
         bundleVersion = @"";
       }
     }
+
     json[@"platform"] = @"ios";
     json[@"platformVersion"] = platformVersion;
     json[@"version"] = version;
     json[@"bundleName"] = bundleName;
     json[@"bundleVersion"] = bundleVersion;
+    json[@"device"] = uuid;
+    NSLog(@"Got app info: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
 

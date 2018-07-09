@@ -12,10 +12,10 @@ The configuration for the deploy plugin on the device.
 
 ### Properties
 
-* [appId](_api_.ideployconfig.md#appid)
-* [channel](_api_.ideployconfig.md#channel)
-* [debug](_api_.ideployconfig.md#debug)
-* [host](_api_.ideployconfig.md#host)
+* [appId](_ioniccordova_d_.ideployconfig.md#appid)
+* [channel](_ioniccordova_d_.ideployconfig.md#channel)
+* [debug](_ioniccordova_d_.ideployconfig.md#debug)
+* [host](_ioniccordova_d_.ideployconfig.md#host)
 
 ---
 
@@ -29,7 +29,7 @@ The configuration for the deploy plugin on the device.
 `string`
 *
 
-*Defined in [api.ts:192](https://github.com/ionic-team/cordova-plugin-ionic/blob/4625b68/www/api.ts#L192)*
+*Defined in [IonicCordova.d.ts:191](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L191)*
 
 The [Ionic Pro](https://ionicframework.com/docs/pro/) app id.
 
@@ -42,7 +42,7 @@ ___
 `string`
 *
 
-*Defined in [api.ts:207](https://github.com/ionic-team/cordova-plugin-ionic/blob/4625b68/www/api.ts#L207)*
+*Defined in [IonicCordova.d.ts:206](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L206)*
 
 The [channel](https://ionicframework.com/docs/pro/basics/concepts/#channels) that the plugin should listen for updates on.
 
@@ -56,7 +56,7 @@ ___
 `false`
 *
 
-*Defined in [api.ts:197](https://github.com/ionic-team/cordova-plugin-ionic/blob/4625b68/www/api.ts#L197)*
+*Defined in [IonicCordova.d.ts:196](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L196)*
 
 whether or not the app should in debug mode
 
@@ -69,7 +69,7 @@ ___
 `string`
 *
 
-*Defined in [api.ts:202](https://github.com/ionic-team/cordova-plugin-ionic/blob/4625b68/www/api.ts#L202)*
+*Defined in [IonicCordova.d.ts:201](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L201)*
 
 *__ignore__*: 
 

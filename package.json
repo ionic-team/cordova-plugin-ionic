@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-ionic",
-  "version": "5.0.0-beta.1",
+  "version": "5.0.0-beta.2",
   "cordova": {
     "id": "cordova-plugin-ionic",
     "platforms": [
@@ -8,6 +8,7 @@
       "ios"
     ]
   },
+  "types": "types/IonicCordova.d.ts",
   "description": "Ionic Cordova SDK",
   "engines": {
     "cordovaDependencies": {
