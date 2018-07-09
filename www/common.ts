@@ -21,7 +21,6 @@ enum UpdateState {
 import {
   FetchManifestResp, IAvailableUpdate,
   ISavedPreferences,
-  ISyncOptions,
   ManifestFileEntry,
 } from './definitions';
 
@@ -783,6 +782,10 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async reloadApp(): Promise<string> {
     return (await this.delegate).reloadApp();
+  }
+
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+    return (await this.delegate).sync();
   }
 }
 
