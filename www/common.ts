@@ -191,7 +191,7 @@ class IonicDeployImpl {
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
   }
 
-  async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
@@ -205,9 +205,9 @@ class IonicDeployImpl {
       await this._downloadFilesFromManifest(fileBaseUrl, manifestJson, progress);
       prefs.availableUpdate.state = UpdateState.Pending;
       await this._savePrefs(prefs);
-      return 'true';
+      return true;
     }
-    throw new Error('No available updates');
+    return false;
   }
 
   private _getManifestName(versionId: string) {
@@ -311,10 +311,10 @@ class IonicDeployImpl {
     };
   }
 
-  async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (!prefs.availableUpdate || prefs.availableUpdate.state !== 'pending') {
-      throw new Error('No pending update to extract');
+      return false;
     }
     const versionId = prefs.availableUpdate.versionId;
     const manifest = await this.readManifest(versionId);
@@ -367,7 +367,7 @@ class IonicDeployImpl {
     prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
     await this._savePrefs(prefs);
     await this.cleanupVersions();
-    return 'true';
+    return true;
   }
 
   private async hideSplash(): Promise<string> {
@@ -384,7 +384,7 @@ class IonicDeployImpl {
     return JSON.parse(manifestString);
   }
 
-  async reloadApp(): Promise<string> {
+  async reloadApp(): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
       prefs.currentVersionId = prefs.availableUpdate.versionId;
@@ -396,18 +396,18 @@ class IonicDeployImpl {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
         this.hideSplash();
-        return 'true';
+        return true;
       }
       if (!(prefs.currentVersionId in prefs.updates)) {
         console.error(`Missing version ${prefs.currentVersionId}`);
-        return 'false';
+        return false;
       }
       const update = prefs.updates[prefs.currentVersionId];
       const newLocation = new URL(update.path);
       Ionic.WebView.setServerBasePath(newLocation.pathname);
     }
 
-    return 'true';
+    return true;
   }
 
   private async _isRunningVersion(versionId: string) {
@@ -760,11 +760,11 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).deleteVersionById(version);
   }
 
-  async downloadUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     return (await this.delegate).downloadUpdate(progress);
   }
 
-  async extractUpdate(progress?: CallbackFunction<string>): Promise<string> {
+  async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
     return (await this.delegate).extractUpdate(progress);
   }
 
@@ -780,7 +780,7 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).getVersionById(versionId);
   }
 
-  async reloadApp(): Promise<string> {
+  async reloadApp(): Promise<boolean> {
     return (await this.delegate).reloadApp();
   }
 

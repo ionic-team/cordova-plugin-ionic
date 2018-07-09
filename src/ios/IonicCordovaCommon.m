@@ -62,6 +62,7 @@
     json[@"bundleName"] = bundleName;
     json[@"bundleVersion"] = bundleVersion;
     json[@"device"] = uuid;
+    NSLog(@"Got app info: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
 
