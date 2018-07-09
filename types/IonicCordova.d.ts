@@ -105,23 +105,17 @@ interface IDeployPluginAPI {
   /**
    * @description Update the default configuration for the plugin on the current device. The new configuration will be persisted across app close and binary updates.
    *
-   * @since v5.0.0
-   *
    * @param config The new configuration for the plugin on this device.
    */
   configure(config: IDeployConfig): Promise<void>;
 
   /**
    * @description Check for available updates for the currently configured app id and channel.
-   *
-   * @since v5.0.0
    */
   checkForUpdate(): Promise<CheckDeviceResponse>;
 
   /**
    * @description Download the new files from an available update found by the checkForUpdate method and prepare the update.
-   *
-   * @since v5.0.0
    *
    * @param progress A progress callback function which will be called with a number representing the percent of completion of the download and prepare.
    */
@@ -129,23 +123,17 @@ interface IDeployPluginAPI {
 
   /**
    * @description Reload the app if a more recent version of the app is available.
-   *
-   * @since v5.0.0
    */
   reloadApp(): Promise<string>;
 
   /**
    *
    * @description Get info about the currently deployed update.
-   *
-   * @since v5.0.0
    */
   getCurrentVersion(): Promise<ISnapshotInfo>;
 
   /**
    * @description Get a list of the snapshots available on the device.
-   *
-   * @since v5.0.0
    */
   getAvailableVersions(): Promise<ISnapshotInfo[]>;
 
