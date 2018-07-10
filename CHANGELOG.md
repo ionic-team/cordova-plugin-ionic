@@ -1,7 +1,7 @@
 Changelog
 ======
 
-## 5.0.0-beta.2
+# 5.0.0-rc.0
 
 * Removed the deprecated API, to be added to version 4.2.0
 
