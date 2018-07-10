@@ -119,12 +119,28 @@ interface IDeployPluginAPI {
    *
    * @param progress A progress callback function which will be called with a number representing the percent of completion of the download and prepare.
    */
-  downloadUpdate(progress?: CallbackFunction<string>): Promise<string>;
+  downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean>;
+
+  /**
+   * @description Extract the new files from a downloaded update.
+   *
+   * @param progress A progress callback function which will be called with a number representing the percent of completion of the download and prepare.
+   */
+  extractUpdate(progress?: CallbackFunction<string>): Promise<boolean>;
 
   /**
    * @description Reload the app if a more recent version of the app is available.
    */
   reloadApp(): Promise<string>;
+
+  /**
+   * @description Check for an update, download it, and apply it in one step.
+   *
+   * @since v5.0.0
+   *
+   * @param syncOptions (Optional) Application update overrides.
+   */
+  sync(syncOptions: ISyncOptions): Promise<ISnapshotInfo>;
 
   /**
    *
@@ -227,6 +243,16 @@ interface ISnapshotInfo {
    * The binary version the snapshot was downloaded for.
    */
   binaryVersion: string;
+}
+
+/**
+ * Configuration options for the call to `sync`
+ */
+interface ISyncOptions {
+  /**
+   * Whether the update should be applied immediately or on the next app start.
+   */
+  updateMethod?: 'background' | 'auto';
 }
 
 /**
