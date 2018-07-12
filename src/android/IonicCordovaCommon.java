@@ -69,21 +69,16 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * @return                  True if the action was valid, false if not.
    */
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    switch(action) {
-      case "clearSplashFlag":
-        this.removeSplashScreen();
-        break;
-      case "getAppInfo":
-        this.getAppInfo(callbackContext);
-        break;
-      case "getPreferences":
-        this.getPreferences(callbackContext);
-        break;
-      case "setPreferences":
-        this.setPreferences(callbackContext, args.getJSONObject(0));
-        break;
-      default:
-        return false;
+    if (action.equals("clearSplashFlag")) {
+      this.removeSplashScreen();
+    } else if (action.equals("getAppInfo")) {
+      this.getAppInfo(callbackContext);
+    } else if (action.equals("getPreferences")) {
+      this.getPreferences(callbackContext);
+    } else if (action.equals("setPreferences")) {
+      this.setPreferences(callbackContext, args.getJSONObject(0));
+    } else {
+      return false;
     }
 
     return true;
