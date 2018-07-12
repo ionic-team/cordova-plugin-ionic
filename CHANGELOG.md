@@ -1,7 +1,11 @@
 Changelog
 ======
 
-# 5.0.0-rc.0
+## 5.0.0-rc.1
+
+* Removed the switch statement in Android Native code to support older Java platforms
+
+## 5.0.0-rc.0
 
 * Removed the deprecated API, to be added to version 4.2.0
 
