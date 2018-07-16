@@ -37,7 +37,3 @@ export interface FetchManifestResp {
   manifestBlob: Blob;
   fileBaseUrl: string;
 }
-
-export interface ISyncOptions {
-  updateMethod?: 'background' | 'auto';
-}
