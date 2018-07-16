@@ -140,13 +140,15 @@ interface IDeployPluginAPI {
    *
    * @param syncOptions (Optional) Application update overrides.
    */
-  sync(syncOptions: ISyncOptions): Promise<ISnapshotInfo>;
+  sync(syncOptions: ISyncOptions): Promise<ISnapshotInfo | undefined>;
 
   /**
    *
-   * @description Get info about the currently deployed update.
+   * @description Get info about the currently deployed update or undefined if none are applied.
+   *
+   * @since v5.0.0
    */
-  getCurrentVersion(): Promise<ISnapshotInfo>;
+  getCurrentVersion(): Promise<ISnapshotInfo | undefined>;
 
   /**
    * @description Get a list of the snapshots available on the device.
@@ -158,7 +160,7 @@ interface IDeployPluginAPI {
    *
    * @param version The versionId
    */
-  deleteVersionById(versionId: string): Promise<string>;
+  deleteVersionById(versionId: string): Promise<boolean>;
 }
 
 /**
