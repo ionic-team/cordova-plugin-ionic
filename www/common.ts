@@ -439,12 +439,12 @@ class IonicDeployImpl {
     });
   }
 
-  async getCurrentVersion(): Promise<ISnapshotInfo> {
+  async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
     const versionId = this._savedPreferences.currentVersionId;
     if (typeof versionId === 'string') {
       return this.getVersionById(versionId);
     }
-    throw new Error('No current version applied.');
+    return;
   }
 
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
@@ -469,7 +469,7 @@ class IonicDeployImpl {
     return Object.keys(this._savedPreferences.updates).map(k => this._convertToSnapshotInfo(this._savedPreferences.updates[k]));
   }
 
-  async deleteVersionById(versionId: string): Promise<string> {
+  async deleteVersionById(versionId: string): Promise<boolean> {
     const prefs = this._savedPreferences;
 
     if (prefs.currentVersionId === versionId) {
@@ -495,7 +495,7 @@ class IonicDeployImpl {
     // cleanup file cache
     await this.cleanupCache();
 
-    return 'true';
+    return true;
   }
 
   private async cleanupCache() {
@@ -537,7 +537,7 @@ class IonicDeployImpl {
     }
   }
 
-  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
     const prefs = this._savedPreferences;
 
     // TODO: Get API override if present?
@@ -557,13 +557,16 @@ class IonicDeployImpl {
       }
     }
 
-    return {
-      deploy_uuid: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
-      versionId: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
-      channel: prefs.channel,
-      binary_version: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION,
-      binaryVersion: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION
-    };
+    if (prefs.currentVersionId) {
+      return {
+        deploy_uuid: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
+        versionId: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
+        channel: prefs.channel,
+        binary_version: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION,
+        binaryVersion: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION
+      };
+    }
+    return;
   }
 }
 
@@ -756,7 +759,7 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).configure(config);
   }
 
-  async deleteVersionById(version: string): Promise<string> {
+  async deleteVersionById(version: string): Promise<boolean> {
     return (await this.delegate).deleteVersionById(version);
   }
 
@@ -772,7 +775,7 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).getAvailableVersions();
   }
 
-  async getCurrentVersion(): Promise<ISnapshotInfo> {
+  async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
     return (await this.delegate).getCurrentVersion();
   }
 
@@ -784,7 +787,7 @@ class IonicDeploy implements IDeployPluginAPI {
     return (await this.delegate).reloadApp();
   }
 
-  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
     return (await this.delegate).sync();
   }
 }
