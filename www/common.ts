@@ -801,8 +801,7 @@ class IonicCordova implements IPluginBaseAPI {
   public deploy: IDeployPluginAPI;
 
   constructor() {
-      this.deploy = new IonicDeploy(this);
-      this.deploy.getAvailableVersions();
+    this.deploy = new IonicDeploy(this);
   }
 
 
