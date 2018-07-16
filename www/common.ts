@@ -384,7 +384,7 @@ class IonicDeployImpl {
     return JSON.parse(manifestString);
   }
 
-  async reloadApp(): Promise<string> {
+  async reloadApp(): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
       prefs.currentVersionId = prefs.availableUpdate.versionId;
@@ -396,18 +396,18 @@ class IonicDeployImpl {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
         this.hideSplash();
-        return 'true';
+        return true;
       }
       if (!(prefs.currentVersionId in prefs.updates)) {
         console.error(`Missing version ${prefs.currentVersionId}`);
-        return 'false';
+        return false;
       }
       const update = prefs.updates[prefs.currentVersionId];
       const newLocation = new URL(update.path);
       Ionic.WebView.setServerBasePath(newLocation.pathname);
     }
 
-    return 'true';
+    return true;
   }
 
   private async _isRunningVersion(versionId: string) {
@@ -704,12 +704,14 @@ class FileManager {
 class IonicDeploy implements IDeployPluginAPI {
   private parent: IPluginBaseAPI;
   private delegate: Promise<IonicDeployImpl>;
+  private fetchIsAvailable: boolean;
   private lastPause = 0;
   private minBackgroundDuration = 10;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
     this.delegate = this.initialize();
+    this.fetchIsAvailable = !!fetch;
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
@@ -718,7 +720,8 @@ class IonicDeploy implements IDeployPluginAPI {
     this.minBackgroundDuration = preferences.minBackgroundDuration;
     const appInfo = await this.parent.getAppDetails();
     const delegate = new IonicDeployImpl(appInfo, preferences);
-    await delegate._handleInitialPreferenceState();
+    // Only initialize start the plugin if fetch is available
+    if (this.fetchIsAvailable) await delegate._handleInitialPreferenceState();
     return delegate;
   }
 
@@ -733,7 +736,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async onResume() {
-    if (this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
+    if (this.fetchIsAvailable && this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
       await (await this.delegate).sync();
       await this.reloadApp();
     }
@@ -796,7 +799,7 @@ class IonicDeploy implements IDeployPluginAPI {
   redirect(success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.reloadApp.');
     this.reloadApp().then(
-      result => success(result),
+      result => success(String(result)),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
       }
@@ -826,7 +829,7 @@ class IonicDeploy implements IDeployPluginAPI {
   deleteVersion(version: string, success: CallbackFunction<string>, failure: CallbackFunction<string>): void {
     console.warn('This function has been deprecated in favor of IonicCordova.deploy.deleteVersionById.');
     this.deleteVersionById(version).then(
-      result => success(result),
+      result => success(String(result)),
       err => {
         typeof err === 'string' ? failure(err) : failure(err.message);
       }
@@ -836,43 +839,54 @@ class IonicDeploy implements IDeployPluginAPI {
   /* v5 API */
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
-    return (await this.delegate).checkForUpdate();
+    if (this.fetchIsAvailable) {
+      return (await this.delegate).checkForUpdate();
+    }
+    return  {available: false};
   }
 
   async configure(config: IDeployConfig): Promise<void> {
-    return (await this.delegate).configure(config);
+    if (this.fetchIsAvailable) return (await this.delegate).configure(config);
   }
 
   async deleteVersionById(version: string): Promise<boolean> {
-    return (await this.delegate).deleteVersionById(version);
+    if (this.fetchIsAvailable) return (await this.delegate).deleteVersionById(version);
+    return true;
   }
 
   async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
-    return (await this.delegate).downloadUpdate(progress);
+    if (this.fetchIsAvailable) return (await this.delegate).downloadUpdate(progress);
+    return false;
   }
 
   async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
-    return (await this.delegate).extractUpdate(progress);
+    if (this.fetchIsAvailable) return (await this.delegate).extractUpdate(progress);
+    return false;
   }
 
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
-    return (await this.delegate).getAvailableVersions();
+    if (this.fetchIsAvailable) return (await this.delegate).getAvailableVersions();
+    return [];
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
-    return (await this.delegate).getCurrentVersion();
+    if (this.fetchIsAvailable) return (await this.delegate).getCurrentVersion();
+    return;
   }
 
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
-    return (await this.delegate).getVersionById(versionId);
+    if (this.fetchIsAvailable) return (await this.delegate).getVersionById(versionId);
+    throw Error(`No update available with versionId ${versionId}`);
   }
 
-  async reloadApp(): Promise<string> {
-    return (await this.delegate).reloadApp();
+  async reloadApp(): Promise<boolean> {
+    if (this.fetchIsAvailable) return (await this.delegate).reloadApp();
+    return false;
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
-    return (await this.delegate).sync();
+    if (this.fetchIsAvailable) return (await this.delegate).sync();
+    return;
   }
 }
 

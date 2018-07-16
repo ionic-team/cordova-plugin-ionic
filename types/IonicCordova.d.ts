@@ -131,7 +131,7 @@ interface IDeployPluginAPI {
   /**
    * @description Reload the app if a more recent version of the app is available.
    */
-  reloadApp(): Promise<string>;
+  reloadApp(): Promise<boolean>;
 
   /**
    * @description Check for an update, download it, and apply it in one step.
