@@ -10,7 +10,7 @@ export interface IAvailableUpdate {
 
 export interface ISavedPreferences {
   appId: string;
-  binaryVersion?: string;
+  binaryVersion: string;
   debug: string;
   host: string;
   channel: string;

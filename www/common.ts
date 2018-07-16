@@ -60,8 +60,6 @@ class IonicDeployImpl {
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   // TODO: It would be nice to have this update automagically when we do a version bump
   public PLUGIN_VERSION = '5.0.0';
-  public NO_VERSION_DEPLOYED = 'none';
-  public UNKNOWN_BINARY_VERSION = 'unknown';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
@@ -559,11 +557,11 @@ class IonicDeployImpl {
 
     if (prefs.currentVersionId) {
       return {
-        deploy_uuid: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
-        versionId: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
+        deploy_uuid: prefs.currentVersionId,
+        versionId: prefs.currentVersionId,
         channel: prefs.channel,
-        binary_version: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION,
-        binaryVersion: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION
+        binary_version: prefs.binaryVersion,
+        binaryVersion: prefs.binaryVersion
       };
     }
     return;
@@ -711,7 +709,7 @@ class IonicDeploy implements IDeployPluginAPI {
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
     this.delegate = this.initialize();
-    this.fetchIsAvailable = !!fetch;
+    this.fetchIsAvailable = typeof(fetch) === 'function';
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
