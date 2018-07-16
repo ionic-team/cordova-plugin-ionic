@@ -60,8 +60,6 @@ class IonicDeployImpl {
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   // TODO: It would be nice to have this update automagically when we do a version bump
   public PLUGIN_VERSION = '5.0.0';
-  public NO_VERSION_DEPLOYED = 'none';
-  public UNKNOWN_BINARY_VERSION = 'unknown';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
@@ -439,12 +437,12 @@ class IonicDeployImpl {
     });
   }
 
-  async getCurrentVersion(): Promise<ISnapshotInfo> {
+  async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
     const versionId = this._savedPreferences.currentVersionId;
     if (typeof versionId === 'string') {
       return this.getVersionById(versionId);
     }
-    throw new Error('No current version applied.');
+    return;
   }
 
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
@@ -469,7 +467,7 @@ class IonicDeployImpl {
     return Object.keys(this._savedPreferences.updates).map(k => this._convertToSnapshotInfo(this._savedPreferences.updates[k]));
   }
 
-  async deleteVersionById(versionId: string): Promise<string> {
+  async deleteVersionById(versionId: string): Promise<boolean> {
     const prefs = this._savedPreferences;
 
     if (prefs.currentVersionId === versionId) {
@@ -495,7 +493,7 @@ class IonicDeployImpl {
     // cleanup file cache
     await this.cleanupCache();
 
-    return 'true';
+    return true;
   }
 
   private async cleanupCache() {
@@ -537,7 +535,7 @@ class IonicDeployImpl {
     }
   }
 
-  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
     const prefs = this._savedPreferences;
 
     // TODO: Get API override if present?
@@ -557,13 +555,16 @@ class IonicDeployImpl {
       }
     }
 
-    return {
-      deploy_uuid: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
-      versionId: prefs.currentVersionId || this.NO_VERSION_DEPLOYED,
-      channel: prefs.channel,
-      binary_version: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION,
-      binaryVersion: prefs.binaryVersion || this.UNKNOWN_BINARY_VERSION
-    };
+    if (prefs.currentVersionId) {
+      return {
+        deploy_uuid: prefs.currentVersionId,
+        versionId: prefs.currentVersionId,
+        channel: prefs.channel,
+        binary_version: prefs.binaryVersion,
+        binaryVersion: prefs.binaryVersion
+      };
+    }
+    return;
   }
 }
 
@@ -701,12 +702,14 @@ class FileManager {
 class IonicDeploy implements IDeployPluginAPI {
   private parent: IPluginBaseAPI;
   private delegate: Promise<IonicDeployImpl>;
+  private fetchIsAvailable: boolean;
   private lastPause = 0;
   private minBackgroundDuration = 10;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
     this.delegate = this.initialize();
+    this.fetchIsAvailable = typeof(fetch) === 'function';
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
@@ -715,7 +718,8 @@ class IonicDeploy implements IDeployPluginAPI {
     this.minBackgroundDuration = preferences.minBackgroundDuration;
     const appInfo = await this.parent.getAppDetails();
     const delegate = new IonicDeployImpl(appInfo, preferences);
-    await delegate._handleInitialPreferenceState();
+    // Only initialize start the plugin if fetch is available
+    if (this.fetchIsAvailable) await delegate._handleInitialPreferenceState();
     return delegate;
   }
 
@@ -730,7 +734,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async onResume() {
-    if (this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
+    if (this.fetchIsAvailable && this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
       await (await this.delegate).sync();
       await this.reloadApp();
     }
@@ -749,43 +753,54 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
-    return (await this.delegate).checkForUpdate();
+    if (this.fetchIsAvailable) {
+      return (await this.delegate).checkForUpdate();
+    }
+    return  {available: false};
   }
 
   async configure(config: IDeployConfig): Promise<void> {
-    return (await this.delegate).configure(config);
+    if (this.fetchIsAvailable) return (await this.delegate).configure(config);
   }
 
-  async deleteVersionById(version: string): Promise<string> {
-    return (await this.delegate).deleteVersionById(version);
+  async deleteVersionById(version: string): Promise<boolean> {
+    if (this.fetchIsAvailable) return (await this.delegate).deleteVersionById(version);
+    return true;
   }
 
   async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
-    return (await this.delegate).downloadUpdate(progress);
+    if (this.fetchIsAvailable) return (await this.delegate).downloadUpdate(progress);
+    return false;
   }
 
   async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
-    return (await this.delegate).extractUpdate(progress);
+    if (this.fetchIsAvailable) return (await this.delegate).extractUpdate(progress);
+    return false;
   }
 
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
-    return (await this.delegate).getAvailableVersions();
+    if (this.fetchIsAvailable) return (await this.delegate).getAvailableVersions();
+    return [];
   }
 
-  async getCurrentVersion(): Promise<ISnapshotInfo> {
-    return (await this.delegate).getCurrentVersion();
+  async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
+    if (this.fetchIsAvailable) return (await this.delegate).getCurrentVersion();
+    return;
   }
 
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
-    return (await this.delegate).getVersionById(versionId);
+    if (this.fetchIsAvailable) return (await this.delegate).getVersionById(versionId);
+    throw Error(`No update available with versionId ${versionId}`);
   }
 
   async reloadApp(): Promise<boolean> {
-    return (await this.delegate).reloadApp();
+    if (this.fetchIsAvailable) return (await this.delegate).reloadApp();
+    return false;
   }
 
-  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo> {
-    return (await this.delegate).sync();
+  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
+    if (this.fetchIsAvailable) return (await this.delegate).sync();
+    return;
   }
 }
 
