@@ -189,7 +189,7 @@ class IonicDeployImpl {
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
   }
 
-  async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
+  async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
@@ -212,7 +212,7 @@ class IonicDeployImpl {
     return versionId + '-manifest.json';
   }
 
-  private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[], progress?: CallbackFunction<string>) {
+  private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[], progress?: CallbackFunction<number>) {
     console.log('Downloading update...');
     let size = 0, downloaded = 0;
     manifest.forEach(i => {
@@ -230,7 +230,7 @@ class IonicDeployImpl {
         // Update progress
         downloaded += file.size;
         if (progress) {
-          progress(Math.floor((downloaded / size) * 50).toString());
+          progress(Math.floor((downloaded / size) * 50));
         }
         return;
       }
@@ -240,7 +240,7 @@ class IonicDeployImpl {
         // Update progress
         downloaded += file.size;
         if (progress) {
-          progress(Math.floor((downloaded / size) * 50).toString());
+          progress(Math.floor((downloaded / size) * 50));
         }
 
         return {
@@ -260,7 +260,7 @@ class IonicDeployImpl {
         // Update progress
         downloaded += file.size;
         if (progress) {
-          progress(Math.floor((downloaded / size) * 50).toString());
+          progress(Math.floor((downloaded / size) * 50));
         }
 
         return {
@@ -285,7 +285,7 @@ class IonicDeployImpl {
         // Update progress
         downloaded += download.blob.size;
         if (progress) {
-          progress(Math.floor(((downloaded / size) * 50) + 50).toString());
+          progress(Math.floor(((downloaded / size) * 50) + 50));
         }
       }
     }
@@ -309,7 +309,7 @@ class IonicDeployImpl {
     };
   }
 
-  async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
+  async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (!prefs.availableUpdate || prefs.availableUpdate.state !== 'pending') {
       return false;
@@ -349,7 +349,7 @@ class IonicDeployImpl {
         // Update progress
         extracted += file.size;
         if (progress) {
-          progress(Math.floor((extracted / size) * 100).toString());
+          progress(Math.floor((extracted / size) * 100));
         }
         return this._fileManager.copyTo(
           this.getFileCacheDir(),
@@ -768,12 +768,12 @@ class IonicDeploy implements IDeployPluginAPI {
     return true;
   }
 
-  async downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
+  async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     if (this.fetchIsAvailable) return (await this.delegate).downloadUpdate(progress);
     return false;
   }
 
-  async extractUpdate(progress?: CallbackFunction<string>): Promise<boolean> {
+  async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     if (this.fetchIsAvailable) return (await this.delegate).extractUpdate(progress);
     return false;
   }

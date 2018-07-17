@@ -30,7 +30,7 @@ interface IDeployPluginAPI {
    *
    * @param progress A progress callback function which will be called with a number representing the percent of completion of the download and prepare.
    */
-  downloadUpdate(progress?: CallbackFunction<string>): Promise<boolean>;
+  downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean>;
 
   /**
    * @description Extract a downloaded bundle of updated files.
@@ -39,7 +39,7 @@ interface IDeployPluginAPI {
    *
    * @param progress A progress callback function which will be called with a number representing the percent of completion of the extract.
    */
-  extractUpdate(progress?: CallbackFunction<string>): Promise<boolean>;
+  extractUpdate(progress?: CallbackFunction<number>): Promise<boolean>;
 
   /**
    * @description Reload the app if a more recent version of the app is available.
