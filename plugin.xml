@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-    id="cordova-plugin-ionic"
-    version="5.0.0">
-    <name>IonicCordova</name>
-    <description>Common Cordova functionality for Ionic apps</description>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.0.0-rc.2">
+    <name>cordova-plugin-ionic</name>
+    <description>Ionic Cordova SDK</description>
     <license>MIT</license>
-    <keywords>Ionic,native,html5,hybrid,cordova</keywords>
+    <keywords>ionic,cordova,deploy,liveupdates,mobile,hybrid,ecosystem:cordova,cordova-android,cordova-ios</keywords>
     <repo>https://github.com/ionic-team/cordova-plugin-ionic.git</repo>
     <issue>https://github.com/ionic-team/cordova-plugin-ionic/issues</issue>
 
     <js-module src="dist/common.js">
-        <clobbers target="IonicCordova" />
+        <clobbers target="IonicCordova"/>
     </js-module>
     <js-module src="dist/guards.js" name="guards">
       <runs/>
     </js-module>
-    <preference name="APP_ID" />
-    <preference name="CHANNEL_NAME" />
+    <preference name="APP_ID"/>
+    <preference name="CHANNEL_NAME"/>
     <preference name="WARN_DEBUG" default="true"/>
-    <preference name="UPDATE_API" default="https://api.ionicjs.com" />
-    <preference name="UPDATE_METHOD" default="background" />
-    <preference name="MAX_STORE" default="2" />
-    <preference name="MIN_BACKGROUND_DURATION" default="30" />
+    <preference name="UPDATE_API" default="https://api.ionicjs.com"/>
+    <preference name="UPDATE_METHOD" default="background"/>
+    <preference name="MAX_STORE" default="2"/>
+    <preference name="MIN_BACKGROUND_DURATION" default="30"/>
 
     <!-- ios -->
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="IonicCordovaCommon">
-                <param name="ios-package" value="IonicCordovaCommon" onload="true" />
+                <param name="ios-package" value="IonicCordovaCommon" onload="true"/>
             </feature>
         </config-file>
 
@@ -60,16 +58,16 @@
             <string>$MIN_BACKGROUND_DURATION</string>
         </config-file>
 
-        <header-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.h" />
-        <source-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.m" />
-        <header-file src="src/ios/IonicCordovaCommon.h" />
-        <source-file src="src/ios/IonicCordovaCommon.m" />
+        <header-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.h"/>
+        <source-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.m"/>
+        <header-file src="src/ios/IonicCordovaCommon.h"/>
+        <source-file src="src/ios/IonicCordovaCommon.m"/>
     </platform>
 
     <platform name="android">
         <config-file target="config.xml" parent="/*">
             <feature name="IonicCordovaCommon">
-                <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true" />
+                <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true"/>
             </feature>
         </config-file>
 
@@ -83,11 +81,11 @@
             <string name="ionic_min_background_duration">$MIN_BACKGROUND_DURATION</string>
         </config-file>
 
-        <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common" />
+        <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common"/>
     </platform>
 
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
     <dependency id="cordova-plugin-ionic-webview" version=">=2.0.0-beta.1"/>
     <dependency id="cordova-plugin-file" version="^6.0.1"/>
-
+    <author>Ionic</author>
 </plugin>

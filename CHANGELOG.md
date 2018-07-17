@@ -1,6 +1,12 @@
 Changelog
 ======
 
+## 5.0.0-rc.2
+
+* Disable certain features if browser `fetch` is unavailable
+* Update some API methods for coherent returns
+* Improved dev tools
+
 ## 5.0.0-rc.1
 
 * Removed the switch statement in Android Native code to support older Java platforms
