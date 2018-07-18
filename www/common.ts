@@ -389,11 +389,12 @@ class IonicDeployImpl {
       if (await this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
-        await this.hideSplash();
+        this.hideSplash();
         return false;
       }
       if (!(prefs.currentVersionId in prefs.updates)) {
         console.error(`Missing version ${prefs.currentVersionId}`);
+        this.hideSplash();
         return false;
       }
       const update = prefs.updates[prefs.currentVersionId];
@@ -402,6 +403,7 @@ class IonicDeployImpl {
       return true;
     }
 
+    this.hideSplash();
     return false;
   }
 
