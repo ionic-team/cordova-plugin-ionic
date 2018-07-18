@@ -8,16 +8,7 @@ export interface IAvailableUpdate {
   versionId: string;
 }
 
-export interface ISavedPreferences {
-  appId: string;
-  binaryVersion: string;
-  debug: string;
-  host: string;
-  channel: string;
-  updateMethod: 'none' | 'auto' | 'background';
-  maxVersions: number;
-  minBackgroundDuration: number;
-  currentVersionId?: string;
+export interface ISavedPreferences extends ICurrentConfig {
   availableUpdate?: IAvailableUpdate;
   updates: { [versionId: string]: IAvailableUpdate };
 }
