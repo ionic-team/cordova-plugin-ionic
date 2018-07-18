@@ -762,6 +762,24 @@ class IonicDeploy implements IDeployPluginAPI {
     if (this.fetchIsAvailable) return (await this.delegate).configure(config);
   }
 
+  async getConfiguration(): Promise<ICurrentConfig> {
+    return new Promise<ICurrentConfig>(async (resolve, reject) => {
+      try {
+        cordova.exec(async (prefs: ISavedPreferences) => {
+          if (prefs.availableUpdate) {
+            delete prefs.availableUpdate;
+          }
+          if (prefs.updates) {
+            delete prefs.updates;
+          }
+          resolve(prefs);
+        }, reject, 'IonicCordovaCommon', 'getPreferences');
+      } catch (e) {
+        reject(e.message);
+      }
+    });
+  }
+
   async deleteVersionById(version: string): Promise<boolean> {
     if (this.fetchIsAvailable) return (await this.delegate).deleteVersionById(version);
     return true;

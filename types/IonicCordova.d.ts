@@ -17,9 +17,20 @@ interface IDeployPluginAPI {
   configure(config: IDeployConfig): Promise<void>;
 
   /**
+   * @description Get the current configuration for the plugin on the current device.
+   *
+   * @since v5.0.0
+   *
+   * @return The current configuration of the plugin.
+   */
+  getConfiguration(): Promise<ICurrentConfig>;
+
+  /**
    * @description Check for available updates for the currently configured app id and channel.
    *
    * @since v5.0.0
+   *
+   * @return  A response describing an update if one is available.
    */
   checkForUpdate(): Promise<CheckDeviceResponse>;
 
@@ -29,6 +40,8 @@ interface IDeployPluginAPI {
    * @since v5.0.0
    *
    * @param progress A progress callback function which will be called with a number representing the percent of completion of the download and prepare.
+   *
+   * @return  true if the download succeeded
    */
   downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean>;
 
@@ -38,6 +51,8 @@ interface IDeployPluginAPI {
    * @since v5.0.0
    *
    * @param progress A progress callback function which will be called with a number representing the percent of completion of the extract.
+   *
+   * @return  true if the extract succeeded
    */
   extractUpdate(progress?: CallbackFunction<number>): Promise<boolean>;
 
@@ -45,6 +60,8 @@ interface IDeployPluginAPI {
    * @description Reload the app if a more recent version of the app is available.
    *
    * @since v5.0.0
+   *
+   * @return true if the reload succeeded
    */
   reloadApp(): Promise<boolean>;
 
@@ -54,6 +71,8 @@ interface IDeployPluginAPI {
    * @since v5.0.0
    *
    * @param syncOptions (Optional) Application update overrides.
+   *
+   * @return The info about the currently applied update or undefined if none is applied.
    */
   sync(syncOptions: ISyncOptions): Promise<ISnapshotInfo | undefined>;
 
@@ -62,6 +81,8 @@ interface IDeployPluginAPI {
    * @description Get info about the currently deployed update or undefined if none are applied.
    *
    * @since v5.0.0
+   *
+   * @return The info about the currently applied update or undefined if none is applied.
    */
   getCurrentVersion(): Promise<ISnapshotInfo | undefined>;
 
@@ -69,6 +90,8 @@ interface IDeployPluginAPI {
    * @description Get a list of the snapshots available on the device.
    *
    * @since v5.0.0
+   *
+   * @return a list of available updates.
    */
   getAvailableVersions(): Promise<ISnapshotInfo[]>;
 
@@ -76,6 +99,8 @@ interface IDeployPluginAPI {
    * @description Remove the files specific to a snapshot from the device.
    *
    * @param version The versionId
+   *
+   * @return true if the update was deleted.
    */
   deleteVersionById(versionId: string): Promise<boolean>;
 }
@@ -124,9 +149,60 @@ interface IDeployConfig {
   host?: string;
 
   /**
-   * The [channel](https://ionicframework.com/docs/pro/basics/concepts/#channels) that the plugin should listen for updates on.
+   * The [channel](https://ionicframework.com/docs/pro/deploy/channels) that the plugin should listen for updates on.
    */
   channel?: string;
+}
+
+/**
+ * The current configuration for the deploy plugin on the device.
+ */
+interface ICurrentConfig {
+  /**
+   * The [Ionic Pro](https://ionicframework.com/docs/pro/) app id.
+   */
+  appId: string;
+
+  /**
+   * The [channel](https://ionicframework.com/docs/pro/deploy/channels) that the plugin should listen for updates on.
+   */
+  channel: string;
+
+  /**
+   * The binary version of the native bundle
+   */
+  binaryVersion: string;
+
+  /**
+   * Whether the plugin is in debug mode or not.
+   */
+  debug: string;
+
+  /**
+   * The host API the plugin is configured to check for updates from.
+   */
+  host: string;
+
+  /**
+   * The currently configured updateMethod for the plugin.
+   */
+  updateMethod: 'none' | 'auto' | 'background';
+
+  /**
+   * The maximum number of updates to be stored locally on the device.
+   */
+  maxVersions: number;
+
+  /**
+   * The number of seconds the app needs to be in the background before the plugin considers it
+   * closed for the purposes of fetching and applying a new update.
+   */
+  minBackgroundDuration: number;
+
+  /**
+   * The id of the currently applied updated or undefined if none is applied.
+   */
+  currentVersionId?: string;
 }
 
 /**
