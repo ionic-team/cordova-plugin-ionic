@@ -83,11 +83,7 @@ class IonicDeployImpl {
         break;
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
-        if (this._savedPreferences.currentVersionId) {
-          this.reloadApp();
-        } else {
-          this.hideSplash();
-        }
+        await this.reloadApp();
         this.sync({updateMethod: UpdateMethod.BACKGROUND});
         return;
     }
@@ -392,8 +388,8 @@ class IonicDeployImpl {
       if (await this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
-        this.hideSplash();
-        return true;
+        await this.hideSplash();
+        return false;
       }
       if (!(prefs.currentVersionId in prefs.updates)) {
         console.error(`Missing version ${prefs.currentVersionId}`);
@@ -402,9 +398,10 @@ class IonicDeployImpl {
       const update = prefs.updates[prefs.currentVersionId];
       const newLocation = new URL(update.path);
       Ionic.WebView.setServerBasePath(newLocation.pathname);
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   private async _isRunningVersion(versionId: string) {
