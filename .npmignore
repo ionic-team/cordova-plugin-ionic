@@ -4,5 +4,6 @@ tmp/
 scripts/
 apply-changes.sh
 create-local-app.sh
+bump-versions.sh
 docs/
 tests/
