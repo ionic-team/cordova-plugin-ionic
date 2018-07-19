@@ -900,7 +900,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
-    if (this.fetchIsAvailable) return (await this.delegate).sync();
+    if (this.fetchIsAvailable) return (await this.delegate).sync(syncOptions);
     return;
   }
 }
