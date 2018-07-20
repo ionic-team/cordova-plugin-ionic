@@ -363,7 +363,7 @@ class IonicDeployImpl {
     return true;
   }
 
-  private async hideSplash(): Promise<string> {
+  async hideSplash(): Promise<string> {
     return new Promise<string>( (resolve, reject) => {
       cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
     });
@@ -717,7 +717,12 @@ class IonicDeploy implements IDeployPluginAPI {
     const appInfo = await this.parent.getAppDetails();
     const delegate = new IonicDeployImpl(appInfo, preferences);
     // Only initialize start the plugin if fetch is available
-    if (this.fetchIsAvailable) await delegate._handleInitialPreferenceState();
+    if (!this.fetchIsAvailable) {
+      console.warn('Fetch is unavailable so cordova-plugin-ionic has been disabled.');
+      await (await this.delegate).hideSplash();
+    } else {
+      await delegate._handleInitialPreferenceState();
+    }
     return delegate;
   }
 
