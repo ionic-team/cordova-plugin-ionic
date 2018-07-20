@@ -45,18 +45,20 @@
 }
 
 + (void)load {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        Class class = [self class];
-        
-        SEL originalHide = @selector(hideViews);
-        SEL swizzledHide = @selector(swizzled_hideViews);
-        [class swizzle:originalHide newImp:swizzledHide];
-        
-        SEL originalDestroy = @selector(destroyViews);
-        SEL swizzledDestroy = @selector(swizzled_destroyViews);
-        [class swizzle:originalDestroy newImp:swizzledDestroy];
-    });
+    if (@available(iOS 10.3, *)) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            Class class = [self class];
+
+            SEL originalHide = @selector(hideViews);
+            SEL swizzledHide = @selector(swizzled_hideViews);
+            [class swizzle:originalHide newImp:swizzledHide];
+
+            SEL originalDestroy = @selector(destroyViews);
+            SEL swizzledDestroy = @selector(swizzled_destroyViews);
+            [class swizzle:originalDestroy newImp:swizzledDestroy];
+        });
+    }
 }
 
 @end
