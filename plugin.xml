@@ -85,7 +85,7 @@
     </platform>
 
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
-    <dependency id="cordova-plugin-ionic-webview" version=">=2.0.0-beta.1"/>
+    <dependency id="cordova-plugin-ionic-webview" version=">=2.0.0"/>
     <dependency id="cordova-plugin-file" version="^6.0.1"/>
     <author>Ionic</author>
 </plugin>
