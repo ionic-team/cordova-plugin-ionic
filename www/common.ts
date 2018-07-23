@@ -59,7 +59,7 @@ class IonicDeployImpl {
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   // TODO: It would be nice to have this update automagically when we do a version bump
-  public PLUGIN_VERSION = '5.0.0';
+  public PLUGIN_VERSION = '4.2.0';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
