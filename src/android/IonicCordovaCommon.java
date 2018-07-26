@@ -136,7 +136,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public void getPreferences(CallbackContext callbackContext) throws JSONException {
 
-    SharedPreferences prefs = this.cordova.getContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
+    SharedPreferences prefs = this.cordova.getActivity().getApplicationContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
     String prefsString = prefs.getString(this.PREFS_KEY, null);
     JSONObject j;
     if (prefsString != null) {
@@ -193,7 +193,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
    */
   public void setPreferences(CallbackContext callbackContext, JSONObject newPrefs) {
     Log.i(TAG, "Set preferences called with prefs" + newPrefs.toString());
-    SharedPreferences prefs = this.cordova.getContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
+    SharedPreferences prefs = this.cordova.getActivity().getApplicationContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = prefs.edit();
     editor.putString(this.PREFS_KEY, newPrefs.toString());
     editor.commit();
