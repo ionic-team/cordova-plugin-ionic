@@ -172,7 +172,6 @@ class IonicDeployImpl {
           channel: prefs.channel,
           state: UpdateState.Available,
           lastUsed: new Date().toISOString(),
-          path: this.getSnapshotCacheDir(checkDeviceResp.snapshot),
           url: checkDeviceResp.url,
           versionId: checkDeviceResp.snapshot
         };
@@ -397,7 +396,7 @@ class IonicDeployImpl {
         return false;
       }
       const update = prefs.updates[prefs.currentVersionId];
-      const newLocation = new URL(update.path);
+      const newLocation = new URL(this.getSnapshotCacheDir(update.versionId));
       Ionic.WebView.setServerBasePath(newLocation.pathname);
       return true;
     }
