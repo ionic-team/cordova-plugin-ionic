@@ -79,7 +79,7 @@ class IonicDeployImpl {
         console.log('done _reloading');
         break;
       case UpdateMethod.NONE:
-        this.hideSplash();
+        this.reloadApp();
         break;
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
@@ -395,8 +395,7 @@ class IonicDeployImpl {
         this.hideSplash();
         return false;
       }
-      const update = prefs.updates[prefs.currentVersionId];
-      const newLocation = new URL(this.getSnapshotCacheDir(update.versionId));
+      const newLocation = new URL(this.getSnapshotCacheDir(prefs.currentVersionId));
       Ionic.WebView.setServerBasePath(newLocation.pathname);
       return true;
     }
