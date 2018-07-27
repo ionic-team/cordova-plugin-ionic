@@ -701,15 +701,18 @@ class IonicDeploy implements IDeployPluginAPI {
   private fetchIsAvailable: boolean;
   private lastPause = 0;
   private minBackgroundDuration = 10;
+  private _platformIsReady: Promise<undefined>;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
     this.delegate = this.initialize();
     this.fetchIsAvailable = typeof(fetch) === 'function';
+    this._platformIsReady = this.platformReady();
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
   async initialize() {
+    await this.platformReady();
     const preferences = await this._initPreferences();
     this.minBackgroundDuration = preferences.minBackgroundDuration;
     const appInfo = await this.parent.getAppDetails();
@@ -722,6 +725,21 @@ class IonicDeploy implements IDeployPluginAPI {
       await delegate._handleInitialPreferenceState();
     }
     return delegate;
+  }
+
+  private async platformReady(): Promise<undefined> {
+    if (!this._platformIsReady) {
+      return new Promise<undefined>((resolve, reject) => {
+        if (window.cordova) {
+          document.addEventListener('deviceready', () => {
+            resolve();
+          });
+        } else {
+          reject();
+        }
+      });
+    }
+    return this._platformIsReady;
   }
 
   async onLoad() {
@@ -754,6 +772,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
+    await this.platformReady();
     if (this.fetchIsAvailable) {
       return (await this.delegate).checkForUpdate();
     }
@@ -761,10 +780,12 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async configure(config: IDeployConfig): Promise<void> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).configure(config);
   }
 
   async getConfiguration(): Promise<ICurrentConfig> {
+    await this.platformReady();
     return new Promise<ICurrentConfig>(async (resolve, reject) => {
       try {
         cordova.exec(async (prefs: ISavedPreferences) => {
@@ -783,41 +804,49 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async deleteVersionById(version: string): Promise<boolean> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).deleteVersionById(version);
     return true;
   }
 
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).downloadUpdate(progress);
     return false;
   }
 
   async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).extractUpdate(progress);
     return false;
   }
 
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).getAvailableVersions();
     return [];
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).getCurrentVersion();
     return;
   }
 
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).getVersionById(versionId);
     throw Error(`No update available with versionId ${versionId}`);
   }
 
   async reloadApp(): Promise<boolean> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).reloadApp();
     return false;
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
+    await this.platformReady();
     if (this.fetchIsAvailable) return (await this.delegate).sync(syncOptions);
     return;
   }
