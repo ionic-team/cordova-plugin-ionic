@@ -309,11 +309,6 @@ class IonicDeployImpl {
       return false;
     }
     const versionId = prefs.availableUpdate.versionId;
-    const manifest = await this.readManifest(versionId);
-    let size = 0, extracted = 0;
-    manifest.forEach(i => {
-      size += i.size;
-    });
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     try {
       const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
@@ -324,37 +319,11 @@ class IonicDeployImpl {
     }
 
     await this._copyBaseAppDir(versionId);
-    console.log('Successful Swizzle');
-    await Promise.all(manifest.map( async (file: ManifestFileEntry) => {
-      const splitPath = file.href.split('/');
-      const fileName = splitPath.pop();
-      let path;
-      if (splitPath.length > 0) {
-        path = splitPath.join('/');
-      }
-      path =  snapshotDir + (path ? ('/' + path) : '');
-      if (fileName) {
-        try {
-          await this._fileManager.removeFile(path, fileName);
-        } catch (e) {
-          console.log(`New file ${path}/${fileName}`);
-        }
+    console.log('Copied base app resources');
 
-        // Update progress
-        extracted += file.size;
-        if (progress) {
-          progress(Math.floor((extracted / size) * 100));
-        }
-        return this._fileManager.copyTo(
-          this.getFileCacheDir(),
-          this._cleanHash(file.integrity),
-          path,
-          fileName
-        );
-      }
-      throw new Error('No file name found');
-    }));
-    console.log('Successful recreate');
+    await this._copyManifestFiles(versionId, progress);
+    console.log('Recreated app from manifest');
+
     prefs.availableUpdate.state = UpdateState.Ready;
     prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
     await this._savePrefs(prefs);
@@ -431,6 +400,44 @@ class IonicDeployImpl {
         reject(e);
       }
     });
+  }
+
+  private async _copyManifestFiles(versionId: string, progress?: CallbackFunction<number>) {
+    const snapshotDir = this.getSnapshotCacheDir(versionId);
+    const manifest = await this.readManifest(versionId);
+    let size = 0, extracted = 0;
+    manifest.forEach(i => {
+      size += i.size;
+    });
+    await Promise.all(manifest.map( async (file: ManifestFileEntry) => {
+      const splitPath = file.href.split('/');
+      const fileName = splitPath.pop();
+      let path;
+      if (splitPath.length > 0) {
+        path = splitPath.join('/');
+      }
+      path =  snapshotDir + (path ? ('/' + path) : '');
+      if (fileName) {
+        try {
+          await this._fileManager.removeFile(path, fileName);
+        } catch (e) {
+          console.log(`New file ${path}/${fileName}`);
+        }
+
+        // Update progress
+        extracted += file.size;
+        if (progress) {
+          progress(Math.floor((extracted / size) * 100));
+        }
+        return this._fileManager.copyTo(
+          this.getFileCacheDir(),
+          this._cleanHash(file.integrity),
+          path,
+          fileName
+        );
+      }
+      throw new Error('No file name found');
+    }));
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
