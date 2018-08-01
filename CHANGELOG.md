@@ -1,7 +1,7 @@
 Changelog
 ======
 
-## 5.0.4
+## 5.0.5
 
 * Rebuild a deploy directory in the case where the binary version has changed since the update was downloaded.
 
