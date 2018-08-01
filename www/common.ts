@@ -58,7 +58,7 @@ class IonicDeployImpl {
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
-  public PLUGIN_VERSION = '5.0.3';
+  public PLUGIN_VERSION = '5.0.4';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
