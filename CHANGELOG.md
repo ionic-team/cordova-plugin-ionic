@@ -1,6 +1,15 @@
 Changelog
 ======
 
+## 5.0.4
+
+* Rebuild a deploy directory in the case where the binary version has changed since the update was downloaded.
+
+# 5.0.0
+
+* Release!
+* Misc. bugfixes from rc3
+
 ## 5.0.0-rc.3
 
 * Improved dev tools
