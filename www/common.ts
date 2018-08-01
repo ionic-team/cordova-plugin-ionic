@@ -308,15 +308,10 @@ class IonicDeployImpl {
     if (!prefs.availableUpdate || prefs.availableUpdate.state !== 'pending') {
       return false;
     }
+
     const versionId = prefs.availableUpdate.versionId;
-    const snapshotDir = this.getSnapshotCacheDir(versionId);
-    try {
-      const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
-      console.log(`directory found for snapshot ${versionId} deleting`);
-      await (new Promise( (resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
-    } catch (e) {
-      console.log('No directory found for snapshot no need to delete');
-    }
+    await this._cleanSnapshotDir(versionId);
+    console.log('Cleaned version directory');
 
     await this._copyBaseAppDir(versionId);
     console.log('Copied base app resources');
@@ -347,23 +342,50 @@ class IonicDeployImpl {
 
   async reloadApp(): Promise<boolean> {
     const prefs = this._savedPreferences;
+
+    // Save the current update if it's ready
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
       prefs.currentVersionId = prefs.availableUpdate.versionId;
       delete prefs.availableUpdate;
       await this._savePrefs(prefs);
     }
+
+    // Is there a non-binary version deployed?
     if (prefs.currentVersionId) {
+      // Are we already running the deployed version?
       if (await this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
         this.hideSplash();
         return false;
       }
+
+      // Is the current version on the device?
       if (!(prefs.currentVersionId in prefs.updates)) {
         console.error(`Missing version ${prefs.currentVersionId}`);
         this.hideSplash();
         return false;
       }
+
+      // Is the current version built from a previous binary?
+      if (prefs.binaryVersion !== prefs.updates[prefs.currentVersionId].binaryVersion) {
+        console.log(
+          `Version ${prefs.currentVersionId} was built for binary version ` +
+          `${prefs.updates[prefs.currentVersionId].binaryVersion}, but device is running ${prefs.binaryVersion}, ` +
+          `rebuilding...`
+        );
+
+        await this._cleanSnapshotDir(prefs.currentVersionId);
+        console.log('Cleaned version directory');
+    
+        await this._copyBaseAppDir(prefs.currentVersionId);
+        console.log('Copied base app resources');
+    
+        await this._copyManifestFiles(prefs.currentVersionId);
+        console.log('Recreated app from manifest\nSuccessfully rebuilt app!');
+      }
+
+      // Reload the webview
       const newLocation = new URL(this.getSnapshotCacheDir(prefs.currentVersionId));
       Ionic.WebView.setServerBasePath(newLocation.pathname);
       return true;
@@ -387,6 +409,17 @@ class IonicDeployImpl {
        reject(e);
       }
     });
+  }
+
+  private async _cleanSnapshotDir(versionId: string) {
+    const snapshotDir = this.getSnapshotCacheDir(versionId);
+    try {
+      const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
+      console.log(`directory found for snapshot ${versionId} deleting`);
+      await (new Promise( (resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
+    } catch (e) {
+      console.log('No directory found for snapshot no need to delete');
+    }
   }
 
   private async _copyBaseAppDir(versionId: string) {
