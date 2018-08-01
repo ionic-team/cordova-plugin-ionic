@@ -136,14 +136,14 @@ class IonicDeployImpl {
     const appInfo = this.appInfo;
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
 
-    // TODO: Need to send UUID device details for unique device metrics
     const device_details = {
       binary_version: appInfo.bundleVersion,
-      device_id: appInfo.device,
+      device_id: appInfo.device || null,
       platform: appInfo.platform,
       platform_version: appInfo.platformVersion,
       snapshot: prefs.currentVersionId
     };
+
     const body = {
       channel_name: prefs.channel,
       app_id: prefs.appId,
