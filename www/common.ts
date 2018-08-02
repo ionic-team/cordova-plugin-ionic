@@ -58,7 +58,7 @@ class IonicDeployImpl {
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
-  public PLUGIN_VERSION = '5.0.3';
+  public PLUGIN_VERSION = '5.0.5';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
@@ -136,14 +136,14 @@ class IonicDeployImpl {
     const appInfo = this.appInfo;
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
 
-    // TODO: Need to send UUID device details for unique device metrics
     const device_details = {
       binary_version: appInfo.bundleVersion,
-      device_id: appInfo.device,
+      device_id: appInfo.device || null,
       platform: appInfo.platform,
       platform_version: appInfo.platformVersion,
       snapshot: prefs.currentVersionId
     };
+
     const body = {
       channel_name: prefs.channel,
       app_id: prefs.appId,
@@ -308,12 +308,110 @@ class IonicDeployImpl {
     if (!prefs.availableUpdate || prefs.availableUpdate.state !== 'pending') {
       return false;
     }
+
     const versionId = prefs.availableUpdate.versionId;
-    const manifest = await this.readManifest(versionId);
-    let size = 0, extracted = 0;
-    manifest.forEach(i => {
-      size += i.size;
+    await this._cleanSnapshotDir(versionId);
+    console.log('Cleaned version directory');
+
+    await this._copyBaseAppDir(versionId);
+    console.log('Copied base app resources');
+
+    await this._copyManifestFiles(versionId, progress);
+    console.log('Recreated app from manifest');
+
+    prefs.availableUpdate.state = UpdateState.Ready;
+    prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
+    await this._savePrefs(prefs);
+    await this.cleanupVersions();
+    return true;
+  }
+
+  async hideSplash(): Promise<string> {
+    return new Promise<string>( (resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
     });
+  }
+
+  private async readManifest(versionId: string): Promise<ManifestFileEntry[]> {
+    const manifestString = await this._fileManager.getFile(
+      this.getManifestCacheDir(),
+      this._getManifestName(versionId)
+    );
+    return JSON.parse(manifestString);
+  }
+
+  async reloadApp(): Promise<boolean> {
+    const prefs = this._savedPreferences;
+
+    // Save the current update if it's ready
+    if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
+      prefs.currentVersionId = prefs.availableUpdate.versionId;
+      delete prefs.availableUpdate;
+      await this._savePrefs(prefs);
+    }
+
+    // Is there a non-binary version deployed?
+    if (prefs.currentVersionId) {
+      // Are we already running the deployed version?
+      if (await this._isRunningVersion(prefs.currentVersionId)) {
+        console.log(`Already running version ${prefs.currentVersionId}`);
+        await this._savePrefs(prefs);
+        this.hideSplash();
+        return false;
+      }
+
+      // Is the current version on the device?
+      if (!(prefs.currentVersionId in prefs.updates)) {
+        console.error(`Missing version ${prefs.currentVersionId}`);
+        this.hideSplash();
+        return false;
+      }
+
+      // Is the current version built from a previous binary?
+      if (prefs.binaryVersion !== prefs.updates[prefs.currentVersionId].binaryVersion) {
+        console.log(
+          `Version ${prefs.currentVersionId} was built for binary version ` +
+          `${prefs.updates[prefs.currentVersionId].binaryVersion}, but device is running ${prefs.binaryVersion}, ` +
+          `rebuilding...`
+        );
+
+        await this._cleanSnapshotDir(prefs.currentVersionId);
+        console.log('Cleaned version directory');
+    
+        await this._copyBaseAppDir(prefs.currentVersionId);
+        console.log('Copied base app resources');
+    
+        await this._copyManifestFiles(prefs.currentVersionId);
+        console.log('Recreated app from manifest\nSuccessfully rebuilt app!');
+      }
+
+      // Reload the webview
+      const newLocation = new URL(this.getSnapshotCacheDir(prefs.currentVersionId));
+      Ionic.WebView.setServerBasePath(newLocation.pathname);
+      return true;
+    }
+
+    this.hideSplash();
+    return false;
+  }
+
+  private async _isRunningVersion(versionId: string) {
+    const currentPath = await this._getServerBasePath();
+    console.log(`fetched current base path as ${currentPath}`);
+    return currentPath.includes(versionId);
+  }
+
+  private async _getServerBasePath(): Promise<string> {
+    return new Promise<string>( async (resolve, reject) => {
+      try {
+        Ionic.WebView.getServerBasePath(resolve);
+      } catch (e) {
+       reject(e);
+      }
+    });
+  }
+
+  private async _cleanSnapshotDir(versionId: string) {
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     try {
       const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
@@ -322,9 +420,28 @@ class IonicDeployImpl {
     } catch (e) {
       console.log('No directory found for snapshot no need to delete');
     }
+  }
 
-    await this._copyBaseAppDir(versionId);
-    console.log('Successful Swizzle');
+  private async _copyBaseAppDir(versionId: string) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        const rootAppDirEntry = await this._fileManager.getDirectory(`${cordova.file.applicationDirectory}/www`, false);
+        const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
+        console.log(snapshotCacheDirEntry);
+        rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, resolve, reject);
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  private async _copyManifestFiles(versionId: string, progress?: CallbackFunction<number>) {
+    const snapshotDir = this.getSnapshotCacheDir(versionId);
+    const manifest = await this.readManifest(versionId);
+    let size = 0, extracted = 0;
+    manifest.forEach(i => {
+      size += i.size;
+    });
     await Promise.all(manifest.map( async (file: ManifestFileEntry) => {
       const splitPath = file.href.split('/');
       const fileName = splitPath.pop();
@@ -354,83 +471,6 @@ class IonicDeployImpl {
       }
       throw new Error('No file name found');
     }));
-    console.log('Successful recreate');
-    prefs.availableUpdate.state = UpdateState.Ready;
-    prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
-    await this._savePrefs(prefs);
-    await this.cleanupVersions();
-    return true;
-  }
-
-  async hideSplash(): Promise<string> {
-    return new Promise<string>( (resolve, reject) => {
-      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
-    });
-  }
-
-  private async readManifest(versionId: string): Promise<ManifestFileEntry[]> {
-    const manifestString = await this._fileManager.getFile(
-      this.getManifestCacheDir(),
-      this._getManifestName(versionId)
-    );
-    return JSON.parse(manifestString);
-  }
-
-  async reloadApp(): Promise<boolean> {
-    const prefs = this._savedPreferences;
-    if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
-      prefs.currentVersionId = prefs.availableUpdate.versionId;
-      delete prefs.availableUpdate;
-      await this._savePrefs(prefs);
-    }
-    if (prefs.currentVersionId) {
-      if (await this._isRunningVersion(prefs.currentVersionId)) {
-        console.log(`Already running version ${prefs.currentVersionId}`);
-        await this._savePrefs(prefs);
-        this.hideSplash();
-        return false;
-      }
-      if (!(prefs.currentVersionId in prefs.updates)) {
-        console.error(`Missing version ${prefs.currentVersionId}`);
-        this.hideSplash();
-        return false;
-      }
-      const newLocation = new URL(this.getSnapshotCacheDir(prefs.currentVersionId));
-      Ionic.WebView.setServerBasePath(newLocation.pathname);
-      return true;
-    }
-
-    this.hideSplash();
-    return false;
-  }
-
-  private async _isRunningVersion(versionId: string) {
-    const currentPath = await this._getServerBasePath();
-    console.log(`fetched current base path as ${currentPath}`);
-    return currentPath.includes(versionId);
-  }
-
-  private async _getServerBasePath(): Promise<string> {
-    return new Promise<string>( async (resolve, reject) => {
-      try {
-        Ionic.WebView.getServerBasePath(resolve);
-      } catch (e) {
-       reject(e);
-      }
-    });
-  }
-
-  private async _copyBaseAppDir(versionId: string) {
-    return new Promise( async (resolve, reject) => {
-      try {
-        const rootAppDirEntry = await this._fileManager.getDirectory(`${cordova.file.applicationDirectory}/www`, false);
-        const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
-        console.log(snapshotCacheDirEntry);
-        rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, resolve, reject);
-      } catch (e) {
-        reject(e);
-      }
-    });
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
