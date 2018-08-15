@@ -261,6 +261,8 @@ class IonicDeployImpl {
           hash: this._cleanHash(file.integrity),
           blob: await resp.blob()
         };
+      }, err => {
+        console.error(err);
       });
     }));
 
@@ -383,6 +385,9 @@ class IonicDeployImpl {
     
         await this._copyManifestFiles(prefs.currentVersionId);
         console.log('Recreated app from manifest\nSuccessfully rebuilt app!');
+
+        // App rebuilt, update the version to match
+        prefs.updates[prefs.currentVersionId].binaryVersion = prefs.binaryVersion;
       }
 
       // Reload the webview
