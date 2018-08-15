@@ -388,6 +388,7 @@ class IonicDeployImpl {
 
         // App rebuilt, update the version to match
         prefs.updates[prefs.currentVersionId].binaryVersion = prefs.binaryVersion;
+        await this._savePrefs(prefs);
       }
 
       // Reload the webview
