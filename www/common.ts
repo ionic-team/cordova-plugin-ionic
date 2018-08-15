@@ -104,10 +104,8 @@ class IonicDeployImpl {
   private async _syncPrefs(prefs: ISavedPreferences) {
     const appInfo = this.appInfo;
     const currentPrefs = this._savedPreferences;
-    if (currentPrefs) {
-      currentPrefs.binaryVersion = appInfo.bundleVersion;
-      Object.assign(currentPrefs, prefs);
-    }
+    currentPrefs.binaryVersion = appInfo.bundleVersion;
+    Object.assign(currentPrefs, prefs);
     return this._savePrefs(currentPrefs);
   }
 
@@ -379,10 +377,10 @@ class IonicDeployImpl {
 
         await this._cleanSnapshotDir(prefs.currentVersionId);
         console.log('Cleaned version directory');
-    
+
         await this._copyBaseAppDir(prefs.currentVersionId);
         console.log('Copied base app resources');
-    
+
         await this._copyManifestFiles(prefs.currentVersionId);
         console.log('Recreated app from manifest\nSuccessfully rebuilt app!');
 
@@ -433,7 +431,6 @@ class IonicDeployImpl {
       try {
         const rootAppDirEntry = await this._fileManager.getDirectory(`${cordova.file.applicationDirectory}/www`, false);
         const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
-        console.log(snapshotCacheDirEntry);
         rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, resolve, reject);
       } catch (e) {
         reject(e);
@@ -762,6 +759,7 @@ class IonicDeploy implements IDeployPluginAPI {
     const preferences = await this._initPreferences();
     this.minBackgroundDuration = preferences.minBackgroundDuration;
     const appInfo = await this.parent.getAppDetails();
+    preferences.binaryVersion = appInfo.bundleVersion;
     const delegate = new IonicDeployImpl(appInfo, preferences);
     // Only initialize start the plugin if fetch is available
     if (!this.fetchIsAvailable) {
