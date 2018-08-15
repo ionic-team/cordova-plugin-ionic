@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 5.0.6
+
+* Fixed a bug with version rebulds that could make some initial redirects take up to 15 seconds.
+
 ## 5.0.5
 
 * Rebuild a deploy directory in the case where the binary version has changed since the update was downloaded.
