@@ -40,7 +40,7 @@
     "version": "npm run sync-plugin-xml && git add plugin.xml && ./update-plugin-version-code.sh",
     "prepublishOnly": "npm run build",
     "test": "echo 'We should really get unit tests running'",
-    "release": "np",
+    "release": "npm run build && np",
     "docs": "./scripts/docs.sh"
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
