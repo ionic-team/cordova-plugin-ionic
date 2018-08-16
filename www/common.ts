@@ -709,17 +709,17 @@ class FileManager {
 
         // Maximum chunk size 512kb
         const maxWriteSize = 1024 * 512;
-        const chunks = Math.floor(dataBlob.size / maxWriteSize);
+        const chunks = Math.ceil(dataBlob.size / maxWriteSize);
         const status = {currentChunk: 0};
 
         fileWriter.onwriteend = (file) => {
           status.currentChunk += 1;
-          if (status.currentChunk > chunks) {
+          if (status.currentChunk >= chunks) {
             resolve();
           } else {
             const start = status.currentChunk * maxWriteSize;
             // The last chunk might not be the max write size
-            const writeSize = status.currentChunk === chunks ? (dataBlob.size - fileWriter.length) : maxWriteSize;
+            const writeSize = status.currentChunk === (chunks - 1) ? (dataBlob.size - fileWriter.length) : maxWriteSize;
             fileWriter.seek(fileWriter.length);
             fileWriter.write(dataBlob.slice(start, start + writeSize));
           }
@@ -729,7 +729,7 @@ class FileManager {
           reject(e.toString());
         };
 
-        const writeSize = chunks === 0 ? dataBlob.size : maxWriteSize;
+        const writeSize = chunks === 1 ? dataBlob.size : maxWriteSize;
         fileWriter.write(dataBlob.slice(0, writeSize));
       });
     });
