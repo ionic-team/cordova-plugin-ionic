@@ -707,23 +707,21 @@ class FileManager {
     return new Promise( (resolve, reject) => {
       fileEntry.createWriter( (fileWriter: FileWriter) => {
 
-        const status = {done: 0};
-        let chunks = 1;
-        let offset = Math.floor(dataBlob.size / chunks);
-
         // Maximum chunk size 512kb
-        while (offset > (1024 * 512)) {
-          chunks *= 2;
-          offset = Math.floor(dataBlob.size / chunks);
-        }
+        const maxWriteSize = 1024 * 512;
+        const chunks = Math.ceil(dataBlob.size / maxWriteSize);
+        const status = {currentChunk: 0};
 
         fileWriter.onwriteend = (file) => {
-          status.done += 1;
-          if (status.done === chunks) {
+          status.currentChunk += 1;
+          if (status.currentChunk >= chunks) {
             resolve();
           } else {
+            const start = status.currentChunk * maxWriteSize;
+            // The last chunk might not be the max write size
+            const writeSize = status.currentChunk === (chunks - 1) ? (dataBlob.size - fileWriter.length) : maxWriteSize;
             fileWriter.seek(fileWriter.length);
-            fileWriter.write(dataBlob.slice(status.done * offset, (status.done * offset) + offset));
+            fileWriter.write(dataBlob.slice(start, start + writeSize));
           }
         };
 
@@ -731,7 +729,8 @@ class FileManager {
           reject(e.toString());
         };
 
-        fileWriter.write(dataBlob.slice(0, offset));
+        const writeSize = chunks === 1 ? dataBlob.size : maxWriteSize;
+        fileWriter.write(dataBlob.slice(0, writeSize));
       });
     });
   }
