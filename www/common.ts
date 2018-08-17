@@ -66,6 +66,13 @@ class IonicDeployImpl {
   }
 
   async _handleInitialPreferenceState() {
+    const isOnline = navigator && navigator.onLine;
+    if (!isOnline) {
+      console.warn('The device appears to be offline. Loading last available version and skipping update checks.');
+      this.reloadApp();
+      return;
+    }
+
     const updateMethod = this._savedPreferences.updateMethod;
     switch (updateMethod) {
       case UpdateMethod.AUTO:
@@ -73,7 +80,11 @@ class IonicDeployImpl {
         // reloading the app and manually reload always once sync has
         // set the correct currentVersionId
         console.log('calling _sync');
-        await this.sync({updateMethod: UpdateMethod.BACKGROUND});
+        try {
+          await this.sync({updateMethod: UpdateMethod.BACKGROUND});
+        } catch (e) {
+          console.warn('Sync failed. Defaulting to last available version.');
+        }
         console.log('calling _reload');
         await this.reloadApp();
         console.log('done _reloading');
@@ -84,7 +95,11 @@ class IonicDeployImpl {
       default:
         // NOTE: default anything that doesn't explicitly match to background updates
         await this.reloadApp();
-        this.sync({updateMethod: UpdateMethod.BACKGROUND});
+        try {
+            this.sync({updateMethod: UpdateMethod.BACKGROUND});
+        } catch (e) {
+          console.warn('Background sync failed. Unable to check for new updates.');
+        }
         return;
     }
   }
