@@ -58,6 +58,7 @@ class IonicDeployImpl {
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
+  public CORDOVA_CACHE = 'ionic_cordova_cache';
   public PLUGIN_VERSION = '5.0.9';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
@@ -196,9 +197,16 @@ class IonicDeployImpl {
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
   }
 
+  private async _verifyBundledCache() {
+    // Verify that we've added the bundled files to the cache if possible (bundle has pro-manifest.json)
+    // and that it's built from the correct binary
+    return;
+  }
+
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
+      await this._verifyBundledCache();
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
       const manifestString = await this._fileManager.getFile(
         this.getManifestCacheDir(),
