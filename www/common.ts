@@ -59,7 +59,7 @@ class IonicDeployImpl {
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   public CORDOVA_CACHE = 'ionic_cordova_cache';
-  public PLUGIN_VERSION = '5.0.9';
+  public PLUGIN_VERSION = '5.0.10';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
@@ -84,6 +84,7 @@ class IonicDeployImpl {
         try {
           await this.sync({updateMethod: UpdateMethod.BACKGROUND});
         } catch (e) {
+          console.warn(e);
           console.warn('Sync failed. Defaulting to last available version.');
         }
         console.log('calling _reload');
@@ -99,6 +100,7 @@ class IonicDeployImpl {
         try {
             this.sync({updateMethod: UpdateMethod.BACKGROUND});
         } catch (e) {
+          console.warn(e);
           console.warn('Background sync failed. Unable to check for new updates.');
         }
         return;
@@ -166,13 +168,18 @@ class IonicDeployImpl {
       manifest: true
     };
 
-    const resp = await fetch(endpoint, {
+    const timeout = new Promise( (resolve, reject) => {
+      setTimeout(reject, 5000, 'Request timed out. The device maybe offline.');
+    });
+    const request = fetch(endpoint, {
       method: 'POST',
       headers: new Headers({
         'Content-Type': 'application/json'
       }),
       body: JSON.stringify(body)
     });
+
+    const resp = await (Promise.race([timeout, request]) as Promise<Response>);
 
     let jsonResp;
     if (resp.status < 500) {
