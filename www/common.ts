@@ -60,6 +60,7 @@ class IonicDeployImpl {
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   public CORDOVA_CACHE = 'ionic_cordova_cache';
   public PLUGIN_VERSION = '5.0.10';
+  private BUNDLE_VERSION_ID = 'bundled-version';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
@@ -204,16 +205,34 @@ class IonicDeployImpl {
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
   }
 
-  private async _verifyBundledCache() {
+  private async _prepopulateCache() {
     // Verify that we've added the bundled files to the cache if possible (bundle has pro-manifest.json)
     // and that it's built from the correct binary
+    const prefs = this._savedPreferences;
+    let bundledVersionInfo: IAvailableUpdate | undefined = this._savedPreferences.updates[this.BUNDLE_VERSION_ID];
+
+    if (bundledVersionInfo && bundledVersionInfo.binaryVersion !== prefs.binaryVersion) {
+      // if the cache was built from an previous binary we need to update it
+      delete this._savedPreferences.updates[this.BUNDLE_VERSION_ID];
+      bundledVersionInfo = undefined;
+    }
+
+    if (!bundledVersionInfo) {
+      try {
+        const bundledManifest = await this.readManifest(this.BUNDLE_VERSION_ID, true);
+        console.log(bundledManifest);
+      } catch (e) {
+        console.warn('Could not find bundled manifest. Local cache will not be pre-populated.');
+      }
+    }
+
     return;
   }
 
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
-      await this._verifyBundledCache();
+      await this._prepopulateCache();
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
       const manifestString = await this._fileManager.getFile(
         this.getManifestCacheDir(),
@@ -362,9 +381,10 @@ class IonicDeployImpl {
     });
   }
 
-  private async readManifest(versionId: string): Promise<ManifestFileEntry[]> {
+  private async readManifest(versionId: string, readFromBundle = false): Promise<ManifestFileEntry[]> {
+    const directory = readFromBundle ? `${cordova.file.applicationDirectory}/www` : this.getManifestCacheDir();
     const manifestString = await this._fileManager.getFile(
-      this.getManifestCacheDir(),
+      directory,
       this._getManifestName(versionId)
     );
     return JSON.parse(manifestString);
