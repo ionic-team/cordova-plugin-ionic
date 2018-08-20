@@ -59,7 +59,7 @@ class IonicDeployImpl {
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   public CORDOVA_CACHE = 'ionic_cordova_cache';
-  public PLUGIN_VERSION = '5.0.10';
+  public PLUGIN_VERSION = '5.0.11-0';
   private BUNDLE_VERSION_ID = 'bundled-version';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
@@ -407,6 +407,7 @@ class IonicDeployImpl {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
         this.hideSplash();
+        Ionic.WebView.persistServerBasePath();
         return false;
       }
 

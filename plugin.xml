@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.0.10">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.0.11-0">
     <name>cordova-plugin-ionic</name>
     <description>Ionic Cordova SDK</description>
     <license>MIT</license>
@@ -86,7 +86,7 @@
     </platform>
 
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
-    <dependency id="cordova-plugin-ionic-webview" version=">=2.0.0"/>
+    <dependency id="cordova-plugin-ionic-webview" version=">=2.1.0"/>
     <dependency id="cordova-plugin-file" version="^6.0.1"/>
     <author>Ionic</author>
 </plugin>
