@@ -9,7 +9,6 @@ module.exports = function(ctx) {
 };
 
 function ionicVersionOutput(rootDir, err, version, stderr) {
-  console.log(rootDir, err, version, stderr);
   if(err) {
     console.error('There was an error checking your version of the Ionic CLI are you sure you have it installed?');
     console.log(err);
@@ -18,7 +17,7 @@ function ionicVersionOutput(rootDir, err, version, stderr) {
   }
   const versionInfo = version.split('.');
   let majorVersion = undefined;
-  while (versionInfo.length > 1 && isNaN(majorVersion)) {
+  while (versionInfo.length && isNaN(majorVersion)) {
     majorVersion = versionInfo.shift();
   }
   if (isNaN(majorVersion)) {
@@ -41,8 +40,6 @@ function ionicVersionOutput(rootDir, err, version, stderr) {
 function ionicManifestOutput(err, version, stderr) {
   if(err) {
     console.error('There was an error generating the intial manifest of files for the deploy plugin.');
-    console.log(err);
-    console.log(stderr);
     process.exit(-1);
   }
   console.log('Ionic Deploy initial manifest successfully generated.');
