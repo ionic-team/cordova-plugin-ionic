@@ -58,7 +58,6 @@ class IonicDeployImpl {
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
-  public CORDOVA_CACHE = 'ionic_cordova_cache';
   public PLUGIN_VERSION = '5.0.11-0';
   private BUNDLE_VERSION_ID = 'bundled-version';
   private MANIFEST_FILE = 'pro-manifest.json';
@@ -115,10 +114,6 @@ class IonicDeployImpl {
 
   getManifestCacheDir(): string {
     return path.join(cordova.file.dataDirectory, this.MANIFEST_CACHE);
-  }
-
-  getCordovaCacheDir(): string {
-    return path.join(cordova.file.dataDirectory, this.CORDOVA_CACHE);
   }
 
   getSnapshotCacheDir(versionId: string): string {
