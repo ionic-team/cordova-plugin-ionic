@@ -11,9 +11,9 @@
     "noUnusedLocals": true,
     "pretty": true,
     "strict": true,
-    "target": "es6",
+    "target": "es5",
     "lib": [
-      "es2016",
+      "es2015",
       "dom"
     ]
   },

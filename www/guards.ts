@@ -7,7 +7,7 @@ export function isPluginConfig(o: object): o is ISavedPreferences {
   const allowedKeys = ['appId', 'channel', 'debug', 'host'];
   if (!obj) return false;
   for (const key in obj) {
-    if (!allowedKeys.includes(key)) return false;
+    if (allowedKeys.indexOf(key) === -1) return false;
   }
   return obj &&
     (obj.appId === undefined || typeof obj.appId === 'string') &&

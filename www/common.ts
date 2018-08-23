@@ -894,7 +894,9 @@ class IonicDeploy implements IDeployPluginAPI {
     // Only initialize start the plugin if fetch is available
     if (!this.fetchIsAvailable) {
       console.warn('Fetch is unavailable so cordova-plugin-ionic has been disabled.');
-      await (await this.delegate).hideSplash();
+      await new Promise<string>( (resolve, reject) => {
+        cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
+      });
     } else {
       await delegate._handleInitialPreferenceState();
     }
