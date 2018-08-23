@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.0.11-0">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.1.0">
     <name>cordova-plugin-ionic</name>
     <description>Ionic Cordova SDK</description>
     <license>MIT</license>
@@ -21,7 +21,7 @@
     <preference name="UPDATE_METHOD" default="background"/>
     <preference name="MAX_STORE" default="2"/>
     <preference name="MIN_BACKGROUND_DURATION" default="30"/>
-    <hook type="before_build" src="hooks/beforeBuild.js" />
+    <hook type="before_build" src="hooks/beforeBuild.js"/>
 
     <!-- ios -->
     <platform name="ios">
