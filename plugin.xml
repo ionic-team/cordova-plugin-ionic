@@ -21,6 +21,7 @@
     <preference name="UPDATE_METHOD" default="background"/>
     <preference name="MAX_STORE" default="2"/>
     <preference name="MIN_BACKGROUND_DURATION" default="30"/>
+    <hook type="before_build" src="hooks/beforeBuild.js" />
 
     <!-- ios -->
     <platform name="ios">

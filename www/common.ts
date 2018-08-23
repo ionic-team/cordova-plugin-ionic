@@ -59,6 +59,8 @@ class IonicDeployImpl {
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
   public PLUGIN_VERSION = '5.0.11-0';
+  private BUNDLE_VERSION_ID = 'bundled-version';
+  private MANIFEST_FILE = 'pro-manifest.json';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
@@ -116,6 +118,10 @@ class IonicDeployImpl {
 
   getSnapshotCacheDir(versionId: string): string {
     return path.join(cordova.file.dataDirectory, this.SNAPSHOT_CACHE, versionId);
+  }
+
+  getBundledAppDir(): string {
+    return path.join(cordova.file.applicationDirectory, 'www');
   }
 
   private async _syncPrefs(prefs: ISavedPreferences) {
@@ -203,9 +209,71 @@ class IonicDeployImpl {
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
   }
 
+  private async _prepopulateFileCache() {
+    // Verify that we've added the bundled files to the cache if possible (bundle has pro-manifest.json)
+    // and that it's built from the correct binary
+    const prefs = this._savedPreferences;
+    let bundledVersionInfo: IAvailableUpdate | undefined = this._savedPreferences.updates[this.BUNDLE_VERSION_ID];
+
+    // if the cache was built from an previous binary we need to update it by deleting from valid updates (cache will get cleaned later)
+    if (bundledVersionInfo && bundledVersionInfo.binaryVersion !== prefs.binaryVersion) {
+      delete this._savedPreferences.updates[this.BUNDLE_VERSION_ID];
+      try {
+        await this._fileManager.removeFile(this.getManifestCacheDir(), this._getManifestName(this.BUNDLE_VERSION_ID));
+      } catch (e) {
+        console.info('No bundled manifest in cache present to delete.');
+      }
+      bundledVersionInfo = undefined;
+    }
+
+    if (!bundledVersionInfo) {
+      try {
+        // copy the bundled manifest to the manifest cache dir
+        await this._fileManager.copyTo(
+          this.getBundledAppDir(),
+          this.MANIFEST_FILE,
+          this.getManifestCacheDir(),
+          this._getManifestName(this.BUNDLE_VERSION_ID)
+        );
+      } catch (e) {
+        console.warn('Could not find bundled manifest. Local cache will not be pre-populated.');
+        return;
+      }
+      // read the manifest
+      const bundledManifest = await this.readManifest(this.BUNDLE_VERSION_ID);
+      // populate the cache with files from manifest
+      for (const file of bundledManifest) {
+        const relativePathParts = file.href.split('/');
+        const fileName = relativePathParts.pop();
+        const fullPath = path.join(this.getBundledAppDir(), ...relativePathParts);
+        // if file isn't in the cache put it there.
+        const fileAlreadyExists = await this._fileManager.fileExists(this.getFileCacheDir(), this._cleanHash(file.integrity));
+        if (fileName && !fileAlreadyExists) {
+          try {
+            await this._fileManager.copyTo(fullPath, fileName, this.getFileCacheDir(), this._cleanHash(file.integrity));
+          } catch (e) {
+            console.warn(`Failed to copy ${fileName} from bundled app to cache.`);
+          }
+        }
+      }
+      this._savedPreferences.updates[this.BUNDLE_VERSION_ID] = {
+        binaryVersion: prefs.binaryVersion,
+        channel: prefs.channel,
+        lastUsed: new Date().toISOString(),
+        state: UpdateState.Ready,
+        url: 'bundled',
+        versionId: this.BUNDLE_VERSION_ID
+      };
+      this._savePrefs(this._savedPreferences);
+    }
+
+    return;
+  }
+
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
+      await this._prepopulateFileCache();
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
       const manifestString = await this._fileManager.getFile(
         this.getManifestCacheDir(),
@@ -424,7 +492,6 @@ class IonicDeployImpl {
 
   private async _isRunningVersion(versionId: string) {
     const currentPath = await this._getServerBasePath();
-    console.log(`fetched current base path as ${currentPath}`);
     return currentPath.includes(versionId);
   }
 
@@ -442,7 +509,6 @@ class IonicDeployImpl {
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     try {
       const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
-      console.log(`directory found for snapshot ${versionId} deleting`);
       await (new Promise( (resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
     } catch (e) {
       console.log('No directory found for snapshot no need to delete');
@@ -450,9 +516,19 @@ class IonicDeployImpl {
   }
 
   private async _copyBaseAppDir(versionId: string) {
+    const hasBundledManifest = this._fileManager.fileExists(this.getBundledAppDir(), this.MANIFEST_FILE);
+    if (hasBundledManifest) {
+      try {
+        return this._copyCordovaFiles(versionId);
+      } catch (e) {
+        console.warn('Error copying only bundled cordova files. Attempting to copy entire bundle instead.');
+      }
+    }
+
+    console.warn('Copying all bundled files to new version for base.');
     return new Promise( async (resolve, reject) => {
       try {
-        const rootAppDirEntry = await this._fileManager.getDirectory(`${cordova.file.applicationDirectory}/www`, false);
+        const rootAppDirEntry = await this._fileManager.getDirectory(this.getBundledAppDir(), false);
         const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
         rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, resolve, reject);
       } catch (e) {
@@ -460,6 +536,36 @@ class IonicDeployImpl {
       }
     });
   }
+
+  private async _copyCordovaFiles(versionId: string) {
+    // use bundled manifest to copy over only files not included in the manifest which should be cordova specific files
+    const bundledManifest = await this.readManifest(this.BUNDLE_VERSION_ID);
+
+    // get the top level dir & file names from manifest
+    const bundledEntryNames = new Set<string>();
+    // add the pro-manifest.json off the bat
+    bundledEntryNames.add(this.MANIFEST_FILE);
+    for (const file of bundledManifest) {
+      const pathParts = file.href.split('/');
+      const topLevelName = pathParts.shift();
+      if (topLevelName) {
+        bundledEntryNames.add(topLevelName);
+      }
+    }
+
+    const bundleDirEntry = await this._fileManager.getDirectory(this.getBundledAppDir(), false);
+    const reader = bundleDirEntry.createReader();
+    const entries = await new Promise<Entry[]>((resolve, reject) => reader.readEntries(resolve, reject));
+    for (const entry of entries) {
+      // if it's in the manifest we don't need it.
+      if (bundledEntryNames.has(entry.name)) {
+        continue;
+      }
+      const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(versionId), true);
+      await new Promise((resolve, reject) => entry.copyTo(snapshotCacheDirEntry, entry.name, resolve, reject));
+    }
+  }
+
 
   private async _copyManifestFiles(versionId: string, progress?: CallbackFunction<number>) {
     const snapshotDir = this.getSnapshotCacheDir(versionId);
@@ -542,7 +648,6 @@ class IonicDeployImpl {
     // delete snapshot directory
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
-    console.log(`directory found for snapshot ${versionId} deleting`);
     await (new Promise((resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
 
     // delete manifest
@@ -585,7 +690,10 @@ class IonicDeployImpl {
 
     let updates = [];
     for (const versionId of Object.keys(prefs.updates)) {
-      updates.push(prefs.updates[versionId]);
+      // don't clean up the bundled version
+      if (versionId !== this.BUNDLE_VERSION_ID) {
+        updates.push(prefs.updates[versionId]);
+      }
     }
 
     updates = updates.sort((a, b) => a.lastUsed.localeCompare(b.lastUsed));
