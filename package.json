@@ -12,9 +12,10 @@
   "description": "Ionic Cordova SDK",
   "engines": {
     "cordovaDependencies": {
-      "5.0.5": {
+      ">5.0.0": {
         "cordova-plugin-splashscreen": ">=5.0.1",
-        "cordova-plugin-file": ">=6.0.1"
+        "cordova-plugin-file": ">=6.0.1",
+        "cordova-plugin-webview": ">=2.1.0"
       },
       "4.1.7": {
         "cordova-plugin-splashscreen": ">=5.0.1"
