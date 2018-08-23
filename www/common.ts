@@ -516,7 +516,7 @@ class IonicDeployImpl {
   }
 
   private async _copyBaseAppDir(versionId: string) {
-    const hasBundledManifest = this._fileManager.fileExists(this.getBundledAppDir(), this.MANIFEST_FILE);
+    const hasBundledManifest = await this._fileManager.fileExists(this.getBundledAppDir(), this.MANIFEST_FILE);
     if (hasBundledManifest) {
       try {
         return this._copyCordovaFiles(versionId);
