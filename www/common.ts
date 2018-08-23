@@ -58,7 +58,7 @@ class IonicDeployImpl {
   public FILE_CACHE = 'ionic_snapshot_files';
   public MANIFEST_CACHE = 'ionic_manifests';
   public SNAPSHOT_CACHE = 'ionic_built_snapshots';
-  public PLUGIN_VERSION = '5.1.1';
+  public PLUGIN_VERSION = '5.1.2-0';
   private BUNDLE_VERSION_ID = 'bundled-version';
   private MANIFEST_FILE = 'pro-manifest.json';
 
