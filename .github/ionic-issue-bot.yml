@@ -1,0 +1,96 @@
+triage:
+  label: triage
+  dryRun: false
+
+closeAndLock:
+  labels:
+    - label: "ionitron: support"
+      message: >
+        Thanks for the issue! This issue appears to be a support request. We
+        use this issue tracker exclusively for bug reports and feature
+        requests. For support questions, please see our [Support
+        Page](https://ionicframework.com/support).
+        Thank you for using Ionic!
+    - label: "ionitron: pro"
+      message: >
+        Thanks for the issue! This issue appears to be related to our
+        commercial products. We use this issue tracker exclusively for bug
+        reports and feature requests. Please [open a support
+        ticket](https://ionicframework.com/support/request) and we'll be happy
+        to assist you.
+        Thank you for using Ionic!
+    - label: "ionitron: missing template"
+      message: >
+        Thanks for the issue! It appears that you have not filled out the
+        provided issue template. We use this issue template in order to gather
+        more information and further assist you. Please create a new issue and
+        ensure the template is fully filled out.
+        Thank you for using Ionic!
+    - label: "ionitron: old major version"
+      message: >
+        Thanks for the issue! This issue appears to be associated with an old
+        version of the cordova-plugin-ionic. Please update to the latest version.
+        If the issue is relevant and if it persists after updating to the latest
+        version, please create a new issue. Thank you for using Ionic!
+
+e6e6e6
+  close: true
+  lock: true
+  dryRun: false
+
+stale:
+  days: 90
+  maxIssuesPerRun: 100
+  exemptLabels:
+    - triage
+  exemptProjects: true
+  exemptMilestones: true
+  label: "ionitron: stale issue"
+  message: >
+    Thanks for the issue! This issue is being closed due to inactivity. If this
+    is still an issue with the latest version of Ionic, please create a new
+    issue and ensure the template is fully filled out.
+
+
+    Thank you for using Ionic!
+  close: true
+  lock: true
+  dryRun: false
+
+wrongRepo:
+  repos:
+    - label: "ionitron: framework"
+      repo: ionic
+      message: >
+        Thanks for the issue! We use this issue tracker exclusively for bug
+        reports and feature requests for cordova-plugin-ionic. It appears that this
+        issue is associated with the Ionic Framework. I am moving this issue to
+        the Ionic Framework repository. Please track this issue over there.
+        Thank you for using Ionic!
+    - label: "ionitron: capacitor"
+      repo: capacitor
+      message: >
+        Thanks for the issue! We use this issue tracker exclusively for bug
+        reports and feature requests for cordova-plugin-ionic. It appears that this
+        issue is associated with Capacitor. I am moving this issue to the
+        Capacitor repository. Please track this issue over there.
+        Thank you for using Ionic!
+    - label: "ionitron: ionic-native"
+      repo: ionic-native
+      message: >
+        reports and feature requests for the Ionic CLI. It appears that this
+        reports and feature requests for cordova-plugin-ionic. It appears that this
+        issue is associated with Ionic Native. I am moving this issue to the
+        Ionic Native repository. Please track this issue over there.
+        Thank you for using Ionic!
+    - label: "ionitron: ionic-site"
+      repo: ionic-site
+      message: >
+        Thanks for the issue! We use this issue tracker exclusively for bug
+        reports and feature requests for cordova-plugin-ionic. It appears that this
+        issue is associated with the Ionic website. I am moving this issue to
+        the Ionic website repository. Please track this issue over there.
+        Thank you for using Ionic!
+  close: true
+  lock: true
+  dryRun: false
