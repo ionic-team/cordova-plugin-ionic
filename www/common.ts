@@ -209,71 +209,9 @@ class IonicDeployImpl {
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
   }
 
-  private async _prepopulateFileCache() {
-    // Verify that we've added the bundled files to the cache if possible (bundle has pro-manifest.json)
-    // and that it's built from the correct binary
-    const prefs = this._savedPreferences;
-    let bundledVersionInfo: IAvailableUpdate | undefined = this._savedPreferences.updates[this.BUNDLE_VERSION_ID];
-
-    // if the cache was built from an previous binary we need to update it by deleting from valid updates (cache will get cleaned later)
-    if (bundledVersionInfo && bundledVersionInfo.binaryVersion !== prefs.binaryVersion) {
-      delete this._savedPreferences.updates[this.BUNDLE_VERSION_ID];
-      try {
-        await this._fileManager.removeFile(this.getManifestCacheDir(), this._getManifestName(this.BUNDLE_VERSION_ID));
-      } catch (e) {
-        console.info('No bundled manifest in cache present to delete.');
-      }
-      bundledVersionInfo = undefined;
-    }
-
-    if (!bundledVersionInfo) {
-      try {
-        // copy the bundled manifest to the manifest cache dir
-        await this._fileManager.copyTo(
-          this.getBundledAppDir(),
-          this.MANIFEST_FILE,
-          this.getManifestCacheDir(),
-          this._getManifestName(this.BUNDLE_VERSION_ID)
-        );
-      } catch (e) {
-        console.warn('Could not find bundled manifest. Local cache will not be pre-populated.');
-        return;
-      }
-      // read the manifest
-      const bundledManifest = await this.readManifest(this.BUNDLE_VERSION_ID);
-      // populate the cache with files from manifest
-      for (const file of bundledManifest) {
-        const relativePathParts = file.href.split('/');
-        const fileName = relativePathParts.pop();
-        const fullPath = path.join(this.getBundledAppDir(), ...relativePathParts);
-        // if file isn't in the cache put it there.
-        const fileAlreadyExists = await this._fileManager.fileExists(this.getFileCacheDir(), this._cleanHash(file.integrity));
-        if (fileName && !fileAlreadyExists) {
-          try {
-            await this._fileManager.copyTo(fullPath, fileName, this.getFileCacheDir(), this._cleanHash(file.integrity));
-          } catch (e) {
-            console.warn(`Failed to copy ${fileName} from bundled app to cache.`);
-          }
-        }
-      }
-      this._savedPreferences.updates[this.BUNDLE_VERSION_ID] = {
-        binaryVersion: prefs.binaryVersion,
-        channel: prefs.channel,
-        lastUsed: new Date().toISOString(),
-        state: UpdateState.Ready,
-        url: 'bundled',
-        versionId: this.BUNDLE_VERSION_ID
-      };
-      this._savePrefs(this._savedPreferences);
-    }
-
-    return;
-  }
-
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
-      await this._prepopulateFileCache();
       const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
       const manifestString = await this._fileManager.getFile(
         this.getManifestCacheDir(),
@@ -282,7 +220,8 @@ class IonicDeployImpl {
         manifestBlob
       );
       const manifestJson = JSON.parse(manifestString);
-      await this._downloadFilesFromManifest(fileBaseUrl, manifestJson, progress);
+      const diffedManifest = await this._diffManifests(manifestJson);
+      await this._downloadFilesFromManifest(fileBaseUrl, diffedManifest, progress);
       prefs.availableUpdate.state = UpdateState.Pending;
       await this._savePrefs(prefs);
       return true;
@@ -293,7 +232,6 @@ class IonicDeployImpl {
   private _getManifestName(versionId: string) {
     return versionId + '-manifest.json';
   }
-
   private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[], progress?: CallbackFunction<number>) {
     console.log('Downloading update...');
     let size = 0, downloaded = 0;
@@ -301,7 +239,9 @@ class IonicDeployImpl {
       size += i.size;
     });
 
-    const downloads = await Promise.all(manifest.map( async file => {
+    const beforeDownload = new Date();
+
+    const downloadFile = async (file: ManifestFileEntry) => {
       const alreadyExists = await this._fileManager.fileExists(
         this.getFileCacheDir(),
         this._cleanHash(file.integrity)
@@ -352,7 +292,14 @@ class IonicDeployImpl {
       }, err => {
         console.error(err);
       });
-    }));
+    };
+
+    const downloads = [];
+    for (const entry of manifest) {
+      const dload = await downloadFile(entry);
+      downloads.push(dload);
+    }
+    console.log(`Downloaded ${downloads.length} files in ${(new Date().getTime() - beforeDownload.getTime()) / 1000} seconds.`);
 
     const now = new Date();
     downloaded = 0;
@@ -391,6 +338,22 @@ class IonicDeployImpl {
       manifestBlob: await resp.blob(),
       fileBaseUrl: resp.url
     };
+  }
+
+  private async _diffManifests(newManifest: ManifestFileEntry[]) {
+    const hasBundledManifest = await this._fileManager.fileExists(this.getBundledAppDir(), this.MANIFEST_FILE);
+    if (hasBundledManifest) {
+      const manifestString = await this._fileManager.getFile(
+        this.getBundledAppDir(),
+        this.MANIFEST_FILE
+      );
+      const bundledManifest: ManifestFileEntry[] = JSON.parse(manifestString);
+      // diff the manifests
+      const bundleManifestStrings = bundledManifest.map(entry => JSON.stringify(entry));
+      const diff = newManifest.filter(entry => bundleManifestStrings.indexOf(JSON.stringify(entry)) === -1);
+      return diff;
+    }
+    return newManifest;
   }
 
   async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
@@ -516,16 +479,6 @@ class IonicDeployImpl {
   }
 
   private async _copyBaseAppDir(versionId: string) {
-    const hasBundledManifest = await this._fileManager.fileExists(this.getBundledAppDir(), this.MANIFEST_FILE);
-    if (hasBundledManifest) {
-      try {
-        return this._copyCordovaFiles(versionId);
-      } catch (e) {
-        console.warn('Error copying only bundled cordova files. Attempting to copy entire bundle instead.');
-      }
-    }
-
-    console.warn('Copying all bundled files to new version for base.');
     return new Promise( async (resolve, reject) => {
       try {
         const rootAppDirEntry = await this._fileManager.getDirectory(this.getBundledAppDir(), false);
@@ -537,44 +490,15 @@ class IonicDeployImpl {
     });
   }
 
-  private async _copyCordovaFiles(versionId: string) {
-    // use bundled manifest to copy over only files not included in the manifest which should be cordova specific files
-    const bundledManifest = await this.readManifest(this.BUNDLE_VERSION_ID);
-
-    // get the top level dir & file names from manifest
-    const bundledEntryNames = new Set<string>();
-    // add the pro-manifest.json off the bat
-    bundledEntryNames.add(this.MANIFEST_FILE);
-    for (const file of bundledManifest) {
-      const pathParts = file.href.split('/');
-      const topLevelName = pathParts.shift();
-      if (topLevelName) {
-        bundledEntryNames.add(topLevelName);
-      }
-    }
-
-    const bundleDirEntry = await this._fileManager.getDirectory(this.getBundledAppDir(), false);
-    const reader = bundleDirEntry.createReader();
-    const entries = await new Promise<Entry[]>((resolve, reject) => reader.readEntries(resolve, reject));
-    for (const entry of entries) {
-      // if it's in the manifest we don't need it.
-      if (bundledEntryNames.has(entry.name)) {
-        continue;
-      }
-      const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(versionId), true);
-      await new Promise((resolve, reject) => entry.copyTo(snapshotCacheDirEntry, entry.name, resolve, reject));
-    }
-  }
-
-
   private async _copyManifestFiles(versionId: string, progress?: CallbackFunction<number>) {
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     const manifest = await this.readManifest(versionId);
+    const diffedManifest = await this._diffManifests(manifest);
     let size = 0, extracted = 0;
-    manifest.forEach(i => {
+    diffedManifest.forEach(i => {
       size += i.size;
     });
-    await Promise.all(manifest.map( async (file: ManifestFileEntry) => {
+    await Promise.all(diffedManifest.map( async (file: ManifestFileEntry) => {
       const splitPath = file.href.split('/');
       const fileName = splitPath.pop();
       let path;
@@ -1060,6 +984,7 @@ class IonicCordova implements IPluginBaseAPI {
     });
   }
 }
+
 
 const instance = new IonicCordova();
 export = instance;
