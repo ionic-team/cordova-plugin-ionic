@@ -410,7 +410,7 @@ class IonicDeployImpl {
         console.log(`Already running version ${prefs.currentVersionId}`);
         await this._savePrefs(prefs);
         this.hideSplash();
-        // Ionic.WebView.persistServerBasePath();
+        Ionic.WebView.persistServerBasePath();
         return false;
       }
 
