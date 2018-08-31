@@ -1,5 +1,6 @@
 /// <reference path="../types/IonicCordova.d.ts" />
 /// <reference types="cordova-plugin-file" />
+/// <reference types="cordova-plugin-file-transfer" />
 /// <reference types="cordova" />
 
 declare const cordova: Cordova;
@@ -239,8 +240,7 @@ class IonicDeployImpl {
       size += i.size;
     });
 
-    const beforeDownload = new Date();
-
+    const beforeDownloadTimer = new Timer('downloadTimer');
     const downloadFile = async (file: ManifestFileEntry) => {
       const alreadyExists = await this._fileManager.fileExists(
         this.getFileCacheDir(),
@@ -275,7 +275,10 @@ class IonicDeployImpl {
       const base = new URL(baseUrl);
       const newUrl = new URL(file.href, baseUrl);
       newUrl.search = base.search;
-      return fetch( newUrl.toString(), {
+      const fileT = new FileTransfer();
+      const filePath = path.join(this.getFileCacheDir(), this._cleanHash(file.integrity));
+      new Promise<FileEntry>((resolve, reject) => fileT.download(newUrl.toString(), filePath, resolve, reject));
+/*      return fetch( newUrl.toString(), {
         method: 'GET',
         integrity: file.integrity,
       }).then( async (resp: Response) => {
@@ -291,37 +294,32 @@ class IonicDeployImpl {
         };
       }, err => {
         console.error(err);
-      });
+      });*/
     };
 
     const downloads = [];
+    let count = 0;
     for (const entry of manifest) {
-      const dload = await downloadFile(entry);
-      downloads.push(dload);
-    }
-    console.log(`Downloaded ${downloads.length} files in ${(new Date().getTime() - beforeDownload.getTime()) / 1000} seconds.`);
-
-    const now = new Date();
-    downloaded = 0;
-
-    for (const download of downloads) {
-      if (download) {
+      count++;
+      await downloadFile(entry);
+      beforeDownloadTimer.diff(`downloaded file ${count}`);
+/*      if (download) {
         await this._fileManager.getFile(
           this.getFileCacheDir(),
           download.hash,
           true,
           download.blob
-        );
+        );*/
+        beforeDownloadTimer.diff(`wrote file ${count}`);
 
         // Update progress
-        downloaded += download.blob.size;
+/*        downloaded += download.blob.size;
         if (progress) {
           progress(Math.floor(((downloaded / size) * 50) + 50));
-        }
-      }
+        }*/
+      // }
     }
-
-    console.log(`Wrote files in ${(new Date().getTime() - now.getTime()) / 1000} seconds.`);
+    beforeDownloadTimer.end(`Downloaded ${downloads.length} files`);
   }
 
   private _cleanHash(metadata: string): string {
@@ -469,21 +467,25 @@ class IonicDeployImpl {
   }
 
   private async _cleanSnapshotDir(versionId: string) {
+    const timer = new Timer('CleanSnapshotDir');
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     try {
       const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
       await (new Promise( (resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
+      timer.end();
     } catch (e) {
       console.log('No directory found for snapshot no need to delete');
+      timer.end();
     }
   }
 
   private async _copyBaseAppDir(versionId: string) {
+    const timer = new Timer('CopyBaseApp');
     return new Promise( async (resolve, reject) => {
       try {
         const rootAppDirEntry = await this._fileManager.getDirectory(this.getBundledAppDir(), false);
         const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
-        rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, resolve, reject);
+        rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, () => { timer.end(); resolve(); }, reject);
       } catch (e) {
         reject(e);
       }
@@ -491,6 +493,7 @@ class IonicDeployImpl {
   }
 
   private async _copyManifestFiles(versionId: string, progress?: CallbackFunction<number>) {
+    const timer = new Timer('CopyManifestFiles');
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     const manifest = await this.readManifest(versionId);
     const diffedManifest = await this._diffManifests(manifest);
@@ -527,6 +530,7 @@ class IonicDeployImpl {
       }
       throw new Error('No file name found');
     }));
+    timer.end();
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
@@ -763,13 +767,14 @@ class FileManager {
       fileEntry.createWriter( (fileWriter: FileWriter) => {
 
         // Maximum chunk size 512kb
-        const maxWriteSize = 1024 * 512;
+        const maxWriteSize = 1024 * 512 * 1024;
         const chunks = Math.ceil(dataBlob.size / maxWriteSize);
         const status = {currentChunk: 0};
 
         fileWriter.onwriteend = (file) => {
           status.currentChunk += 1;
           if (status.currentChunk >= chunks) {
+            console.log(`wrote file in ${status.currentChunk} chunks`);
             resolve();
           } else {
             const start = status.currentChunk * maxWriteSize;
@@ -982,6 +987,30 @@ class IonicCordova implements IPluginBaseAPI {
     return new Promise<IAppInfo>( (resolve, reject) => {
       cordova.exec(resolve, reject, 'IonicCordovaCommon', 'getAppInfo');
     });
+  }
+}
+
+class Timer {
+  name: string;
+  startTime: Date;
+  lastTime: Date;
+  constructor(name: string) {
+    this.name = name;
+    this.startTime = new Date();
+    this.lastTime = new Date();
+    console.log(`Starting IonicTimer ${this.name}`);
+  }
+
+  end(extraLog?: string) {
+    console.log(`Finished IonicTimer ${this.name} in ${(new Date().getTime() - this.startTime.getTime()) / 1000} seconds.`);
+    if (extraLog) {
+      console.log(`IonicTimer extra ${extraLog}`);
+    }
+  }
+
+  diff(message?: string) {
+    console.log(`Message: ${message} \n Diff IonicTimer ${this.name} in ${(new Date().getTime() - this.lastTime.getTime()) / 1000} seconds.`);
+    this.lastTime = new Date();
   }
 }
 
