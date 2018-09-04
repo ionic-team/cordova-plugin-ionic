@@ -24,6 +24,6 @@ export interface ManifestFileEntry {
 }
 
 export interface FetchManifestResp {
-  manifestBlob: Blob;
+  manifestJson: ManifestFileEntry[];
   fileBaseUrl: string;
 }
