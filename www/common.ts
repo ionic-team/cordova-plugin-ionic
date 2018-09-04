@@ -6,6 +6,7 @@
 declare const cordova: Cordova;
 declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
 declare const Ionic: any;
+declare const WEBVIEW_SERVER_URL: string;
 
 enum UpdateMethod {
   BACKGROUND = 'background',
@@ -31,7 +32,7 @@ import {
 
 
 class Path {
-    join(...paths: string[]): string {
+    static join(...paths: string[]): string {
         let fullPath: string = paths.shift() || '';
         for (const path of paths) {
             if (fullPath && fullPath.slice(-1) !== '/') {
@@ -43,7 +44,6 @@ class Path {
     }
 
 }
-const path = new Path();
 
 /**
  * LIVE UPDATE API
@@ -56,12 +56,9 @@ class IonicDeployImpl {
   private readonly appInfo: IAppInfo;
   private _savedPreferences: ISavedPreferences;
   private _fileManager: FileManager = new FileManager();
-  public FILE_CACHE = 'ionic_snapshot_files';
-  public MANIFEST_CACHE = 'ionic_manifests';
-  public SNAPSHOT_CACHE = 'ionic_built_snapshots';
-  public PLUGIN_VERSION = '5.1.3-0';
-  private BUNDLE_VERSION_ID = 'bundled-version';
+  private SNAPSHOT_CACHE = 'ionic_built_snapshots';
   private MANIFEST_FILE = 'pro-manifest.json';
+  public PLUGIN_VERSION = '5.1.3-0';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
@@ -69,6 +66,8 @@ class IonicDeployImpl {
   }
 
   async _handleInitialPreferenceState() {
+    // make sure we're not going to redirect to a stale version
+    await this.cleanCurrentVersionIfStale();
     const isOnline = navigator && navigator.onLine;
     if (!isOnline) {
       console.warn('The device appears to be offline. Loading last available version and skipping update checks.');
@@ -109,20 +108,12 @@ class IonicDeployImpl {
     }
   }
 
-  getFileCacheDir(): string {
-    return path.join(cordova.file.cacheDirectory, this.FILE_CACHE);
-  }
-
-  getManifestCacheDir(): string {
-    return path.join(cordova.file.dataDirectory, this.MANIFEST_CACHE);
-  }
-
   getSnapshotCacheDir(versionId: string): string {
-    return path.join(cordova.file.dataDirectory, this.SNAPSHOT_CACHE, versionId);
+    return Path.join(cordova.file.dataDirectory, this.SNAPSHOT_CACHE, versionId);
   }
 
   getBundledAppDir(): string {
-    return path.join(cordova.file.applicationDirectory, 'www');
+    return Path.join(cordova.file.applicationDirectory, 'www');
   }
 
   private async _syncPrefs(prefs: ISavedPreferences) {
@@ -213,16 +204,10 @@ class IonicDeployImpl {
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Available) {
-      const { manifestBlob, fileBaseUrl } = await this._fetchManifest(prefs.availableUpdate.url);
-      const manifestString = await this._fileManager.getFile(
-        this.getManifestCacheDir(),
-        this._getManifestName(prefs.availableUpdate.versionId),
-        true,
-        manifestBlob
-      );
-      const manifestJson = JSON.parse(manifestString);
+      const { fileBaseUrl, manifestJson } = await this._fetchManifest(prefs.availableUpdate.url);
       const diffedManifest = await this._diffManifests(manifestJson);
-      await this._downloadFilesFromManifest(fileBaseUrl, diffedManifest, progress);
+      await this.prepareUpdateDirectory(prefs.availableUpdate.versionId);
+      await this._downloadFilesFromManifest(fileBaseUrl, diffedManifest,  prefs.availableUpdate.versionId, progress);
       prefs.availableUpdate.state = UpdateState.Pending;
       await this._savePrefs(prefs);
       return true;
@@ -230,10 +215,7 @@ class IonicDeployImpl {
     return false;
   }
 
-  private _getManifestName(versionId: string) {
-    return versionId + '-manifest.json';
-  }
-  private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[], progress?: CallbackFunction<number>) {
+  private async _downloadFilesFromManifest(baseUrl: string, manifest: ManifestFileEntry[], versionId: string, progress?: CallbackFunction<number>) {
     console.log('Downloading update...');
     let size = 0, downloaded = 0;
     manifest.forEach(i => {
@@ -242,116 +224,58 @@ class IonicDeployImpl {
 
     const beforeDownloadTimer = new Timer('downloadTimer');
     const downloadFile = async (file: ManifestFileEntry) => {
-      const alreadyExists = await this._fileManager.fileExists(
-        this.getFileCacheDir(),
-        this._cleanHash(file.integrity)
-      );
-      if (alreadyExists) {
-        console.log(`file ${file.href} with size ${file.size} already exists`);
-
-        // Update progress
-        downloaded += file.size;
-        if (progress) {
-          progress(Math.floor((downloaded / size) * 50));
-        }
-        return;
-      }
-
-      // if it's 0 size file just create it
-      if (file.size === 0) {
-        // Update progress
-        downloaded += file.size;
-        if (progress) {
-          progress(Math.floor((downloaded / size) * 50));
-        }
-
-        return {
-          hash: this._cleanHash(file.integrity),
-          blob: new Blob()
-        };
-      }
-
-      // otherwise get it from internets
+      // TODO: Make sure zero byte files work with file transfer plugin
       const base = new URL(baseUrl);
       const newUrl = new URL(file.href, baseUrl);
       newUrl.search = base.search;
-      const fileT = new FileTransfer();
-      const filePath = path.join(this.getFileCacheDir(), this._cleanHash(file.integrity));
-      new Promise<FileEntry>((resolve, reject) => fileT.download(newUrl.toString(), filePath, resolve, reject));
-/*      return fetch( newUrl.toString(), {
-        method: 'GET',
-        integrity: file.integrity,
-      }).then( async (resp: Response) => {
-        // Update progress
-        downloaded += file.size;
-        if (progress) {
-          progress(Math.floor((downloaded / size) * 50));
-        }
-
-        return {
-          hash: this._cleanHash(file.integrity),
-          blob: await resp.blob()
-        };
-      }, err => {
-        console.error(err);
-      });*/
+      const filePath = Path.join(this.getSnapshotCacheDir(versionId), file.href);
+      await this._fileManager.downloadAndWriteFile(newUrl.toString(), filePath);
+      // Update progress
+      downloaded += file.size;
+      if (progress) {
+        progress(Math.floor((downloaded / size) * 50));
+      }
     };
 
     const downloads = [];
-    let count = 0;
     for (const entry of manifest) {
-      count++;
-      await downloadFile(entry);
-      beforeDownloadTimer.diff(`downloaded file ${count}`);
-/*      if (download) {
-        await this._fileManager.getFile(
-          this.getFileCacheDir(),
-          download.hash,
-          true,
-          download.blob
-        );*/
-        beforeDownloadTimer.diff(`wrote file ${count}`);
-
-        // Update progress
-/*        downloaded += download.blob.size;
-        if (progress) {
-          progress(Math.floor(((downloaded / size) * 50) + 50));
-        }*/
-      // }
+      downloads.push(downloadFile(entry));
     }
+    await Promise.all(downloads);
     beforeDownloadTimer.end(`Downloaded ${downloads.length} files`);
   }
 
-  private _cleanHash(metadata: string): string {
-    const hashes = metadata.split(' ');
-    return hashes[0].replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-  }
-
   private async _fetchManifest(url: string): Promise<FetchManifestResp> {
+    // Weird but first fetch using fetch and then download again
+    // using file transfer plugin to avoid using file plugin to write files
+    // call with resp.url second time to avoid double tallying downloads
     const resp = await fetch(url, {
       method: 'GET',
       redirect: 'follow',
     });
     return {
-      manifestBlob: await resp.blob(),
-      fileBaseUrl: resp.url
+      fileBaseUrl: resp.url,
+      manifestJson: await resp.json()
     };
   }
 
   private async _diffManifests(newManifest: ManifestFileEntry[]) {
-    const hasBundledManifest = await this._fileManager.fileExists(this.getBundledAppDir(), this.MANIFEST_FILE);
-    if (hasBundledManifest) {
-      const manifestString = await this._fileManager.getFile(
-        this.getBundledAppDir(),
-        this.MANIFEST_FILE
-      );
-      const bundledManifest: ManifestFileEntry[] = JSON.parse(manifestString);
-      // diff the manifests
+    try {
+      const manifestResp = await fetch(`${WEBVIEW_SERVER_URL}/${this.MANIFEST_FILE}`);
+      const bundledManifest: ManifestFileEntry[] = await manifestResp.json();
       const bundleManifestStrings = bundledManifest.map(entry => JSON.stringify(entry));
-      const diff = newManifest.filter(entry => bundleManifestStrings.indexOf(JSON.stringify(entry)) === -1);
-      return diff;
+      return newManifest.filter(entry => bundleManifestStrings.indexOf(JSON.stringify(entry)) === -1);
+    } catch (e) {
+      return newManifest;
     }
-    return newManifest;
+  }
+
+  private async prepareUpdateDirectory(versionId: string) {
+    await this._cleanSnapshotDir(versionId);
+    console.log('Cleaned version directory');
+
+    await this._copyBaseAppDir(versionId);
+    console.log('Copied base app resources');
   }
 
   async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
@@ -360,35 +284,20 @@ class IonicDeployImpl {
       return false;
     }
 
-    const versionId = prefs.availableUpdate.versionId;
-    await this._cleanSnapshotDir(versionId);
-    console.log('Cleaned version directory');
-
-    await this._copyBaseAppDir(versionId);
-    console.log('Copied base app resources');
-
-    await this._copyManifestFiles(versionId, progress);
-    console.log('Recreated app from manifest');
+    if (progress) {
+      progress(100);
+    }
 
     prefs.availableUpdate.state = UpdateState.Ready;
     prefs.updates[prefs.availableUpdate.versionId] = prefs.availableUpdate;
     await this._savePrefs(prefs);
-    await this.cleanupVersions();
     return true;
   }
 
-  async hideSplash(): Promise<string> {
+  private async hideSplash(): Promise<string> {
     return new Promise<string>( (resolve, reject) => {
       cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
     });
-  }
-
-  private async readManifest(versionId: string): Promise<ManifestFileEntry[]> {
-    const manifestString = await this._fileManager.getFile(
-      this.getManifestCacheDir(),
-      this._getManifestName(versionId)
-    );
-    return JSON.parse(manifestString);
   }
 
   async reloadApp(): Promise<boolean> {
@@ -409,6 +318,7 @@ class IonicDeployImpl {
         await this._savePrefs(prefs);
         this.hideSplash();
         Ionic.WebView.persistServerBasePath();
+        await this.cleanupVersions();
         return false;
       }
 
@@ -419,28 +329,6 @@ class IonicDeployImpl {
         return false;
       }
 
-      // Is the current version built from a previous binary?
-      if (prefs.binaryVersion !== prefs.updates[prefs.currentVersionId].binaryVersion) {
-        console.log(
-          `Version ${prefs.currentVersionId} was built for binary version ` +
-          `${prefs.updates[prefs.currentVersionId].binaryVersion}, but device is running ${prefs.binaryVersion}, ` +
-          `rebuilding...`
-        );
-
-        await this._cleanSnapshotDir(prefs.currentVersionId);
-        console.log('Cleaned version directory');
-
-        await this._copyBaseAppDir(prefs.currentVersionId);
-        console.log('Copied base app resources');
-
-        await this._copyManifestFiles(prefs.currentVersionId);
-        console.log('Recreated app from manifest\nSuccessfully rebuilt app!');
-
-        // App rebuilt, update the version to match
-        prefs.updates[prefs.currentVersionId].binaryVersion = prefs.binaryVersion;
-        await this._savePrefs(prefs);
-      }
-
       // Reload the webview
       const newLocation = new URL(this.getSnapshotCacheDir(prefs.currentVersionId));
       Ionic.WebView.setServerBasePath(newLocation.pathname);
@@ -449,6 +337,23 @@ class IonicDeployImpl {
 
     this.hideSplash();
     return false;
+  }
+
+  private async cleanCurrentVersionIfStale() {
+    const prefs = this._savedPreferences;
+    // Is the current version built from a previous binary?
+    if (prefs.currentVersionId) {
+      if (prefs.binaryVersion !== prefs.updates[prefs.currentVersionId].binaryVersion) {
+        console.log(
+          `Version ${prefs.currentVersionId} was built for binary version ` +
+          `${prefs.updates[prefs.currentVersionId].binaryVersion}, but device is running ${prefs.binaryVersion}, ` +
+          `removing update from device`
+        );
+        const versionId = prefs.currentVersionId;
+        delete prefs.currentVersionId;
+        await this.deleteVersionById(versionId);
+      }
+    }
   }
 
   private async _isRunningVersion(versionId: string) {
@@ -492,46 +397,6 @@ class IonicDeployImpl {
     });
   }
 
-  private async _copyManifestFiles(versionId: string, progress?: CallbackFunction<number>) {
-    const timer = new Timer('CopyManifestFiles');
-    const snapshotDir = this.getSnapshotCacheDir(versionId);
-    const manifest = await this.readManifest(versionId);
-    const diffedManifest = await this._diffManifests(manifest);
-    let size = 0, extracted = 0;
-    diffedManifest.forEach(i => {
-      size += i.size;
-    });
-    await Promise.all(diffedManifest.map( async (file: ManifestFileEntry) => {
-      const splitPath = file.href.split('/');
-      const fileName = splitPath.pop();
-      let path;
-      if (splitPath.length > 0) {
-        path = splitPath.join('/');
-      }
-      path =  snapshotDir + (path ? ('/' + path) : '');
-      if (fileName) {
-        try {
-          await this._fileManager.removeFile(path, fileName);
-        } catch (e) {
-          console.log(`New file ${path}/${fileName}`);
-        }
-
-        // Update progress
-        extracted += file.size;
-        if (progress) {
-          progress(Math.floor((extracted / size) * 100));
-        }
-        return this._fileManager.copyTo(
-          this.getFileCacheDir(),
-          this._cleanHash(file.integrity),
-          path,
-          fileName
-        );
-      }
-      throw new Error('No file name found');
-    }));
-    timer.end();
-  }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
     const versionId = this._savedPreferences.currentVersionId;
@@ -574,56 +439,42 @@ class IonicDeployImpl {
     await this._savePrefs(prefs);
 
     // delete snapshot directory
-    const snapshotDir = this.getSnapshotCacheDir(versionId);
-    const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
-    await (new Promise((resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
-
-    // delete manifest
-    const manifestFile = await this._fileManager.getFileEntry(
-      this.getManifestCacheDir(),
-      this._getManifestName(versionId)
-    );
-    await new Promise((resolve, reject) => manifestFile.remove(resolve, reject));
-
-    // cleanup file cache
-    await this.cleanupCache();
+    this._cleanSnapshotDir(versionId);
 
     return true;
   }
 
-  private async cleanupCache() {
+  private getStoredUpdates() {
+    // get an array of stored updates minus current deployed one
     const prefs = this._savedPreferences;
-
-    const hashes = new Set<string>();
+    const updates = [];
     for (const versionId of Object.keys(prefs.updates)) {
-      for (const entry of await this.readManifest(versionId)) {
-        hashes.add(this._cleanHash(entry.integrity));
+      // don't clean up the current version
+      if (versionId !== prefs.currentVersionId) {
+        updates.push(prefs.updates[versionId]);
       }
     }
-
-    const fileDir = this.getFileCacheDir();
-    const cacheDirEntry = await this._fileManager.getDirectory(fileDir, false);
-    const reader = cacheDirEntry.createReader();
-    const entries = await new Promise<Entry[]>((resolve, reject) => reader.readEntries(resolve, reject));
-    for (const entry of entries) {
-      if (hashes.has(entry.name) || !entry.isFile) {
-        continue;
-      }
-      await new Promise((resolve, reject) => entry.remove(resolve, reject));
-    }
+    return updates;
   }
 
   private async cleanupVersions() {
     const prefs = this._savedPreferences;
 
-    let updates = [];
-    for (const versionId of Object.keys(prefs.updates)) {
-      // don't clean up the bundled version
-      if (versionId !== this.BUNDLE_VERSION_ID) {
-        updates.push(prefs.updates[versionId]);
+    let updates = this.getStoredUpdates();
+    // First clean stale versions
+    for (const update of updates) {
+      if (update.binaryVersion !== prefs.binaryVersion) {
+        console.log(
+          `Version ${update.versionId} was built for binary version ` +
+          `${update.binaryVersion}, but device is running ${prefs.binaryVersion}, ` +
+          `removing update from device`
+        );
+        await this.deleteVersionById(update.versionId);
       }
     }
 
+    // clean down to Max Updates stored
+    updates = this.getStoredUpdates();
     updates = updates.sort((a, b) => a.lastUsed.localeCompare(b.lastUsed));
     updates = updates.reverse();
     updates = updates.slice(prefs.maxVersions);
@@ -678,7 +529,7 @@ class FileManager {
           const child = components.pop() as string;
           try {
             const parent = (await this.getDirectory(components.join('/'), createDirectory)) as DirectoryEntry;
-            parent.getDirectory(child, { create: createDirectory }, async entry => {
+            parent.getDirectory(child, {create: createDirectory}, async entry => {
               if (entry.fullPath === path) {
                 resolve(entry);
               } else {
@@ -694,47 +545,23 @@ class FileManager {
   }
 
   async resolvePath(): Promise<DirectoryEntry> {
-    return new Promise<DirectoryEntry>( (resolve, reject) => {
+    return new Promise<DirectoryEntry>((resolve, reject) => {
       resolveLocalFileSystemURL(cordova.file.dataDirectory, (rootDirEntry: Entry) => {
         resolve(rootDirEntry as DirectoryEntry);
       }, reject);
     });
   }
 
-  async readFile(fileEntry: FileEntry): Promise<string> {
-
-    return new Promise<string>( (resolve, reject) => {
-      fileEntry.file( (file) => {
-        const reader = new FileReader();
-
-        reader.onloadend = () => {
-          resolve(reader.result as string);
-        };
-
-        reader.readAsText(file);
-      }, reject);
-    });
+  async getFile(fullPath: string): Promise<string> {
+    const normalizedURL = Ionic.WebView.convertFileSrc(fullPath);
+    const req = await fetch(normalizedURL);
+    return req.text();
   }
 
-  async getFile(path: string, fileName: string, createFile = false, dataBlob?: Blob): Promise<string> {
-    const fileEntry = await this.getFileEntry(path, fileName, createFile, dataBlob);
-    return this.readFile(fileEntry);
-  }
-
-  async getFileEntry(path: string, fileName: string, createFile = false, dataBlob?: Blob) {
-    if (createFile && !dataBlob) {
-      throw new Error('Must provide file blob if createFile is true');
-    }
-    const dirEntry = await this.getDirectory(path, createFile);
-    return new Promise<FileEntry>( (resolve, reject) => {
-      if (createFile && dataBlob) {
-        dirEntry.getFile(fileName + '.tmp.' + Date.now(), {create: true, exclusive: false}, async (fileEntry: FileEntry) => {
-            await this.writeFile(fileEntry, dataBlob);
-            fileEntry.moveTo(dirEntry, fileName, entry => resolve(entry as FileEntry), reject);
-          }, reject);
-      } else {
-        dirEntry.getFile(fileName, {create: createFile, exclusive: false}, resolve, reject);
-      }
+  async getFileEntry(path: string, fileName: string) {
+    const dirEntry = await this.getDirectory(path, false);
+    return new Promise<FileEntry>((resolve, reject) => {
+      dirEntry.getFile(fileName, {create: false, exclusive: false}, resolve, reject);
     });
   }
 
@@ -750,52 +577,25 @@ class FileManager {
   async copyTo(oldPath: string, oldFileName: string, newPath: string, newFileName: string) {
     const fileEntry = await this.getFileEntry(oldPath, oldFileName);
     const newDirEntry = await this.getDirectory(newPath);
-    return new Promise( (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       fileEntry.copyTo(newDirEntry, newFileName, resolve, reject);
     });
   }
 
   async removeFile(path: string, filename: string) {
     const fileEntry = await this.getFileEntry(path, filename);
-    return new Promise( (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       fileEntry.remove(resolve, reject);
     });
   }
 
-  async writeFile(fileEntry: FileEntry, dataBlob: Blob) {
-    return new Promise( (resolve, reject) => {
-      fileEntry.createWriter( (fileWriter: FileWriter) => {
-
-        // Maximum chunk size 512kb
-        const maxWriteSize = 1024 * 512 * 1024;
-        const chunks = Math.ceil(dataBlob.size / maxWriteSize);
-        const status = {currentChunk: 0};
-
-        fileWriter.onwriteend = (file) => {
-          status.currentChunk += 1;
-          if (status.currentChunk >= chunks) {
-            console.log(`wrote file in ${status.currentChunk} chunks`);
-            resolve();
-          } else {
-            const start = status.currentChunk * maxWriteSize;
-            // The last chunk might not be the max write size
-            const writeSize = status.currentChunk === (chunks - 1) ? (dataBlob.size - fileWriter.length) : maxWriteSize;
-            fileWriter.seek(fileWriter.length);
-            fileWriter.write(dataBlob.slice(start, start + writeSize));
-          }
-        };
-
-        fileWriter.onerror = (e: ProgressEvent) => {
-          reject(e.toString());
-        };
-
-        const writeSize = chunks === 1 ? dataBlob.size : maxWriteSize;
-        fileWriter.write(dataBlob.slice(0, writeSize));
-      });
-    });
+  async downloadAndWriteFile(url: string, path: string) {
+    const fileT = new FileTransfer();
+    return new Promise<FileEntry>((resolve, reject) => fileT.download(url, path, resolve, reject));
   }
-
 }
+
+
 
 class IonicDeploy implements IDeployPluginAPI {
   private parent: IPluginBaseAPI;
