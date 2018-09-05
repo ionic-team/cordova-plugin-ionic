@@ -44,23 +44,25 @@
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
     NSString* platformVersion = [[UIDevice currentDevice] systemVersion];
-    NSString* version = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
+    NSString* versionCode = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
     NSString* bundleName = [[NSBundle mainBundle] infoDictionary][@"CFBundleIdentifier"];
-    NSString* bundleVersion = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
+    NSString* versionName = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
     NSString* uuid = [prefs stringForKey:@"uuid"];
 
-    if (bundleVersion == nil) {
-      bundleVersion = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
-      if (bundleVersion == nil) {
-        bundleVersion = @"";
+    if (versionName == nil) {
+      versionName = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
+      if (versionName == nil) {
+        versionName = @"";
       }
     }
 
     json[@"platform"] = @"ios";
     json[@"platformVersion"] = platformVersion;
-    json[@"version"] = version;
+    json[@"version"] = versionCode;
+    json[@"binaryVersionCode"] = versionCode;
     json[@"bundleName"] = bundleName;
-    json[@"bundleVersion"] = bundleVersion;
+    json[@"bundleVersion"] = versionName;
+    json[@"binaryVersionName"] = versionName;
     json[@"device"] = uuid;
     NSLog(@"Got app info: %@", json);
 

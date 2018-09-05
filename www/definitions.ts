@@ -1,5 +1,6 @@
 export interface IAvailableUpdate {
-  binaryVersion: string;
+  binaryVersionName: string;
+  binaryVersionCode: string;
   channel: string;
   lastUsed: string;
   state: string;

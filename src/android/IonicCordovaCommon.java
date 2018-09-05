@@ -94,7 +94,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
 
     try {
       PackageInfo pInfo = this.cordova.getActivity().getPackageManager().getPackageInfo(this.cordova.getActivity().getPackageName(), 0);
-      String version = pInfo.versionName;
+      String versionName = pInfo.versionName;
       String name = pInfo.packageName;
       int versionCode = pInfo.versionCode;
       String platformVersion = String.valueOf(Build.VERSION.RELEASE);
@@ -102,11 +102,13 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("platform", "android");
       j.put("platformVersion", platformVersion);
       j.put("version", versionCode);
+      j.put("binaryVersionCode", versionCode);
       j.put("bundleName", name);
-      j.put("bundleVersion", version);
+      j.put("bundleVersion", versionName);
+      j.put("binaryVersionName", versionName);
       j.put("device", this.uuid);
 
-      Log.d(TAG, "Got package info. Version: " + version + ", bundleName: " + name + ", versionCode: " + versionCode);
+      Log.d(TAG, "Got package info. Version: " + versionName + ", bundleName: " + name + ", versionCode: " + versionCode);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
       result.setKeepCallback(false);
       callbackContext.sendPluginResult(result);

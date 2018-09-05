@@ -119,7 +119,9 @@ class IonicDeployImpl {
   private async _syncPrefs(prefs: ISavedPreferences) {
     const appInfo = this.appInfo;
     const currentPrefs = this._savedPreferences;
-    currentPrefs.binaryVersion = appInfo.bundleVersion;
+    currentPrefs.binaryVersionCode = appInfo.binaryVersionCode;
+    currentPrefs.binaryVersionName = appInfo.binaryVersionName;
+    currentPrefs.binaryVersion = appInfo.binaryVersionName;
     Object.assign(currentPrefs, prefs);
     return this._savePrefs(currentPrefs);
   }
@@ -150,7 +152,7 @@ class IonicDeployImpl {
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
 
     const device_details = {
-      binary_version: appInfo.bundleVersion,
+      binary_version: appInfo.binaryVersionName,
       device_id: appInfo.device || null,
       platform: appInfo.platform,
       platform_version: appInfo.platformVersion,
@@ -181,12 +183,15 @@ class IonicDeployImpl {
     let jsonResp;
     if (resp.status < 500) {
       jsonResp = await resp.json();
+      console.log('Check device resp json', jsonResp);
     }
+    console.log('Check device resp raw', resp);
     if (resp.ok) {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
       if (checkDeviceResp.available && checkDeviceResp.url && checkDeviceResp.snapshot) {
         prefs.availableUpdate = {
-          binaryVersion: appInfo.bundleVersion,
+          binaryVersionCode: appInfo.binaryVersionCode,
+          binaryVersionName: appInfo.binaryVersionName,
           channel: prefs.channel,
           state: UpdateState.Available,
           lastUsed: new Date().toISOString(),
@@ -224,7 +229,6 @@ class IonicDeployImpl {
 
     const beforeDownloadTimer = new Timer('downloadTimer');
     const downloadFile = async (file: ManifestFileEntry) => {
-      // TODO: Make sure zero byte files work with file transfer plugin
       const base = new URL(baseUrl);
       const newUrl = new URL(file.href, baseUrl);
       newUrl.search = base.search;
@@ -246,9 +250,6 @@ class IonicDeployImpl {
   }
 
   private async _fetchManifest(url: string): Promise<FetchManifestResp> {
-    // Weird but first fetch using fetch and then download again
-    // using file transfer plugin to avoid using file plugin to write files
-    // call with resp.url second time to avoid double tallying downloads
     const resp = await fetch(url, {
       method: 'GET',
       redirect: 'follow',
@@ -280,7 +281,7 @@ class IonicDeployImpl {
 
   async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     const prefs = this._savedPreferences;
-    if (!prefs.availableUpdate || prefs.availableUpdate.state !== 'pending') {
+    if (!prefs.availableUpdate || prefs.availableUpdate.state !== UpdateState.Pending) {
       return false;
     }
 
@@ -339,17 +340,29 @@ class IonicDeployImpl {
     return false;
   }
 
+  // compare an update to the current version using both name & code
+  private isCurrentVersion(update: IAvailableUpdate) {
+    const currentVersionCode = this._savedPreferences.binaryVersionCode;
+    const currentVersionName = this._savedPreferences.binaryVersionName;
+    console.log(`Current: versionCode: ${currentVersionCode} versionName: ${currentVersionName}`);
+    console.log(`update: versionCode: ${update.binaryVersionCode} versionName: ${update.binaryVersionName}`);
+    return update.binaryVersionName === currentVersionName && update.binaryVersionCode === currentVersionCode;
+  }
+
   private async cleanCurrentVersionIfStale() {
     const prefs = this._savedPreferences;
     // Is the current version built from a previous binary?
+    console.log('clean current called');
     if (prefs.currentVersionId) {
-      if (prefs.binaryVersion !== prefs.updates[prefs.currentVersionId].binaryVersion) {
+      console.log('we have a current version checking if stale');
+      if (!this.isCurrentVersion(prefs.updates[prefs.currentVersionId])) {
         console.log(
-          `Version ${prefs.currentVersionId} was built for binary version ` +
-          `${prefs.updates[prefs.currentVersionId].binaryVersion}, but device is running ${prefs.binaryVersion}, ` +
-          `removing update from device`
+          `Update ${prefs.currentVersionId} was built for different binary version removing update from device` +
+          `Update binaryVersionName: ${prefs.updates[prefs.currentVersionId].binaryVersionName}, Device binaryVersionName ${prefs.binaryVersionName}` +
+          `Update binaryVersionCode: ${prefs.updates[prefs.currentVersionId].binaryVersionCode}, Device binaryVersionCode ${prefs.binaryVersionCode}`
         );
         const versionId = prefs.currentVersionId;
+        // NOTE: deleting pref.currentVersionId here to fool deleteVersionById into deleting it
         delete prefs.currentVersionId;
         await this.deleteVersionById(versionId);
       }
@@ -418,8 +431,10 @@ class IonicDeployImpl {
       deploy_uuid: update.versionId,
       versionId: update.versionId,
       channel: update.channel,
-      binary_version: update.binaryVersion,
-      binaryVersion: update.binaryVersion
+      binary_version: update.binaryVersionName,
+      binaryVersion: update.binaryVersionName,
+      binaryVersionCode: update.binaryVersionCode,
+      binaryVersionName: update.binaryVersionName
     };
   }
 
@@ -462,11 +477,11 @@ class IonicDeployImpl {
     let updates = this.getStoredUpdates();
     // First clean stale versions
     for (const update of updates) {
-      if (update.binaryVersion !== prefs.binaryVersion) {
+      if (!this.isCurrentVersion(update)) {
         console.log(
-          `Version ${update.versionId} was built for binary version ` +
-          `${update.binaryVersion}, but device is running ${prefs.binaryVersion}, ` +
-          `removing update from device`
+          `Update ${update.versionId} was built for different binary version removing update from device` +
+          `Update binaryVersionName: ${update.binaryVersionName}, Device binaryVersionName ${prefs.binaryVersionName}` +
+          `Update binaryVersionCode: ${update.binaryVersionCode}, Device binaryVersionCode ${prefs.binaryVersionCode}`
         );
         await this.deleteVersionById(update.versionId);
       }
@@ -508,8 +523,10 @@ class IonicDeployImpl {
         deploy_uuid: prefs.currentVersionId,
         versionId: prefs.currentVersionId,
         channel: prefs.channel,
-        binary_version: prefs.binaryVersion,
-        binaryVersion: prefs.binaryVersion
+        binary_version: prefs.binaryVersionName,
+        binaryVersion: prefs.binaryVersionName,
+        binaryVersionCode: prefs.binaryVersionCode,
+        binaryVersionName: prefs.binaryVersionName
       };
     }
     return;
@@ -617,7 +634,9 @@ class IonicDeploy implements IDeployPluginAPI {
     const preferences = await this._initPreferences();
     this.minBackgroundDuration = preferences.minBackgroundDuration;
     const appInfo = await this.parent.getAppDetails();
-    preferences.binaryVersion = appInfo.bundleVersion;
+    preferences.binaryVersionName = appInfo.binaryVersionName;
+    preferences.binaryVersionCode = appInfo.binaryVersionCode;
+    preferences.binaryVersion = appInfo.binaryVersionName;
     const delegate = new IonicDeployImpl(appInfo, preferences);
     // Only initialize start the plugin if fetch is available
     if (!this.fetchIsAvailable) {

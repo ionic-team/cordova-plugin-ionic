@@ -169,9 +169,21 @@ interface ICurrentConfig {
   channel: string;
 
   /**
-   * The binary version of the native bundle
+   * @deprecated
+   * The binary version of the native bundle versionName on Android or CFBundleShortVersionString on iOS
+   * deprecated in favor of versionName
    */
   binaryVersion: string;
+
+  /**
+   * The binary version of the native bundle versionName on Android or CFBundleShortVersionString on iOS
+   */
+  binaryVersionName: string;
+
+  /**
+   * The build version code of the native bundle versionCode on Android or CFBundleVersion on iOS
+   */
+  binaryVersionCode: string;
 
   /**
    * Whether the plugin is in debug mode or not.
@@ -235,9 +247,23 @@ interface ISnapshotInfo {
   binary_version: string;
 
   /**
+   * @deprecated
    * The binary version the snapshot was downloaded for.
+   * The versionName on Android or CFBundleShortVersionString on iOS this is the end user readable version listed on the stores.
    */
   binaryVersion: string;
+
+  /**
+   * The binary version name the snapshot was downloaded for.
+   * The versionName on Android or CFBundleShortVersionString on iOS this is the end user readable version listed on the stores.
+   */
+  binaryVersionName: string;
+
+  /**
+   * The binary version build code the snapshot was downloaded for.
+   * The versionCode on Android or CFBundleVersion on iOS this should be changed every time you do a new build debug or otherwise.
+   */
+  binaryVersionCode: string;
 }
 
 /**
@@ -291,9 +317,15 @@ interface IAppInfo {
   platformVersion: string;
 
   /**
-   * The version name.
+   * @deprecated
+   * The versionCode on Android or CFBundleVersion on iOS this should be changed every time you do a new build debug or otherwise.
    */
   version: string;
+
+  /**
+   * The versionCode on Android or CFBundleVersion on iOS this should be changed every time you do a new build debug or otherwise.
+   */
+  binaryVersionCode: string;
 
   /**
    * The bundle name.
@@ -301,9 +333,15 @@ interface IAppInfo {
   bundleName: string;
 
   /**
-   * The bundle version.
+   * @deprecated
+   * The versionName on Android or CFBundleShortVersionString on iOS this is the end user readable version listed on the stores.
    */
   bundleVersion: string;
+
+  /**
+   * The versionName on Android or CFBundleShortVersionString on iOS this is the end user readable version listed on the stores.
+   */
+  binaryVersionName: string;
 
   /**
    * A generated device ID (NOT a native device ID)
