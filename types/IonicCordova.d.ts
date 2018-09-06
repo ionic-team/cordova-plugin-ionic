@@ -152,6 +152,22 @@ interface IDeployConfig {
    * The [channel](https://ionicframework.com/docs/pro/deploy/channels) that the plugin should listen for updates on.
    */
   channel?: string;
+
+  /**
+   * The number of previous updates to be cached on the device
+   */
+  maxVersions?: number;
+
+  /**
+   * The number of seconds the app should be in the background for before the plugin considers it closed
+   * and checks for an updated on resume of the app.
+   */
+  minBackgroundDuration?: number;
+
+  /**
+   * whether or not the app should in debug mode
+   */
+  updateMethod?: boolean;
 }
 
 /**
