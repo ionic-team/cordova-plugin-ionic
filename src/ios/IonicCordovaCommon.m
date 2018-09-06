@@ -13,6 +13,7 @@
 
 @implementation IonicCordovaCommon
 
+
 + (BOOL) shouldShowSplash {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     return [prefs boolForKey:@"downloading_update"];
@@ -73,14 +74,44 @@
 - (void) getPreferences:(CDVInvokedUrlCommand*)command {
     // Get updated preferences if available
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSDictionary *savedPrefs = [prefs objectForKey:@"ionicDeploySavedPreferences"];
+    NSDictionary *immutableStoredPrefs = [prefs objectForKey:@"ionicDeploySavedPreferences"];
+    NSMutableDictionary *savedPrefs = [immutableStoredPrefs mutableCopy];
+    NSMutableDictionary *nativeConfig = [self getNativeConfig];
+    NSMutableDictionary *customConfig = [self getCustomConfig];
 
     if (savedPrefs!= nil) {
-        NSLog(@"Found saved prefs: %@", savedPrefs);
+        
+        NSLog(@"found some saved prefs doing precedence ops: %@", savedPrefs);
+        // Merge with most up to date Native Settings
+        [savedPrefs addEntriesFromDictionary:nativeConfig];
+
+        // Merge with any custom settings
+        [savedPrefs addEntriesFromDictionary:customConfig];
+
+        NSLog(@"Returning saved prefs: %@", savedPrefs);
         [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: savedPrefs] callbackId:command.callbackId];
         return;
     }
 
+    // No saved prefs found get them all from config
+    // Make sure to initialize empty updates object
+    NSLog(@"initing updates key");
+    nativeConfig[@"updates"] = [[NSDictionary alloc] init];
+    NSLog(@"Initialized App Prefs: %@", nativeConfig);
+
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:nativeConfig] callbackId:command.callbackId];
+}
+
+- (void) setPreferences:(CDVInvokedUrlCommand*)command {
+    NSDictionary *json = command.arguments[0];
+    NSLog(@"Got prefs to save: %@", json);
+    [[NSUserDefaults standardUserDefaults] setObject:json forKey:@"ionicDeploySavedPreferences"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+
+    [self getPreferences:command];
+}
+
+- (NSMutableDictionary*) getNativeConfig {
     // Get preferences from cordova
     NSString *appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
     NSString *debug = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonDebug"]];
@@ -99,19 +130,33 @@
     json[@"updateMethod"] = updateMethod;
     json[@"maxVersions"] = maxV;
     json[@"minBackgroundDuration"] = minBackgroundDuration;
-    json[@"updates"] = [[NSDictionary alloc] init];
-    NSLog(@"Got app preferences: %@", json);
-
-    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
+    NSLog(@"Got Native app preferences: %@", json);
+    return json;
 }
 
-- (void) setPreferences:(CDVInvokedUrlCommand*)command {
-    NSDictionary *json = command.arguments[0];
-    NSLog(@"Got prefs to save: %@", json);
-    [[NSUserDefaults standardUserDefaults] setObject:json forKey:@"ionicDeploySavedPreferences"];
+- (NSMutableDictionary*) getCustomConfig {
+    // Get custom preferences if available
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSDictionary *immutableConfig = [prefs objectForKey:@"ionicDeployCustomPreferences"];
+    NSMutableDictionary *customConfig = [immutableConfig mutableCopy];
+    if (customConfig!= nil) {
+        NSLog(@"Found custom config: %@", customConfig);
+        return customConfig;
+    }
+    NSLog(@"No custom config found");
+    NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
+    return json;
+}
+
+- (void) configure:(CDVInvokedUrlCommand *)command {
+    NSDictionary *newConfig = command.arguments[0];
+    NSLog(@"Got new config to save: %@", newConfig);
+    NSMutableDictionary *storedConfig = [self getCustomConfig];
+    [storedConfig addEntriesFromDictionary:newConfig];
+    [[NSUserDefaults standardUserDefaults] setObject:storedConfig forKey:@"ionicDeployCustomPreferences"];
     [[NSUserDefaults standardUserDefaults] synchronize];
 
-    [self getPreferences:command];
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:newConfig] callbackId:command.callbackId];
 }
 
 @end

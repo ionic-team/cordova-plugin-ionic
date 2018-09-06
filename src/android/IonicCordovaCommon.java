@@ -27,11 +27,13 @@ import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 
+import java.util.Iterator;
 import java.util.UUID;
 
 public class IonicCordovaCommon extends CordovaPlugin {
   public static final String TAG = "IonicCordovaCommon";
   private static final String  PREFS_KEY = "ionicDeploySavedPreferences";
+  private static final String  CUSTOM_PREFS_KEY = "ionicDeployCustomPreferences";
   private static Dialog splashDialog;
 
   private ImageView splashImageView;
@@ -64,7 +66,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * Executes the request and returns PluginResult.
    *
    * @param action            The action to execute.
-   * @param args              JSONArry of arguments for the plugin.
+   * @param args              JSONArray of arguments for the plugin.
    * @param callbackContext   The callback id used when calling back into JavaScript.
    * @return                  True if the action was valid, false if not.
    */
@@ -77,6 +79,8 @@ public class IonicCordovaCommon extends CordovaPlugin {
       this.getPreferences(callbackContext);
     } else if (action.equals("setPreferences")) {
       this.setPreferences(callbackContext, args.getJSONObject(0));
+    } else if (action.equals("configure")){
+      this.configure(callbackContext, args.getJSONObject(0));
     } else {
       return false;
     }
@@ -132,28 +136,85 @@ public class IonicCordovaCommon extends CordovaPlugin {
   }
 
   /**
+   * Get saved prefs configured via code at runtime
+   *
+   */
+  public JSONObject getCustomConfig() throws JSONException {
+    SharedPreferences prefs = this.cordova.getActivity().getApplicationContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
+    String prefsString = prefs.getString(this.CUSTOM_PREFS_KEY, null);
+    if (prefsString != null) {
+      JSONObject customPrefs = new JSONObject(prefsString);
+      return customPrefs;
+    }
+    return new JSONObject("{}");
+  }
+
+  /**
+   * Set saved prefs configured via code at runtime
+   *
+   */
+  public void configure(CallbackContext callbackContext, JSONObject newConfig) throws JSONException {
+    Log.i(TAG, "Set custom config called with " + newConfig.toString());
+    SharedPreferences prefs = this.cordova.getActivity().getApplicationContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = prefs.edit();
+    JSONObject storedConfig = this.getCustomConfig();
+    this.mergeObjects(storedConfig, newConfig);
+    editor.putString(this.CUSTOM_PREFS_KEY, storedConfig.toString());
+    editor.commit();
+    Log.i(TAG, "config updated");
+
+    final PluginResult result = new PluginResult(PluginResult.Status.OK, storedConfig);
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
+  }
+
+  /**
    * Get cordova plugin preferences and state information.
    *
    * @param callbackContext The callback id used when calling back into JavaScript.
    */
   public void getPreferences(CallbackContext callbackContext) throws JSONException {
 
+    JSONObject nativePrefs = this.getNativeConfig();
+    JSONObject customPrefs = this.getCustomConfig();
+
+    // Check for prefs that have been saved before
     SharedPreferences prefs = this.cordova.getActivity().getApplicationContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
     String prefsString = prefs.getString(this.PREFS_KEY, null);
-    JSONObject j;
     if (prefsString != null) {
+      JSONObject savedPrefs;
       Log.i(TAG, "Found saved prefs: " + prefsString);
-      j = new JSONObject(prefsString);
-      final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
+      // grab the save prefs
+      savedPrefs = new JSONObject(prefsString);
+
+      // update with the lastest things from config.xml
+      this.mergeObjects(savedPrefs, nativePrefs);
+
+      // update with the lastest things from custom configuration
+      this.mergeObjects(savedPrefs, customPrefs);
+
+      final PluginResult result = new PluginResult(PluginResult.Status.OK, savedPrefs);
       result.setKeepCallback(false);
       callbackContext.sendPluginResult(result);
       return;
     }
 
-    j = new JSONObject();
+    // no saved prefs were found
+    try {
+      nativePrefs.put("updates", new JSONObject("{}"));
+      final PluginResult result = new PluginResult(PluginResult.Status.OK, nativePrefs);
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
+    } catch(Exception ex) {
+      Log.e(TAG, "Unable to get preferences", ex);
+      callbackContext.error(ex.toString());
+    }
+  }
+
+  private JSONObject getNativeConfig() throws JSONException {
+    JSONObject j = new JSONObject();
     int maxV;
     int minBackgroundDuration;
-
     try {
       maxV = Integer.parseInt(getStringResourceByName("ionic_max_versions"));
     } catch(NumberFormatException e) {
@@ -166,25 +227,32 @@ public class IonicCordovaCommon extends CordovaPlugin {
       minBackgroundDuration = 30;
     }
 
-    try {
-      String appId = getStringResourceByName("ionic_app_id");
-      j.put("appId", appId);
-      j.put("debug", getStringResourceByName("ionic_debug"));
-      j.put("channel", getStringResourceByName("ionic_channel_name"));
-      j.put("host", getStringResourceByName("ionic_update_api"));
-      j.put("updateMethod", getStringResourceByName("ionic_update_method"));
-      j.put("maxVersions", maxV);
-      j.put("minBackgroundDuration", minBackgroundDuration);
-      j.put("updates", new JSONObject("{}"));
+    String appId = getStringResourceByName("ionic_app_id");
+    j.put("appId", appId);
+    j.put("debug", getStringResourceByName("ionic_debug"));
+    j.put("channel", getStringResourceByName("ionic_channel_name"));
+    j.put("host", getStringResourceByName("ionic_update_api"));
+    j.put("updateMethod", getStringResourceByName("ionic_update_method"));
+    j.put("maxVersions", maxV);
+    j.put("minBackgroundDuration", minBackgroundDuration);
 
 
-      Log.d(TAG, "Got prefs for AppID: " + appId);
-      final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
-      result.setKeepCallback(false);
-      callbackContext.sendPluginResult(result);
-    } catch(Exception ex) {
-      Log.e(TAG, "Unable to get preferences", ex);
-      callbackContext.error(ex.toString());
+    Log.d(TAG, "Got Native Prefs for AppID: " + appId);
+    return j;
+  }
+
+  /**
+   * Add any keys from obj2 into obj1 overwriting them if they exist
+   */
+  private void mergeObjects(JSONObject obj1, JSONObject obj2) {
+    Iterator it = obj2.keys();
+    while (it.hasNext()) {
+      String key = (String)it.next();
+      try {
+        obj1.putOpt(key, obj2.opt(key));
+      } catch (JSONException ex) {
+        Log.d(TAG, "key didn't exist when merging object");
+      }
     }
   }
 
@@ -301,3 +369,4 @@ public class IonicCordovaCommon extends CordovaPlugin {
     });
   }
 }
+

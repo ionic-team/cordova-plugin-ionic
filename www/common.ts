@@ -116,16 +116,6 @@ class IonicDeployImpl {
     return Path.join(cordova.file.applicationDirectory, 'www');
   }
 
-  private async _syncPrefs(prefs: ISavedPreferences) {
-    const appInfo = this.appInfo;
-    const currentPrefs = this._savedPreferences;
-    currentPrefs.binaryVersionCode = appInfo.binaryVersionCode;
-    currentPrefs.binaryVersionName = appInfo.binaryVersionName;
-    currentPrefs.binaryVersion = appInfo.binaryVersionName;
-    Object.assign(currentPrefs, prefs);
-    return this._savePrefs(currentPrefs);
-  }
-
   private async _savePrefs(prefs: ISavedPreferences): Promise<ISavedPreferences> {
     return new Promise<ISavedPreferences>(async (resolve, reject) => {
       try {
@@ -142,8 +132,11 @@ class IonicDeployImpl {
     if (!isPluginConfig(config)) {
       throw new Error('Invalid Config Object');
     }
+    await new Promise((resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'configure', [config]);
+    });
     Object.assign(this._savedPreferences, config);
-    await this._syncPrefs(this._savedPreferences);
+    this._savePrefs(this._savedPreferences);
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
@@ -183,9 +176,7 @@ class IonicDeployImpl {
     let jsonResp;
     if (resp.status < 500) {
       jsonResp = await resp.json();
-      console.log('Check device resp json', jsonResp);
     }
-    console.log('Check device resp raw', resp);
     if (resp.ok) {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
       if (checkDeviceResp.available && checkDeviceResp.url && checkDeviceResp.snapshot) {
@@ -241,12 +232,24 @@ class IonicDeployImpl {
       }
     };
 
-    const downloads = [];
+    let downloads = [];
+    let count = 0;
+    console.log(`About to download ${manifest.length} new files for update.`);
+    const maxBatch = 20;
     for (const entry of manifest) {
+      if (downloads.length >= maxBatch) {
+        count++;
+        await Promise.all(downloads);
+        beforeDownloadTimer.diff(`downloaded batch ${count} of ${maxBatch} downloads. Done downloading ${count * 10} of ${manifest.length} files`);
+        downloads = [];
+      }
       downloads.push(downloadFile(entry));
     }
-    await Promise.all(downloads);
-    beforeDownloadTimer.end(`Downloaded ${downloads.length} files`);
+    if (downloads.length) {
+      await Promise.all(downloads);
+      beforeDownloadTimer.diff(`downloaded batch ${count} of ${downloads.length} downloads Done downloading all ${manifest.length} files`);
+    }
+    beforeDownloadTimer.end(`Downloaded ${manifest.length} files`);
   }
 
   private async _fetchManifest(url: string): Promise<FetchManifestResp> {
@@ -352,9 +355,7 @@ class IonicDeployImpl {
   private async cleanCurrentVersionIfStale() {
     const prefs = this._savedPreferences;
     // Is the current version built from a previous binary?
-    console.log('clean current called');
     if (prefs.currentVersionId) {
-      console.log('we have a current version checking if stale');
       if (!this.isCurrentVersion(prefs.updates[prefs.currentVersionId])) {
         console.log(
           `Update ${prefs.currentVersionId} was built for different binary version removing update from device` +
@@ -453,7 +454,7 @@ class IonicDeployImpl {
     await this._savePrefs(prefs);
 
     // delete snapshot directory
-    this._cleanSnapshotDir(versionId);
+    await this._cleanSnapshotDir(versionId);
 
     return true;
   }
@@ -827,7 +828,7 @@ class Timer {
   }
 
   diff(message?: string) {
-    console.log(`Message: ${message} \n Diff IonicTimer ${this.name} in ${(new Date().getTime() - this.lastTime.getTime()) / 1000} seconds.`);
+    console.log(`Message: ${message} Diff IonicTimer ${this.name} in ${(new Date().getTime() - this.lastTime.getTime()) / 1000} seconds.`);
     this.lastTime = new Date();
   }
 }
