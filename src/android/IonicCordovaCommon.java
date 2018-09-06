@@ -80,7 +80,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
     } else if (action.equals("setPreferences")) {
       this.setPreferences(callbackContext, args.getJSONObject(0));
     } else if (action.equals("configure")){
-      this.setCustomConfig(callbackContext, args.getJSONObject(0));
+      this.configure(callbackContext, args.getJSONObject(0));
     } else {
       return false;
     }
@@ -153,17 +153,17 @@ public class IonicCordovaCommon extends CordovaPlugin {
    * Set saved prefs configured via code at runtime
    *
    */
-  public void setCustomConfig(CallbackContext callbackContext, JSONObject newConfig) throws JSONException {
+  public void configure(CallbackContext callbackContext, JSONObject newConfig) throws JSONException {
     Log.i(TAG, "Set custom config called with " + newConfig.toString());
     SharedPreferences prefs = this.cordova.getActivity().getApplicationContext().getSharedPreferences("com.ionic.deploy.preferences", Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = prefs.edit();
-    JSONObject prevConfig = this.getCustomConfig();
-    this.mergeObjects(prevConfig, newConfig);
-    editor.putString(this.CUSTOM_PREFS_KEY, newConfig.toString());
+    JSONObject storedConfig = this.getCustomConfig();
+    this.mergeObjects(storedConfig, newConfig);
+    editor.putString(this.CUSTOM_PREFS_KEY, storedConfig.toString());
     editor.commit();
     Log.i(TAG, "config updated");
 
-    final PluginResult result = new PluginResult(PluginResult.Status.OK, newConfig);
+    final PluginResult result = new PluginResult(PluginResult.Status.OK, storedConfig);
     result.setKeepCallback(false);
     callbackContext.sendPluginResult(result);
   }

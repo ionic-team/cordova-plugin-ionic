@@ -232,12 +232,24 @@ class IonicDeployImpl {
       }
     };
 
-    const downloads = [];
+    let downloads = [];
+    let count = 0;
+    console.log(`About to download ${manifest.length} new files for update.`);
+    const maxBatch = 20;
     for (const entry of manifest) {
+      if (downloads.length >= maxBatch) {
+        count++;
+        await Promise.all(downloads);
+        beforeDownloadTimer.diff(`downloaded batch ${count} of ${maxBatch} downloads. Done downloading ${count * 10} of ${manifest.length} files`);
+        downloads = [];
+      }
       downloads.push(downloadFile(entry));
     }
-    await Promise.all(downloads);
-    beforeDownloadTimer.end(`Downloaded ${downloads.length} files`);
+    if (downloads.length) {
+      await Promise.all(downloads);
+      beforeDownloadTimer.diff(`downloaded batch ${count} of ${downloads.length} downloads Done downloading all ${manifest.length} files`);
+    }
+    beforeDownloadTimer.end(`Downloaded ${manifest.length} files`);
   }
 
   private async _fetchManifest(url: string): Promise<FetchManifestResp> {
@@ -816,7 +828,7 @@ class Timer {
   }
 
   diff(message?: string) {
-    console.log(`Message: ${message} \n Diff IonicTimer ${this.name} in ${(new Date().getTime() - this.lastTime.getTime()) / 1000} seconds.`);
+    console.log(`Message: ${message} Diff IonicTimer ${this.name} in ${(new Date().getTime() - this.lastTime.getTime()) / 1000} seconds.`);
     this.lastTime = new Date();
   }
 }

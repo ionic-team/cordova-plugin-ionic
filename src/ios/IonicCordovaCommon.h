@@ -69,4 +69,25 @@
 */
 - (void) setPreferences:(CDVInvokedUrlCommand *)command;
 
+/**
+ * Set cordova custom plugin preferences and state information.
+ *
+ * @param command
+ *
+ * The callback id used when calling back into JavaScript.
+ */
+- (void) configure:(CDVInvokedUrlCommand *)command;
+
+/**
+ * Get cordova plugin native congiguration and state information (config.xml stuff)
+ *
+ */
+- (NSMutableDictionary*) getNativeConfig;
+
+/**
+ * Get cordova plugin custom congiguration overrides (things changed via configure method)
+ *
+ */
+- (NSMutableDictionary*) getCustomConfig;
+
 @end
