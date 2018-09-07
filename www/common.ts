@@ -620,13 +620,11 @@ class IonicDeploy implements IDeployPluginAPI {
   private fetchIsAvailable: boolean;
   private lastPause = 0;
   private minBackgroundDuration = 10;
-  private _platformIsReady: Promise<undefined>;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
     this.delegate = this.initialize();
     this.fetchIsAvailable = typeof(fetch) === 'function';
-    this._platformIsReady = this.platformReady();
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
@@ -651,19 +649,39 @@ class IonicDeploy implements IDeployPluginAPI {
     return delegate;
   }
 
-  private async platformReady(): Promise<undefined> {
-    if (!this._platformIsReady) {
-      return new Promise<undefined>((resolve, reject) => {
-        if (window.cordova) {
-          document.addEventListener('deviceready', () => {
-            resolve();
-          });
-        } else {
-          reject();
-        }
-      });
+  private async platformReady(): Promise<void> {
+    let ready = false;
+    while (!ready) {
+      const readyPromise = this.deviceReadyPromise();
+      // I don't know why but keep recreating the promise every 200 milliseconds for Ionic1
+      // apparently errors in the app.js and perhaps elsewhere in Ionic1 can cause deviceReady
+      // to be swallowed some how causing splash screen to hang
+      // and recreating the listener seems to get the event
+      const timeout = this.timeoutPromise(200);
+      try {
+        await Promise.race([timeout, readyPromise]);
+        ready = true;
+      } catch (e) {
+        console.log('platform ready timed out waiting for device ready creating new listener');
+      }
     }
-    return this._platformIsReady;
+  }
+
+  private async timeoutPromise(delay: number): Promise<undefined> {
+    return new Promise<undefined>( (resolve, reject) => {
+      setTimeout(reject, delay);
+    });
+  }
+  private async deviceReadyPromise(): Promise<undefined> {
+    return new Promise<undefined>((resolve, reject) => {
+      if (window.cordova) {
+        document.addEventListener('deviceready', () => {
+          resolve();
+        });
+      } else {
+        reject();
+      }
+    });
   }
 
   async onLoad() {
