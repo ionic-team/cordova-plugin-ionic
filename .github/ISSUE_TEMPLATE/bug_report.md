@@ -4,17 +4,15 @@ about: Create a report to help us improve
 
 ---
 
-**Version Info (please complete the following information):**
- - cordova-plugin-ionic version
- - cordova-plugin-ionic-webview version
- - `cordova plugin ls` output
-
-** `ionic info` output:**
-results from running 
-```bash
-$> ionic info
+**cordova plugin ls output:**
+```
+cordova plugin ls output here
 ```
 
+**ionic info output:**
+```
+ionic info output here
+```
 
 **Describe the bug**
 A clear and concise description of what the bug is.
