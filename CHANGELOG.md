@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 5.1.6
+
+* Fixed a bug with none update method strategy that could cause background updates upon resume of the app from background
+
 ## 5.0.6
 
 * Fixed a bug with version rebulds that could make some initial redirects take up to 15 seconds.

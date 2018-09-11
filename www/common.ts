@@ -356,7 +356,7 @@ class IonicDeployImpl {
     const prefs = this._savedPreferences;
     // Is the current version built from a previous binary?
     if (prefs.currentVersionId) {
-      if (!this.isCurrentVersion(prefs.updates[prefs.currentVersionId])) {
+      if (!this.isCurrentVersion(prefs.updates[prefs.currentVersionId]) && !this._isRunningVersion(prefs.currentVersionId)) {
         console.log(
           `Update ${prefs.currentVersionId} was built for different binary version removing update from device` +
           `Update binaryVersionName: ${prefs.updates[prefs.currentVersionId].binaryVersionName}, Device binaryVersionName ${prefs.binaryVersionName}` +
@@ -696,8 +696,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async onResume() {
     if (this.fetchIsAvailable && this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
-      await (await this.delegate).sync();
-      await this.reloadApp();
+      await (await this.delegate)._handleInitialPreferenceState();
     }
   }
 
