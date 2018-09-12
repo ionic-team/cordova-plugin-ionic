@@ -1,6 +1,6 @@
 export function isPluginConfig(o: object): o is IDeployConfig {
   const obj = <IDeployConfig>o;
-  const allowedKeys = ['appId', 'channel', 'debug', 'host', 'maxVersions', 'minBackgroundDuration', 'updateMethod'];
+  const allowedKeys = ['appId', 'channel', 'disabled', 'host', 'maxVersions', 'minBackgroundDuration', 'updateMethod'];
   if (!obj) return false;
   for (const key in obj) {
     if (allowedKeys.indexOf(key) === -1) {

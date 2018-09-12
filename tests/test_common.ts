@@ -25,7 +25,7 @@ function callbackMock(returnValue: any, succeed: boolean) {
 
 const pluginConfig = {
   appId: 'myapp',
-  debug: 'false',
+  disabled: false,
   host: 'https://myhost.com',
   channel: 'mychannel',
   updateMethod: 'auto',
@@ -122,7 +122,7 @@ describe('IonicCordova', () => {
         expect(await pluginBase.deploy._pluginConfig).toEqual(pluginConfig);
         const newConfig = {
           appId: 'newappid',
-          debug: 'true',
+          disabled: true,
           host: 'http://newhost.com',
           channel: 'newchannel',
         }
@@ -191,7 +191,7 @@ describe('IonicCordova', () => {
         const pluginBase = IonicCordova;
         const newConfig = {
           appId: 'newappid',
-          debug: 'true',
+          disabled: true,
           host: 'http://newhost.com',
           channel: 'newchannel',
         }
@@ -234,7 +234,7 @@ describe('IonicCordova', () => {
         expect(pluginBase.deploy._pluginConfig).resolves.toBe(pluginConfig);
         const newConfig = {
           appId: 'newappid',
-          debug: 'true',
+          disabled: true,
           host: 'http://newhost.com',
           channel: 'newchannel',
         }
@@ -249,7 +249,7 @@ describe('IonicCordova', () => {
         const pluginBase = IonicCordova;
         const newConfig = {
           appId: 'newappid',
-          debug: 'true',
+          disabled: true,
           host: 'http://newhost.com',
           channel: 'newchannel',
         }

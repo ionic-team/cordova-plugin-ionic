@@ -16,7 +16,6 @@
     </js-module>
     <preference name="APP_ID"/>
     <preference name="CHANNEL_NAME"/>
-    <preference name="WARN_DEBUG" default="true"/>
     <preference name="UPDATE_API" default="https://api.ionicjs.com"/>
     <preference name="UPDATE_METHOD" default="background"/>
     <preference name="MAX_STORE" default="2"/>
@@ -29,14 +28,11 @@
             <feature name="IonicCordovaCommon">
                 <param name="ios-package" value="IonicCordovaCommon" onload="true"/>
             </feature>
+            <preference name="DisableDeploy" value="false" />
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonAppId">
             <string>$APP_ID</string>
-        </config-file>
-
-        <config-file target="*-Info.plist" parent="IonDebug">
-            <string>$WARN_DEBUG</string>
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonChannelName">
@@ -70,11 +66,11 @@
             <feature name="IonicCordovaCommon">
                 <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true"/>
             </feature>
+            <preference name="DisableDeploy" value="false" />
         </config-file>
 
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="ionic_app_id">$APP_ID</string>
-            <string name="ionic_debug">$WARN_DEBUG</string>
             <string name="ionic_channel_name">$CHANNEL_NAME</string>
             <string name="ionic_update_api">$UPDATE_API</string>
             <string name="ionic_update_method">$UPDATE_METHOD</string>

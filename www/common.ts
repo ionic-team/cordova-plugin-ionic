@@ -620,6 +620,7 @@ class IonicDeploy implements IDeployPluginAPI {
   private fetchIsAvailable: boolean;
   private lastPause = 0;
   private minBackgroundDuration = 10;
+  private disabled = false;
 
   constructor(parent: IPluginBaseAPI) {
     this.parent = parent;
@@ -632,14 +633,19 @@ class IonicDeploy implements IDeployPluginAPI {
     await this.platformReady();
     const preferences = await this._initPreferences();
     this.minBackgroundDuration = preferences.minBackgroundDuration;
+    this.disabled = preferences.disabled || !this.fetchIsAvailable;
     const appInfo = await this.parent.getAppDetails();
     preferences.binaryVersionName = appInfo.binaryVersionName;
     preferences.binaryVersionCode = appInfo.binaryVersionCode;
     preferences.binaryVersion = appInfo.binaryVersionName;
     const delegate = new IonicDeployImpl(appInfo, preferences);
-    // Only initialize start the plugin if fetch is available
-    if (!this.fetchIsAvailable) {
-      console.warn('Fetch is unavailable so cordova-plugin-ionic has been disabled.');
+    // Only initialize start the plugin if fetch is available and DisableDeploy preference is false
+    if (this.disabled) {
+      let disabledMessage = 'cordova-plugin-ionic has been disabled.';
+      if (!this.fetchIsAvailable) {
+        disabledMessage = 'Fetch is unavailable so ' + disabledMessage;
+      }
+      console.warn(disabledMessage);
       await new Promise<string>( (resolve, reject) => {
         cordova.exec(resolve, reject, 'IonicCordovaCommon', 'clearSplashFlag');
       });
@@ -695,7 +701,7 @@ class IonicDeploy implements IDeployPluginAPI {
   }
 
   async onResume() {
-    if (this.fetchIsAvailable && this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
+    if (!this.disabled && this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
       await (await this.delegate)._handleInitialPreferenceState();
     }
   }
@@ -714,7 +720,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
     await this.platformReady();
-    if (this.fetchIsAvailable) {
+    if (!this.disabled) {
       return (await this.delegate).checkForUpdate();
     }
     return  {available: false};
@@ -722,7 +728,7 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async configure(config: IDeployConfig): Promise<void> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).configure(config);
+    if (!this.disabled) return (await this.delegate).configure(config);
   }
 
   async getConfiguration(): Promise<ICurrentConfig> {
@@ -746,49 +752,49 @@ class IonicDeploy implements IDeployPluginAPI {
 
   async deleteVersionById(version: string): Promise<boolean> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).deleteVersionById(version);
+    if (!this.disabled) return (await this.delegate).deleteVersionById(version);
     return true;
   }
 
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).downloadUpdate(progress);
+    if (!this.disabled) return (await this.delegate).downloadUpdate(progress);
     return false;
   }
 
   async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).extractUpdate(progress);
+    if (!this.disabled) return (await this.delegate).extractUpdate(progress);
     return false;
   }
 
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).getAvailableVersions();
+    if (!this.disabled) return (await this.delegate).getAvailableVersions();
     return [];
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).getCurrentVersion();
+    if (!this.disabled) return (await this.delegate).getCurrentVersion();
     return;
   }
 
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).getVersionById(versionId);
+    if (!this.disabled) return (await this.delegate).getVersionById(versionId);
     throw Error(`No update available with versionId ${versionId}`);
   }
 
   async reloadApp(): Promise<boolean> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).reloadApp();
+    if (!this.disabled) return (await this.delegate).reloadApp();
     return false;
   }
 
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
     await this.platformReady();
-    if (this.fetchIsAvailable) return (await this.delegate).sync(syncOptions);
+    if (!this.disabled) return (await this.delegate).sync(syncOptions);
     return;
   }
 }
