@@ -70,7 +70,7 @@
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/*">
-            <uses-permission xmlns:android="" android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
         </config-file>
 
         <config-file target="res/values/strings.xml" parent="/resources">
