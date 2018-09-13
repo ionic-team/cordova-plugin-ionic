@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 5.2.2
+
+* Fixed bug with AndroidManifest.xml syntax
+
 ## 5.2.1
 
 * Add ACCESS_NETWORK_STATE permission to make navigator.onLine work on android
