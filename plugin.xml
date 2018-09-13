@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.1">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.2">
     <name>cordova-plugin-ionic</name>
     <description>Ionic Cordova SDK</description>
     <license>MIT</license>
@@ -70,7 +70,7 @@
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/*">
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission xmlns:android="" android:name="android.permission.ACCESS_NETWORK_STATE"/>
         </config-file>
 
         <config-file target="res/values/strings.xml" parent="/resources">
