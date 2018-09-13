@@ -202,9 +202,9 @@ interface ICurrentConfig {
   binaryVersionCode: string;
 
   /**
-   * Whether the plugin is in debug mode or not.
+   * Whether the user disabled deploy updates or not.
    */
-  debug: string;
+  disabled: boolean;
 
   /**
    * The host API the plugin is configured to check for updates from.

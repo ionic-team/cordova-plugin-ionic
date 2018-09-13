@@ -114,7 +114,7 @@
 - (NSMutableDictionary*) getNativeConfig {
     // Get preferences from cordova
     NSString *appId = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonAppId"]];
-    NSString *debug = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonDebug"]];
+    NSNumber * disabled = [NSNumber numberWithBool:[[self.commandDelegate.settings objectForKey:[@"DisableDeploy" lowercaseString]] boolValue]];
     NSString *host = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonApi"]];
     NSString *updateMethod = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonUpdateMethod"]];
     NSString *channel = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
@@ -124,7 +124,7 @@
     // Build the preferences json object
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
     json[@"appId"] = appId;
-    json[@"debug"] = debug;
+    json[@"disabled"] = disabled;
     json[@"channel"] = channel;
     json[@"host"] = host;
     json[@"updateMethod"] = updateMethod;

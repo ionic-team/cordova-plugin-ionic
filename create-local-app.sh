@@ -26,7 +26,6 @@ cordova plugin add ../cordova-plugin-ionic --save \
 --variable MIN_BACKGROUND_DURATION="$BACKGROUND_DURATION" \
 --variable APP_ID="${APP_ID}" \
 --variable CHANNEL_NAME="${CHANNEL}" \
---variable UPDATE_METHOD="${UPDATE_METHOD}" \
---variable WARN_DEBUG="false" --link
+--variable UPDATE_METHOD="${UPDATE_METHOD}" --link
 cordova prepare ios
 cordova prepare android
