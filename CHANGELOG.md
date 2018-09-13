@@ -1,5 +1,8 @@
 Changelog
 ======
+## 5.2.3
+
+* Fixed bug with AndroidManifest.xml syntax for real since our release script kept breaking it
 
 ## 5.2.2
 
