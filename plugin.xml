@@ -69,6 +69,10 @@
             <preference name="DisableDeploy" value="false"/>
         </config-file>
 
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        </config-file>
+
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="ionic_app_id">$APP_ID</string>
             <string name="ionic_channel_name">$CHANNEL_NAME</string>
