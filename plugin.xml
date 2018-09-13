@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.1.6">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.0">
     <name>cordova-plugin-ionic</name>
     <description>Ionic Cordova SDK</description>
     <license>MIT</license>
@@ -28,7 +28,7 @@
             <feature name="IonicCordovaCommon">
                 <param name="ios-package" value="IonicCordovaCommon" onload="true"/>
             </feature>
-            <preference name="DisableDeploy" value="false" />
+            <preference name="DisableDeploy" value="false"/>
         </config-file>
 
         <config-file target="*-Info.plist" parent="IonAppId">
@@ -66,7 +66,7 @@
             <feature name="IonicCordovaCommon">
                 <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true"/>
             </feature>
-            <preference name="DisableDeploy" value="false" />
+            <preference name="DisableDeploy" value="false"/>
         </config-file>
 
         <config-file target="res/values/strings.xml" parent="/resources">
