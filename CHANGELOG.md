@@ -1,6 +1,10 @@
 Changelog
 ======
 
+## 5.2.1
+
+* Add ACCESS_NETWORK_STATE permission to make navigator.onLine work on android
+
 ## 5.2.0
 
 * Added `DisableDeploy` Cordova preference allowing disabling of the plugin
