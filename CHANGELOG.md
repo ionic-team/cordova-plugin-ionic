@@ -1,6 +1,11 @@
 Changelog
 ======
 
+## 5.2.0
+
+* Added `DisableDeploy` Cordova preference allowing disabling of the plugin
+* Requires `cordova-plugin-ionic-webview@^2.1.4` for `DisableDeploy` support to work correctly
+
 ## 5.1.6
 
 * Fixed a bug with none update method strategy that could cause background updates upon resume of the app from background
