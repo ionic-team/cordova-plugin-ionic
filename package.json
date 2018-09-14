@@ -37,7 +37,7 @@
     "watch": "tsc -w",
     "watch-dev": "watch 'npm run apply-dev' ./www",
     "build": "npm run clean && tsc",
-    "sync-plugin-xml": "sync-cordova-xml package.json plugin.xml --output=plugin.xml",
+    "sync-plugin-xml": "sync-cordova-xml2 package.json plugin.xml --output=plugin.xml",
     "version": "npm run sync-plugin-xml && git add plugin.xml && ./update-plugin-version-code.sh",
     "prepublishOnly": "npm run build",
     "test": "echo 'We should really get unit tests running'",
@@ -46,6 +46,9 @@
   },
   "repository": "https://github.com/ionic-team/cordova-plugin-ionic.git",
   "issue": "https://github.com/ionic-team/cordova-plugin-ionic/issues",
+  "bugs": {
+    "url": "https://github.com/ionic-team/cordova-plugin-ionic/issues"
+  },
   "keywords": [
     "ionic",
     "cordova",
@@ -82,7 +85,7 @@
     "jest": "^22.4.3",
     "np": "^3.0.4",
     "rimraf": "^2.6.2",
-    "sync-cordova-xml": "^0.4.0",
+    "sync-cordova-xml2": "0.0.2",
     "ts-jest": "^22.4.2",
     "tslint": "^5.9.1",
     "tslint-ionic-rules": "0.0.14",

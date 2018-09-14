@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.3">
     <name>cordova-plugin-ionic</name>
     <description>Ionic Cordova SDK</description>
@@ -7,12 +6,11 @@
     <keywords>ionic,cordova,deploy,liveupdates,mobile,hybrid,ecosystem:cordova,cordova-android,cordova-ios</keywords>
     <repo>https://github.com/ionic-team/cordova-plugin-ionic.git</repo>
     <issue>https://github.com/ionic-team/cordova-plugin-ionic/issues</issue>
-
     <js-module src="dist/common.js">
         <clobbers target="IonicCordova"/>
     </js-module>
     <js-module src="dist/guards.js" name="guards">
-      <runs/>
+        <runs/>
     </js-module>
     <preference name="APP_ID"/>
     <preference name="CHANNEL_NAME"/>
@@ -21,7 +19,6 @@
     <preference name="MAX_STORE" default="2"/>
     <preference name="MIN_BACKGROUND_DURATION" default="30"/>
     <hook type="before_build" src="hooks/beforeBuild.js"/>
-
     <!-- ios -->
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
@@ -30,37 +27,29 @@
             </feature>
             <preference name="DisableDeploy" value="false"/>
         </config-file>
-
         <config-file target="*-Info.plist" parent="IonAppId">
             <string>$APP_ID</string>
         </config-file>
-
         <config-file target="*-Info.plist" parent="IonChannelName">
             <string>$CHANNEL_NAME</string>
         </config-file>
-
         <config-file target="*-Info.plist" parent="IonApi">
             <string>$UPDATE_API</string>
         </config-file>
-
         <config-file target="*-Info.plist" parent="IonUpdateMethod">
             <string>$UPDATE_METHOD</string>
         </config-file>
-
         <config-file target="*-Info.plist" parent="IonMaxVersions">
             <string>$MAX_STORE</string>
         </config-file>
-
         <config-file target="*-Info.plist" parent="IonMinBackgroundDuration">
             <string>$MIN_BACKGROUND_DURATION</string>
         </config-file>
-
         <header-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.h"/>
         <source-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.m"/>
         <header-file src="src/ios/IonicCordovaCommon.h"/>
         <source-file src="src/ios/IonicCordovaCommon.m"/>
     </platform>
-
     <platform name="android">
         <config-file target="config.xml" parent="/*">
             <feature name="IonicCordovaCommon">
@@ -68,11 +57,9 @@
             </feature>
             <preference name="DisableDeploy" value="false"/>
         </config-file>
-
         <config-file target="AndroidManifest.xml" parent="/*">
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
         </config-file>
-
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="ionic_app_id">$APP_ID</string>
             <string name="ionic_channel_name">$CHANNEL_NAME</string>
@@ -81,10 +68,8 @@
             <string name="ionic_max_versions">$MAX_STORE</string>
             <string name="ionic_min_background_duration">$MIN_BACKGROUND_DURATION</string>
         </config-file>
-
         <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common"/>
     </platform>
-
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
     <dependency id="cordova-plugin-ionic-webview" version="^2.1.4"/>
     <dependency id="cordova-plugin-file" version="^6.0.1"/>
