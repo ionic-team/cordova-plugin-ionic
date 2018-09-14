@@ -302,6 +302,18 @@ interface CheckDeviceResponse {
   available: boolean;
 
   /**
+   * Equivalent to available since v5 this can be ignored in favor of available
+   * @deprecated
+   */
+  compatible: boolean;
+
+  /**
+   * Legacy indicator of whether the update is a partial one. This will always be false and can be ignored
+   * @deprecated
+   */
+  partial: false;
+
+  /**
    * The id of the snapshot if available.
    */
   snapshot?: string;

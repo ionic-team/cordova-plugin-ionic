@@ -723,7 +723,7 @@ class IonicDeploy implements IDeployPluginAPI {
     if (!this.disabled) {
       return (await this.delegate).checkForUpdate();
     }
-    return  {available: false};
+    return  {available: false, compatible: false, partial: false};
   }
 
   async configure(config: IDeployConfig): Promise<void> {
