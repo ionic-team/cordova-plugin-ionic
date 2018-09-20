@@ -1,5 +1,11 @@
 Changelog
 ======
+## 5.2.5
+* Fix bug where binaryVersionName and binaryVersionCode are not returned from getConfiguation call
+
+## 5.2.4
+* update check device resp to be accurate (#148)
+
 ## 5.2.3
 
 * Fixed bug with AndroidManifest.xml syntax for real since our release script kept breaking it
