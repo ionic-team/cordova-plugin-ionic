@@ -226,9 +226,17 @@ public class IonicCordovaCommon extends CordovaPlugin {
     } catch(NumberFormatException e) {
       minBackgroundDuration = 30;
     }
-    PackageInfo pInfo = this.cordova.getActivity().getPackageManager().getPackageInfo(this.cordova.getActivity().getPackageName(), 0);
-    String versionName = pInfo.versionName;
-    int versionCode = pInfo.versionCode;
+    String versionName;
+    int versionCode;
+    try {
+      PackageInfo pInfo = this.cordova.getActivity().getPackageManager().getPackageInfo(this.cordova.getActivity().getPackageName(), 0);
+      versionName = pInfo.versionName;
+      versionCode = pInfo.versionCode;
+    } catch(Exception ex) {
+      Log.e(TAG, "Unable to get package info", ex);
+      versionName = "unknown";
+      versionCode = 0;
+    }
 
     String appId = getStringResourceByName("ionic_app_id");
     j.put("appId", appId);
