@@ -226,6 +226,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
     } catch(NumberFormatException e) {
       minBackgroundDuration = 30;
     }
+    PackageInfo pInfo = this.cordova.getActivity().getPackageManager().getPackageInfo(this.cordova.getActivity().getPackageName(), 0);
+    String versionName = pInfo.versionName;
+    int versionCode = pInfo.versionCode;
 
     String appId = getStringResourceByName("ionic_app_id");
     j.put("appId", appId);
@@ -235,6 +238,9 @@ public class IonicCordovaCommon extends CordovaPlugin {
     j.put("updateMethod", getStringResourceByName("ionic_update_method"));
     j.put("maxVersions", maxV);
     j.put("minBackgroundDuration", minBackgroundDuration);
+    j.put("binaryVersion", versionName);
+    j.put("binaryVersionName", versionName);
+    j.put("binaryVersionCode", versionCode);
 
 
     Log.d(TAG, "Got Native Prefs for AppID: " + appId);

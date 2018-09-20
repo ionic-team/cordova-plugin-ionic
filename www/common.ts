@@ -145,7 +145,7 @@ class IonicDeployImpl {
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
 
     const device_details = {
-      binary_version: appInfo.binaryVersionName,
+      binary_version: prefs.binaryVersionName,
       device_id: appInfo.device || null,
       platform: appInfo.platform,
       platform_version: appInfo.platformVersion,
@@ -181,8 +181,8 @@ class IonicDeployImpl {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
       if (checkDeviceResp.available && checkDeviceResp.url && checkDeviceResp.snapshot) {
         prefs.availableUpdate = {
-          binaryVersionCode: appInfo.binaryVersionCode,
-          binaryVersionName: appInfo.binaryVersionName,
+          binaryVersionCode: prefs.binaryVersionCode,
+          binaryVersionName: prefs.binaryVersionName,
           channel: prefs.channel,
           state: UpdateState.Available,
           lastUsed: new Date().toISOString(),
@@ -635,9 +635,6 @@ class IonicDeploy implements IDeployPluginAPI {
     this.minBackgroundDuration = preferences.minBackgroundDuration;
     this.disabled = preferences.disabled || !this.fetchIsAvailable;
     const appInfo = await this.parent.getAppDetails();
-    preferences.binaryVersionName = appInfo.binaryVersionName;
-    preferences.binaryVersionCode = appInfo.binaryVersionCode;
-    preferences.binaryVersion = appInfo.binaryVersionName;
     const delegate = new IonicDeployImpl(appInfo, preferences);
     // Only initialize start the plugin if fetch is available and DisableDeploy preference is false
     if (this.disabled) {

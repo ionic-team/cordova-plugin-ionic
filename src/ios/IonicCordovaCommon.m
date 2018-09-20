@@ -120,6 +120,8 @@
     NSString *channel = [NSString stringWithFormat:@"%@", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonChannelName"]];
     NSNumber *maxV = [NSNumber numberWithInt:[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMaxVersions"] intValue]];
     NSNumber *minBackgroundDuration = [NSNumber numberWithInt:[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"IonMinBackgroundDuration"] intValue]];
+    NSString* versionCode = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
+    NSString* versionName = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
 
     // Build the preferences json object
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];
@@ -130,6 +132,9 @@
     json[@"updateMethod"] = updateMethod;
     json[@"maxVersions"] = maxV;
     json[@"minBackgroundDuration"] = minBackgroundDuration;
+    json[@"binaryVersionCode"] = versionCode;
+    json[@"binaryVersion"] = versionName;
+    json[@"binaryVersionName"] = versionName;
     NSLog(@"Got Native app preferences: %@", json);
     return json;
 }
