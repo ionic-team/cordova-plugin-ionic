@@ -353,7 +353,7 @@ interface IAppInfo {
   /**
    * The versionCode on Android or CFBundleVersion on iOS this should be changed every time you do a new build debug or otherwise.
    */
-  binaryVersionCode: string;
+  binaryVersionCode: string | number;
 
   /**
    * The bundle name.
