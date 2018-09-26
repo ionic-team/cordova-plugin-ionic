@@ -26,6 +26,7 @@
                 <param name="ios-package" value="IonicCordovaCommon" onload="true"/>
             </feature>
             <preference name="DisableDeploy" value="false"/>
+            <preference name="AutoHideSplashScreen" value="false" />
         </config-file>
         <config-file target="*-Info.plist" parent="IonAppId">
             <string>$APP_ID</string>
@@ -45,8 +46,6 @@
         <config-file target="*-Info.plist" parent="IonMinBackgroundDuration">
             <string>$MIN_BACKGROUND_DURATION</string>
         </config-file>
-        <header-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.h"/>
-        <source-file src="src/ios/CDVSplashScreen+IonicCordovaCommon.m"/>
         <header-file src="src/ios/IonicCordovaCommon.h"/>
         <source-file src="src/ios/IonicCordovaCommon.m"/>
     </platform>
@@ -56,6 +55,7 @@
                 <param name="android-package" value="com.ionicframework.common.IonicCordovaCommon" onload="true"/>
             </feature>
             <preference name="DisableDeploy" value="false"/>
+            <preference name="AutoHideSplashScreen" value="false" />
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
