@@ -140,6 +140,10 @@ class IonicDeployImpl {
   }
 
   async checkForUpdate(): Promise<CheckDeviceResponse> {
+    const isOnline = navigator && navigator.onLine;
+    if (!isOnline) {
+      throw new Error('The device is offline.');
+    }
     const prefs = this._savedPreferences;
     const appInfo = this.appInfo;
     const endpoint = `${prefs.host}/apps/${prefs.appId}/channels/check-device`;
