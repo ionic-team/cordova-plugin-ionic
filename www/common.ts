@@ -232,7 +232,7 @@ class IonicDeployImpl {
       // Update progress
       downloaded += file.size;
       if (progress) {
-        progress(Math.floor((downloaded / size) * 50));
+        progress(Math.floor((downloaded / size) * 100));
       }
     };
 
