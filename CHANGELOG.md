@@ -2,6 +2,8 @@ Changelog
 ======
 ## 5.2.5
 * Fix bug where binaryVersionName and binaryVersionCode are not returned from getConfiguation call
+* Fix bug where downloadUpdate progress call back would go from 0 to 50 rather than 100 (#156)
+* Check if the device is online before checking for updates (#154)
 
 ## 5.2.4
 * update check device resp to be accurate (#148)
