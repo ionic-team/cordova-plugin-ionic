@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.5-1">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.5">
     <name>cordova-plugin-ionic</name>
     <description>Ionic Cordova SDK</description>
     <license>MIT</license>
