@@ -13,12 +13,6 @@
 
 @implementation IonicCordovaCommon
 
-
-+ (BOOL) shouldShowSplash {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    return [prefs boolForKey:@"downloading_update"];
-}
-
 - (void) pluginInitialize {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 
@@ -28,17 +22,7 @@
     if ([prefs stringForKey:@"uuid"] == nil) {
         [prefs setObject:[[NSUUID UUID] UUIDString] forKey:@"uuid"];
     }
-    [prefs setBool:YES forKey:@"downloading_update"];
     [prefs synchronize];
-}
-
-- (void) clearSplashFlag:(CDVInvokedUrlCommand*)command {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    [prefs setBool:NO forKey:@"downloading_update"];
-    [prefs synchronize];
-
-    NSLog(@"Cleared splash flag.");
-    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"] callbackId:command.callbackId];
 }
 
 - (void) getAppInfo:(CDVInvokedUrlCommand*)command {
