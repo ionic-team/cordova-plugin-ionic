@@ -5,7 +5,7 @@
 
 declare const cordova: Cordova;
 
-const channel = require('cordova/channel');
+const channel = cordova.require('cordova/channel');
 channel.createSticky('onIonicProReady');
 channel.waitForInitialization('onIonicProReady');
 
@@ -47,7 +47,6 @@ class Path {
         }
         return fullPath;
     }
-
 }
 
 /**
@@ -649,7 +648,7 @@ class IonicDeploy implements IDeployPluginAPI {
     } else {
       await delegate._handleInitialPreferenceState();
     }
-    
+
     return delegate;
   }
 
