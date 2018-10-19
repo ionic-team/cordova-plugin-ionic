@@ -1,5 +1,4 @@
 #import "IonicCordovaCommon.h"
-#import <Cordova/CDVWebViewEngineProtocol.h>
 #import <Cordova/CDVPluginResult.h>
 #import <objc/message.h>
 
