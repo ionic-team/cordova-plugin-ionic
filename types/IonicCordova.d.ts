@@ -165,7 +165,7 @@ interface IDeployConfig {
   minBackgroundDuration?: number;
 
   /**
-   * whether or not the app should in debug mode
+   * The update method the app should use when checking for available updates
    */
   updateMethod?: boolean;
 }
