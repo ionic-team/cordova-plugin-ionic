@@ -12,6 +12,7 @@ channel.waitForInitialization('onIonicProReady');
 declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
 declare const Ionic: any;
 declare const WEBVIEW_SERVER_URL: string;
+declare const Capacitor: any;
 
 enum UpdateMethod {
   BACKGROUND = 'background',
@@ -117,7 +118,11 @@ class IonicDeployImpl {
   }
 
   getBundledAppDir(): string {
-    return Path.join(cordova.file.applicationDirectory, 'www');
+    let folder = 'www';
+    if (typeof (Capacitor) !== 'undefined') {
+      folder = 'public';
+    }
+    return Path.join(cordova.file.applicationDirectory, folder);
   }
 
   private async _savePrefs(prefs: ISavedPreferences): Promise<ISavedPreferences> {
