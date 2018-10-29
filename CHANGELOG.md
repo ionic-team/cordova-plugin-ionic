@@ -1,8 +1,13 @@
 Changelog
 ======
+## 5.2.6
+* Check for Capacitor and switch folder ([#164](https://github.com/ionic-team/cordova-plugin-ionic/pull/164))
+* Remove unused import ([#163](https://github.com/ionic-team/cordova-plugin-ionic/pull/163))
+* Delay device ready until pro checks are done ([#161](https://github.com/ionic-team/cordova-plugin-ionic/pull/161))
+
 ## 5.2.5
 * Fix bug where binaryVersionName and binaryVersionCode are not returned from getConfiguation call
-* Fix bug where downloadUpdate progress call back would go from 0 to 50 rather than 100 ([#156](https://github.com/ionic-team/cordova-plugin-ionic/pull/156])
+* Fix bug where downloadUpdate progress call back would go from 0 to 50 rather than 100 ([#156](https://github.com/ionic-team/cordova-plugin-ionic/pull/156]))
 * Check if the device is online before checking for updates ([#154](https://github.com/ionic-team/cordova-plugin-ionic/pull/154))
 
 ## 5.2.4
