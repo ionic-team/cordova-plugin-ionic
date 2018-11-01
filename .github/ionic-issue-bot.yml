@@ -33,13 +33,12 @@ closeAndLock:
         If the issue is relevant and if it persists after updating to the latest
         version, please create a new issue. Thank you for using Ionic!
 
-e6e6e6
   close: true
   lock: true
   dryRun: false
 
 stale:
-  days: 90
+  days: 180
   maxIssuesPerRun: 100
   exemptLabels:
     - triage
