@@ -1,5 +1,8 @@
 Changelog
 ======
+## 5.2.7
+Change hook to run before_prepare and make it async ([#178](https://github.com/ionic-team/cordova-plugin-ionic/pull/178))
+
 ## 5.2.6
 * Check for Capacitor and switch folder ([#164](https://github.com/ionic-team/cordova-plugin-ionic/pull/164))
 * Remove unused import ([#163](https://github.com/ionic-team/cordova-plugin-ionic/pull/163))
