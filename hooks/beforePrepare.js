@@ -42,6 +42,8 @@ function ionicVersionOutput(rootDir, resolve, reject, err, version, stderr) {
 function ionicManifestOutput(resolve, reject, err, version, stderr) {
   if(err) {
     console.error('There was an error generating the intial manifest of files for the deploy plugin.');
+    console.log(err);
+    console.log(stderr);
     reject()
   }
   resolve();
