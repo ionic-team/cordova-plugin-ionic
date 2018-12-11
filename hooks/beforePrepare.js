@@ -31,7 +31,7 @@ function ionicVersionOutput(rootDir, resolve, reject, err, version, stderr) {
     reject();
   }
 
-  console.log('Generating intial manifest for Ionic Deploy...');
+  console.log('Generating initial manifest for Ionic Deploy...');
   exec(
     'ionic deploy manifest --no-interactive',
     { cwd: rootDir },
@@ -41,7 +41,7 @@ function ionicVersionOutput(rootDir, resolve, reject, err, version, stderr) {
 
 function ionicManifestOutput(resolve, reject, err, version, stderr) {
   if(err) {
-    console.error('There was an error generating the intial manifest of files for the deploy plugin.');
+    console.error('There was an error generating the initial manifest of files for the deploy plugin.');
     reject()
   }
   resolve();
