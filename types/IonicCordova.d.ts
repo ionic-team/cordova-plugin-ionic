@@ -167,7 +167,7 @@ interface IDeployConfig {
   /**
    * The update method the app should use when checking for available updates
    */
-  updateMethod?: boolean;
+  updateMethod?: 'none' | 'auto' | 'background';
 }
 
 /**
