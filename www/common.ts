@@ -114,7 +114,7 @@ class IonicDeployImpl {
   }
 
   getSnapshotCacheDir(versionId: string): string {
-    return Path.join(cordova.file.dataDirectory, this.SNAPSHOT_CACHE, versionId);
+    return Path.join(this.appInfo.dataDirectory, this.SNAPSHOT_CACHE, versionId);
   }
 
   getBundledAppDir(): string {

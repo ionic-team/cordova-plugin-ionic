@@ -32,6 +32,8 @@
     NSString* bundleName = [[NSBundle mainBundle] infoDictionary][@"CFBundleIdentifier"];
     NSString* versionName = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
     NSString* uuid = [prefs stringForKey:@"uuid"];
+    NSString *libPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString * cordovaDataDirectory = [libPath stringByAppendingPathComponent:@"NoCloud"];
 
     if (versionName == nil) {
       versionName = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
@@ -48,6 +50,7 @@
     json[@"bundleVersion"] = versionName;
     json[@"binaryVersionName"] = versionName;
     json[@"device"] = uuid;
+    json[@"dataDirectory"] = [[NSURL fileURLWithPath:cordovaDataDirectory] absoluteString];
     NSLog(@"Got app info: %@", json);
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json] callbackId:command.callbackId];
