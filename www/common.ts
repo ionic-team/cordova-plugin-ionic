@@ -682,9 +682,12 @@ class IonicDeploy implements IDeployPluginAPI {
     return new Promise<ISavedPreferences>(async (resolve, reject) => {
       try {
         channel.onNativeReady.subscribe(async () => {
-          cordova.exec(async (prefs: ISavedPreferences) => {
-            resolve(prefs);
-          }, reject, 'IonicCordovaCommon', 'getPreferences');
+          // timeout to let browser proxy to init
+          window.setTimeout(function () {
+            cordova.exec(async (prefs: ISavedPreferences) => {
+              resolve(prefs);
+            }, reject, 'IonicCordovaCommon', 'getPreferences');
+          }, 0);
         });
       } catch (e) {
         channel.onIonicProReady.fire();
