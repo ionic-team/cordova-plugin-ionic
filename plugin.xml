@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.9-0">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-ionic" version="5.2.9">
     <name>cordova-plugin-ionic</name>
     <description>Ionic Cordova SDK</description>
     <license>MIT</license>
@@ -72,7 +72,7 @@
     </platform>
     <platform name="browser">
         <js-module src="src/browser/IonicCordovaCommon.js" name="IonicCordovaCommon">
-            <runs />
+            <runs/>
         </js-module>
     </platform>
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
