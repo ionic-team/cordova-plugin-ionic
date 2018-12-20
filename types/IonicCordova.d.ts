@@ -375,6 +375,11 @@ interface IAppInfo {
    * A generated device ID (NOT a native device ID)
    */
   device: string;
+
+  /**
+   * Directory where the snapshots are stored
+   */
+  dataDirectory: string;
 }
 
 /**

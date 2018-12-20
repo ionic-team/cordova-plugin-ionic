@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
@@ -27,6 +28,7 @@ import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -105,6 +107,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
       j.put("bundleVersion", versionName);
       j.put("binaryVersionName", versionName);
       j.put("device", this.uuid);
+      j.put("dataDirectory", toDirUrl(cordova.getActivity().getFilesDir()));
 
       Log.d(TAG, "Got package info. Version: " + versionName + ", bundleName: " + name + ", versionCode: " + versionCode);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, j);
@@ -279,6 +282,10 @@ public class IonicCordovaCommon extends CordovaPlugin {
     final PluginResult result = new PluginResult(PluginResult.Status.OK, newPrefs);
     result.setKeepCallback(false);
     callbackContext.sendPluginResult(result);
+  }
+
+  private static String toDirUrl(File f) {
+    return Uri.fromFile(f).toString() + '/';
   }
 
 }
