@@ -70,6 +70,11 @@
         </config-file>
         <source-file src="src/android/IonicCordovaCommon.java" target-dir="src/com/ionicframework/common"/>
     </platform>
+    <platform name="browser">
+        <js-module src="src/browser/IonicCordovaCommon.js" name="IonicCordovaCommon">
+            <runs />
+        </js-module>
+    </platform>
     <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
     <dependency id="cordova-plugin-ionic-webview" version="^2.1.4"/>
     <dependency id="cordova-plugin-file" version="^6.0.1"/>
