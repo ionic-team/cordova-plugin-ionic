@@ -162,7 +162,8 @@ class IonicDeployImpl {
       device_id: appInfo.device || null,
       platform: appInfo.platform,
       platform_version: appInfo.platformVersion,
-      snapshot: prefs.currentVersionId
+      snapshot: prefs.currentVersionId,
+      build: prefs.currentBuildId
     };
 
     const body = {
@@ -192,7 +193,7 @@ class IonicDeployImpl {
     }
     if (resp.ok) {
       const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
-      if (checkDeviceResp.available && checkDeviceResp.url && checkDeviceResp.snapshot) {
+      if (checkDeviceResp.available && checkDeviceResp.url && checkDeviceResp.snapshot && checkDeviceResp.build) {
         prefs.availableUpdate = {
           binaryVersionCode: prefs.binaryVersionCode,
           binaryVersionName: prefs.binaryVersionName,
@@ -200,7 +201,8 @@ class IonicDeployImpl {
           state: UpdateState.Available,
           lastUsed: new Date().toISOString(),
           url: checkDeviceResp.url,
-          versionId: checkDeviceResp.snapshot
+          versionId: checkDeviceResp.snapshot,
+          buildId: checkDeviceResp.build
         };
         await this._savePrefs(prefs);
       }
@@ -322,6 +324,7 @@ class IonicDeployImpl {
     // Save the current update if it's ready
     if (prefs.availableUpdate && prefs.availableUpdate.state === UpdateState.Ready) {
       prefs.currentVersionId = prefs.availableUpdate.versionId;
+      prefs.currentBuildId = prefs.availableUpdate.buildId;
       delete prefs.availableUpdate;
       await this._savePrefs(prefs);
     }
@@ -443,6 +446,7 @@ class IonicDeployImpl {
     return {
       deploy_uuid: update.versionId,
       versionId: update.versionId,
+      buildId: update.buildId,
       channel: update.channel,
       binary_version: update.binaryVersionName,
       binaryVersion: update.binaryVersionName,
@@ -531,10 +535,11 @@ class IonicDeployImpl {
       }
     }
 
-    if (prefs.currentVersionId) {
+    if (prefs.currentVersionId && prefs.currentBuildId) {
       return {
         deploy_uuid: prefs.currentVersionId,
         versionId: prefs.currentVersionId,
+        buildId: prefs.currentBuildId,
         channel: prefs.channel,
         binary_version: prefs.binaryVersionName,
         binaryVersion: prefs.binaryVersionName,

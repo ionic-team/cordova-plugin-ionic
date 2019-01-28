@@ -231,6 +231,11 @@ interface ICurrentConfig {
    * The id of the currently applied updated or undefined if none is applied.
    */
   currentVersionId?: string;
+
+  /**
+   * The id of the currently applied build or undefined if none is applied.
+   */
+  currentBuildId?: string;
 }
 
 /**
@@ -249,6 +254,11 @@ interface ISnapshotInfo {
    * The id for the snapshot.
    */
   versionId: string;
+
+  /**
+   * The id for the snapshot.
+   */
+  buildId: string;
 
   /**
    * The channel that the snapshot was downloaded for..
@@ -317,6 +327,11 @@ interface CheckDeviceResponse {
    * The id of the snapshot if available.
    */
   snapshot?: string;
+
+  /**
+   * The id of the build if available.
+   */
+  build?: string;
 
   /**
    * The url to fetch the manifest of files in the update.

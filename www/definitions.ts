@@ -6,6 +6,7 @@ export interface IAvailableUpdate {
   state: string;
   url: string;
   versionId: string;
+  buildId: string;
 }
 
 export interface ISavedPreferences extends ICurrentConfig {
