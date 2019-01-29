@@ -148,7 +148,7 @@ class IonicDeployImpl {
     this._savePrefs(this._savedPreferences);
   }
 
-  async checkForUpdate(): Promise<CheckDeviceResponse> {
+  async checkForUpdate(): Promise<CheckForUpdateResponse> {
     const isOnline = navigator && navigator.onLine;
     if (!isOnline) {
       throw new Error('The device is offline.');
@@ -192,21 +192,21 @@ class IonicDeployImpl {
       jsonResp = await resp.json();
     }
     if (resp.ok) {
-      const checkDeviceResp: CheckDeviceResponse = jsonResp.data;
-      if (checkDeviceResp.available && checkDeviceResp.url && checkDeviceResp.snapshot && checkDeviceResp.build) {
+      const checkForUpdateResp: CheckForUpdateResponse = jsonResp.data;
+      if (checkForUpdateResp.available && checkForUpdateResp.url && checkForUpdateResp.snapshot && checkForUpdateResp.build) {
         prefs.availableUpdate = {
           binaryVersionCode: prefs.binaryVersionCode,
           binaryVersionName: prefs.binaryVersionName,
           channel: prefs.channel,
           state: UpdateState.Available,
           lastUsed: new Date().toISOString(),
-          url: checkDeviceResp.url,
-          versionId: checkDeviceResp.snapshot,
-          buildId: checkDeviceResp.build
+          url: checkForUpdateResp.url,
+          versionId: checkForUpdateResp.snapshot,
+          buildId: checkForUpdateResp.build
         };
         await this._savePrefs(prefs);
       }
-      return checkDeviceResp;
+      return checkForUpdateResp;
     }
 
     throw new Error(`Error Status ${resp.status}: ${jsonResp ? jsonResp.error.message : await resp.text()}`);
@@ -701,7 +701,7 @@ class IonicDeploy implements IDeployPluginAPI {
     });
   }
 
-  async checkForUpdate(): Promise<CheckDeviceResponse> {
+  async checkForUpdate(): Promise<CheckForUpdateResponse> {
     if (!this.disabled) {
       return (await this.delegate).checkForUpdate();
     }

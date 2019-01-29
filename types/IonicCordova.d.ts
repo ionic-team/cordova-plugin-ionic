@@ -32,7 +32,7 @@ interface IDeployPluginAPI {
    *
    * @return  A response describing an update if one is available.
    */
-  checkForUpdate(): Promise<CheckDeviceResponse>;
+  checkForUpdate(): Promise<CheckForUpdateResponse>;
 
   /**
    * @description Download the new files from an available update found by the checkForUpdate method and prepare the update.
@@ -305,7 +305,7 @@ interface ISyncOptions {
 /**
  * The response object describing if an update is available.
  */
-interface CheckDeviceResponse {
+interface CheckForUpdateResponse {
   /**
    * Whether or not an update is available.
    */
@@ -339,9 +339,9 @@ interface CheckDeviceResponse {
   url?: string;
 
   /**
-   * The checksum of the manifest file.
+   * Whether or not there is an update available that is not compatible with this device.
    */
-  integrity?: string;
+  incompatibleUpdateAvailable?: boolean;
 }
 
 /**

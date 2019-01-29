@@ -29,7 +29,7 @@ The IonicCordova Plugin API
 
 **● deploy**: *[IDeployPluginAPI](_ioniccordova_d_.ideploypluginapi.md)*
 
-*Defined in [IonicCordova.d.ts:180](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L180)*
+*Defined in [IonicCordova.d.ts:128](https://github.com/ionic-team/cordova-plugin-ionic/blob/fe62482/types/IonicCordova.d.ts#L128)*
 
 An instance of the Ionic Deploy Plugin API
 
@@ -43,7 +43,7 @@ ___
 
 ▸ **getAppDetails**(): `Promise`<[IAppInfo](_ioniccordova_d_.iappinfo.md)>
 
-*Defined in [IonicCordova.d.ts:175](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L175)*
+*Defined in [IonicCordova.d.ts:123](https://github.com/ionic-team/cordova-plugin-ionic/blob/fe62482/types/IonicCordova.d.ts#L123)*
 
 *__description__*: Get info about the current app.
 
@@ -56,13 +56,13 @@ ___
 
 ▸ **getAppInfo**(success: *`Function`*, failure: *`Function`*): `void`
 
-*Defined in [IonicCordova.d.ts:169](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L169)*
+*Defined in [IonicCordova.d.ts:117](https://github.com/ionic-team/cordova-plugin-ionic/blob/fe62482/types/IonicCordova.d.ts#L117)*
 
 **Parameters:**
 
-| Param | Type | Description |
+| Name | Type | Description |
 | ------ | ------ | ------ |
-| success | `Function` |  - |
+| success | `Function` |  \- |
 | failure | `Function` |   |
 
 **Returns:** `void`
