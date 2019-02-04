@@ -1,5 +1,9 @@
 Changelog
 ======
+## 5.3.0
+* Added an 'incompatibleUpdateAvailable' property to the 'CheckForUpdateResponse' ([#204] (https://github.com/ionic-team/cordova-plugin-ionic/pull/204))
+* 'ConfigurationInfo' now contains the 'BuildId' in addition to the 'SnapshotId' ([#204] (https://github.com/ionic-team/cordova-plugin-ionic/pull/204))
+
 ## 5.2.9
 * Get dataDirectory from getAppInfo function ([#197](https://github.com/ionic-team/cordova-plugin-ionic/pull/197))
 * Add proxy for browser platform to support it ([#199](https://github.com/ionic-team/cordova-plugin-ionic/pull/199))
