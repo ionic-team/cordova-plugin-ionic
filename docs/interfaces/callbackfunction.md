@@ -13,15 +13,13 @@ A callback function to handle the result.
 ## Callable
 ▸ **__call**(result?: *[T]()*): `void`
 
-*Defined in [IonicCordova.d.ts:303](https://github.com/ionic-team/cordova-plugin-ionic/blob/e9ad281/types/IonicCordova.d.ts#L303)*
-
 A callback function to handle the result.
 
 **Parameters:**
 
-| Param | Type |
+| Name | Type |
 | ------ | ------ |
-| `Optional` result | [T]() | 
+| `Optional` result | [T]() |
 
 **Returns:** `void`
 

@@ -32,7 +32,7 @@ interface IDeployPluginAPI {
    *
    * @return  A response describing an update if one is available.
    */
-  checkForUpdate(): Promise<CheckDeviceResponse>;
+  checkForUpdate(): Promise<CheckForUpdateResponse>;
 
   /**
    * @description Download the new files from an available update found by the checkForUpdate method and prepare the update.
@@ -231,6 +231,11 @@ interface ICurrentConfig {
    * The id of the currently applied updated or undefined if none is applied.
    */
   currentVersionId?: string;
+
+  /**
+   * The id of the currently applied build or undefined if none is applied.
+   */
+  currentBuildId?: string;
 }
 
 /**
@@ -249,6 +254,11 @@ interface ISnapshotInfo {
    * The id for the snapshot.
    */
   versionId: string;
+
+  /**
+   * The id for the snapshot.
+   */
+  buildId: string;
 
   /**
    * The channel that the snapshot was downloaded for..
@@ -295,7 +305,7 @@ interface ISyncOptions {
 /**
  * The response object describing if an update is available.
  */
-interface CheckDeviceResponse {
+interface CheckForUpdateResponse {
   /**
    * Whether or not an update is available.
    */
@@ -319,14 +329,19 @@ interface CheckDeviceResponse {
   snapshot?: string;
 
   /**
+   * The id of the build if available.
+   */
+  build?: string;
+
+  /**
    * The url to fetch the manifest of files in the update.
    */
   url?: string;
 
   /**
-   * The checksum of the manifest file.
+   * Whether or not there is an update available that is not compatible with this device.
    */
-  integrity?: string;
+  incompatibleUpdateAvailable?: boolean;
 }
 
 /**
