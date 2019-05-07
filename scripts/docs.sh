@@ -1,7 +1,4 @@
 #!/bin/bash
 set -o errexit
 rm -rf docs
-npx typedoc --theme markdown --mdEngine github --name "Cordova Plugin Ionic" --readme none --hideGenerator --out docs/ --includeDeclarations --excludeExternals --mdHideSources --mode file types/IonicCordova.d.ts
-rm -rf docs/README.md
-rm -rf docs/modules
-ls -d -1 docs/interfaces/* | xargs sed -i '' 's/README\.md.*\.md/..\/README.md/g'
+npx typedoc --theme markdown --excludePrivate --excludeExternals --mdEngine github --name "Ionic Deploy" --readme README.md --hideGenerator --out docs/ --includeDeclarations --mdHideSources --mode file www/common.ts www/definitions.ts

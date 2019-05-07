@@ -1,34 +1,14 @@
-/// <reference path="../types/IonicCordova.d.ts" />
-/// <reference types="cordova-plugin-file" />
-/// <reference types="cordova-plugin-file-transfer" />
-/// <reference types="cordova" />
-
-declare const cordova: Cordova;
-
-const channel = cordova.require('cordova/channel');
-channel.createSticky('onIonicProReady');
-channel.waitForInitialization('onIonicProReady');
-
-declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
-declare const Ionic: any;
-declare const WEBVIEW_SERVER_URL: string;
-declare const Capacitor: any;
-
-enum UpdateMethod {
-  BACKGROUND = 'background',
-  AUTO = 'auto',
-  NONE = 'none',
-}
-
-enum UpdateState {
-  Available = 'available',
-  Pending = 'pending',
-  Ready = 'ready',
-}
-
 import {
-  FetchManifestResp, IAvailableUpdate,
+  CallbackFunction,
+  CheckForUpdateResponse,
+  FetchManifestResp,
+  IAppInfo,
+  IAvailableUpdate,
+  ICurrentConfig,
+  IDeployConfig,
   ISavedPreferences,
+  ISnapshotInfo,
+  ISyncOptions,
   ManifestFileEntry,
 } from './definitions';
 
@@ -36,7 +16,67 @@ import {
   isPluginConfig
 } from './guards';
 
+/**
+ * @hidden
+ */
+declare global {
+  interface Window {
+    IonicCordova: IonicCordovaPlugin;
+  }
+}
 
+
+/**
+ * @hidden
+ */
+declare const cordova: Cordova;
+
+/**
+ * @hidden
+ */
+const channel = cordova.require('cordova/channel');
+channel.createSticky('onIonicProReady');
+channel.waitForInitialization('onIonicProReady');
+
+/**
+ * @hidden
+ */
+declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
+/**
+ * @hidden
+ */
+declare const Ionic: any;
+/**
+ * @hidden
+ */
+declare const WEBVIEW_SERVER_URL: string;
+/**
+ * @hidden
+ */
+declare const Capacitor: any;
+
+/**
+ * @hidden
+ */
+enum UpdateMethod {
+  BACKGROUND = 'background',
+  AUTO = 'auto',
+  NONE = 'none',
+}
+
+/**
+ * @hidden
+ */
+enum UpdateState {
+  Available = 'available',
+  Pending = 'pending',
+  Ready = 'ready',
+}
+
+
+/**
+ * @hidden
+ */
 class Path {
     static join(...paths: string[]): string {
         let fullPath: string = paths.shift() || '';
@@ -54,8 +94,8 @@ class Path {
  * LIVE UPDATE API
  *
  * The plugin API for the live updates feature.
+ * @hidden
  */
-
 class IonicDeployImpl {
 
   private readonly appInfo: IAppInfo;
@@ -551,6 +591,9 @@ class IonicDeployImpl {
   }
 }
 
+/**
+ * @hidden
+ */
 class FileManager {
 
   async getDirectory(path: string, createDirectory = true): Promise<DirectoryEntry> {
@@ -631,22 +674,52 @@ class FileManager {
 
 
 
-class IonicDeploy implements IDeployPluginAPI {
-  private parent: IPluginBaseAPI;
+/**
+ * The Ionic Deploy Plugin API
+ * @usage
+ * ```typescript
+ * async performManualUpdate() {
+ *   const update = await Deploy.checkForUpdate()
+ *   if (update.available){
+ *     // We have an update!
+ *   }
+ * }
+ * ```
+ *
+ * ## Methods
+ *
+ * The plugin contains many functions that can help you utilize Deploy inside of your app.
+ * * {@link checkForUpdate}
+ * * {@link configure}
+ * * {@link deleteVersionById}
+ * * {@link downloadUpdate}
+ * * {@link extractUpdate}
+ * * {@link getAvailableVersions}
+ * * {@link getConfiguration}
+ * * {@link getCurrentVersion}
+ * * {@link getVersionById}
+ * * {@link reloadApp}
+ * * {@link sync}
+ */
+class IonicDeploy {
+  private parent: IonicCordovaPlugin;
   private delegate: Promise<IonicDeployImpl>;
   private fetchIsAvailable: boolean;
   private lastPause = 0;
   private minBackgroundDuration = 10;
   private disabled = false;
 
-  constructor(parent: IPluginBaseAPI) {
+  /**
+   * @hidden
+   */
+  constructor(parent: IonicCordovaPlugin) {
     this.parent = parent;
     this.delegate = this.initialize();
     this.fetchIsAvailable = typeof(fetch) === 'function';
     document.addEventListener('deviceready', this.onLoad.bind(this));
   }
 
-  async initialize() {
+  private async initialize() {
     const preferences = await this._initPreferences();
     this.minBackgroundDuration = preferences.minBackgroundDuration;
     this.disabled = preferences.disabled || !this.fetchIsAvailable;
@@ -667,23 +740,23 @@ class IonicDeploy implements IDeployPluginAPI {
     return delegate;
   }
 
-  async onLoad() {
+  private async onLoad() {
     document.addEventListener('pause', this.onPause.bind(this));
     document.addEventListener('resume', this.onResume.bind(this));
     await this.onResume();
   }
 
-  async onPause() {
+  private async onPause() {
     this.lastPause = Date.now();
   }
 
-  async onResume() {
+  private async onResume() {
     if (!this.disabled && this.lastPause && this.minBackgroundDuration && Date.now() - this.lastPause > this.minBackgroundDuration * 1000) {
       await (await this.delegate)._handleInitialPreferenceState();
     }
   }
 
-  async _initPreferences(): Promise<ISavedPreferences> {
+  private async _initPreferences(): Promise<ISavedPreferences> {
     return new Promise<ISavedPreferences>(async (resolve, reject) => {
       try {
         channel.onNativeReady.subscribe(async () => {
@@ -701,6 +774,23 @@ class IonicDeploy implements IDeployPluginAPI {
     });
   }
 
+  /**
+   * @description Check for available updates for the currently configured app id and channel.
+   *
+   * @since v5.0.0
+   *
+   * @returns  A response describing an update if one is available.
+   *
+   * @usage
+   * ```typescript
+   * async performManualUpdate() {
+   *   const update = await Deploy.checkForUpdate()
+   *   if (update.available){
+   *     // We have an update!
+   *   }
+   * }
+   * ```
+   */
   async checkForUpdate(): Promise<CheckForUpdateResponse> {
     if (!this.disabled) {
       return (await this.delegate).checkForUpdate();
@@ -708,10 +798,53 @@ class IonicDeploy implements IDeployPluginAPI {
     return  {available: false, compatible: false, partial: false};
   }
 
+  /**
+   * @description Update the default configuration for the plugin on the current device. The new configuration will be persisted across app close and binary updates.
+   *
+   * @since v5.0.0
+   *
+   * @param config The new configuration for the plugin on this device.
+   *
+   * @usage
+   * ```typescript
+   * async configureDeploy() {
+   *   const config = {
+   *     'appId': 'YOUR_APP_ID',
+   *     'channel': 'CHANNEL_NAME'
+   *   }
+   *   await Deploy.configure(config);
+   * }
+   * ```
+   */
   async configure(config: IDeployConfig): Promise<void> {
     if (!this.disabled) return (await this.delegate).configure(config);
   }
 
+  /**
+   * @description Get the current configuration for the plugin on the current device.
+   *
+   * @since v5.0.0
+   *
+   * @return The current configuration of the plugin.
+   *
+   * @usage
+   * ```typescript
+   * const info = Deploy.getConfiguration()
+   * console.log(info)
+   * // {
+   * //   'appId': 'abcd1234',
+   * //   'channel': 'MY_CHANNEL_NAME',
+   * //   'binaryVersionName': 'X.X.X',
+   * //   'binaryVersionCode': 'X.X.X', (string on iOS number on Android)
+   * //   'disabled': false,
+   * //   'updateMethod': 'auto',
+   * //   'maxVersions': 3,
+   * //   'minBackgroundDuration': 30,
+   * //   'currentVersionId': 'xxxx-xxxx-xxxx-xxxx'
+   * //   'currentBuildId' : 'xxxxxxx'
+   * // }
+   * ```
+   */
   async getConfiguration(): Promise<ICurrentConfig> {
     return new Promise<ICurrentConfig>(async (resolve, reject) => {
       try {
@@ -730,41 +863,215 @@ class IonicDeploy implements IDeployPluginAPI {
     });
   }
 
+  /**
+   * @description Remove the files specific to a snapshot from the device.
+   *
+   * @param version The versionId
+   *
+   * @return true if the update was deleted.
+   *
+   * @usage
+   * ```typescript
+   * async deleteVersion() {
+   *   const versions = await Deploy.getAvailableVersions();
+   *   Deploy.deleteVersionById(versions[0].versionId);
+   * }
+   * ```
+   */
   async deleteVersionById(version: string): Promise<boolean> {
     if (!this.disabled) return (await this.delegate).deleteVersionById(version);
     return true;
   }
 
+  /**
+   * @description Download the new files from an available update found by the checkForUpdate method and prepare the update.
+   *
+   * @since v5.0.0
+   *
+   * @param progress A progress callback function which will be called with a number representing the percent of completion of the download and prepare.
+   *
+   * @return  true if the download succeeded
+   *
+   * @usage
+   * ```typescript
+   * async performManualUpdate() {
+   *   const update = await Deploy.checkForUpdate()
+   *   if (update.available){
+   *     await Deploy.downloadUpdate((progress) => {
+   *       console.log(progress);
+   *     })
+   *   }
+   * }
+   * ```
+   */
   async downloadUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     if (!this.disabled) return (await this.delegate).downloadUpdate(progress);
     return false;
   }
 
+  /**
+   * @description Extract a downloaded bundle of updated files.
+   *
+   * @since v5.0.0
+   *
+   * @param progress A progress callback function which will be called with a number representing the percent of completion of the extract.
+   *
+   * @return  true if the extract succeeded
+   *
+   * @usage
+   * ```typescript
+   * async performManualUpdate() {
+   *   const update = await Deploy.checkForUpdate()
+   *   if (update.available){
+   *     await Deploy.downloadUpdate((progress) => {
+   *       console.log(progress);
+   *     })
+   *     await Deploy.extractUpdate((progress) => {
+   *       console.log(progress);
+   *     })
+   *   }
+   * }
+   * ```
+   */
   async extractUpdate(progress?: CallbackFunction<number>): Promise<boolean> {
     if (!this.disabled) return (await this.delegate).extractUpdate(progress);
     return false;
   }
 
+  /**
+   * @description Get a list of the snapshots available on the device.
+   *
+   * @since v5.0.0
+   *
+   * @return a list of available updates.
+   *
+   * @usage
+   * ```typescript
+   * async checkVersions() {
+   * const versions = await Deploy.getAvailableVersions();
+   * console.log(versions);
+   * // [
+   * //   {
+   * //     'versionId': 'versionId1',
+   * //     'channel': 'CHANNEL_NAME',
+   * //     'binaryVersion': '1.0.1'
+   * //   },
+   * //   {
+   * //     'versionId': 'versionId2',
+   * //     'channel': 'CHANNEL_NAME',
+   * //     'binaryVersion': '1.0.1'
+   * //   },
+   * // ]
+   *
+   * ```
+   */
   async getAvailableVersions(): Promise<ISnapshotInfo[]> {
     if (!this.disabled) return (await this.delegate).getAvailableVersions();
     return [];
   }
 
+  /**
+   *
+   * @description Get info about the currently deployed update or undefined if none are applied.
+   *
+   * @since v5.0.0
+   *
+   * @return The info about the currently applied update or undefined if none is applied.
+   *
+   * @usage
+   * ```typescript
+   * const info = await Deploy.getCurrentVersion()
+   * console.log(info)
+   * // {
+   * //   'versionId': 'UUID_OF_ACTIVE_CODE',
+   * //   'channel': 'CHANNEL_NAME',
+   * //   'binaryVersion': 'X.X.X'
+   * // }
+   * ```
+   */
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
     if (!this.disabled) return (await this.delegate).getCurrentVersion();
     return;
   }
 
+  /**
+   *
+   * @description Get info about the update by its versionId
+   *
+   * @since v5.0.0
+   *
+   * @return The info about the currently applied update or undefined if none is applied.
+   *
+   * @usage
+   * ```typescript
+   * const info = await Deploy.getVersionById(versionId)
+   * console.log(info)
+   * // {
+   * //   'versionId': 'UUID_OF_VERSION',
+   * //   'channel': 'CHANNEL_NAME',
+   * //   'binaryVersion': 'X.X.X'
+   * // }
+   * ```
+   */
   async getVersionById(versionId: string): Promise<ISnapshotInfo> {
     if (!this.disabled) return (await this.delegate).getVersionById(versionId);
     throw Error(`No update available with versionId ${versionId}`);
   }
 
+  /**
+   * @description Reload the app if a more recent version of the app is available.
+   *
+   * @since v5.0.0
+   *
+   * @return true if the reload succeeded
+   *
+   * @usage
+   * ```typescript
+   * async performManualUpdate() {
+   *   const update = await Deploy.checkForUpdate()
+   *   if (update.available){
+   *     await Deploy.downloadUpdate((progress) => {
+   *       console.log(progress);
+   *     })
+   *     await Deploy.extractUpdate((progress) => {
+   *       console.log(progress);
+   *     })
+   *     await Deploy.reloadApp();
+   *   }
+   * }
+   * ```
+   */
   async reloadApp(): Promise<boolean> {
     if (!this.disabled) return (await this.delegate).reloadApp();
     return false;
   }
 
+  /**
+   * @description Check for an update, download it, and apply it in one step.
+   *
+   * @since v5.0.0
+   *
+   * @param syncOptions (Optional) Application update overrides.
+   *
+   * @return The info about the currently applied update or undefined if none is applied.
+   *
+   * @usage
+   * ```typescript
+   * async performAutomaticUpdate() {
+   *   try {
+   *     const currentVersion = Deploy.getCurrentVersion();
+   *     const resp = await Deploy.sync({updateMethod: 'auto'});
+   *     if (currentVersion.versionId !== resp.versionId){
+   *       // We found an update, and are in process of redirecting you since you put auto!
+   *     }else{
+   *       // No update available
+   *     }
+   *   } catch (err) {
+   *     // We encountered an error.
+   *   }
+   * }
+   * ```
+   */
   async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
     if (!this.disabled) return (await this.delegate).sync(syncOptions);
     return;
@@ -773,14 +1080,11 @@ class IonicDeploy implements IDeployPluginAPI {
 
 
 /**
- * BASE API
- *
- * All features of the Ionic Cordova plugin are registered here, along with some low level error tracking features used
- * by the monitoring service.
+ * @hidden
  */
-class IonicCordova implements IPluginBaseAPI {
+class IonicCordovaPlugin {
 
-  public deploy: IDeployPluginAPI;
+  public deploy: IonicDeploy;
 
   constructor() {
     this.deploy = new IonicDeploy(this);
@@ -804,6 +1108,18 @@ class IonicCordova implements IPluginBaseAPI {
   }
 }
 
+/**
+ * @hidden
+ */
+export const IonicCordova = new IonicCordovaPlugin();
+/**
+ * @hidden
+ */
+export const Deploy = IonicCordova.deploy;
+
+/**
+ * @hidden
+ */
 class Timer {
   name: string;
   startTime: Date;
@@ -827,6 +1143,3 @@ class Timer {
     this.lastTime = new Date();
   }
 }
-
-const instance = new IonicCordova();
-export = instance;

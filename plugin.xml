@@ -6,8 +6,14 @@
     <keywords>ionic,cordova,deploy,liveupdates,mobile,hybrid,ecosystem:cordova,cordova-android,cordova-ios</keywords>
     <repo>https://github.com/ionic-team/cordova-plugin-ionic.git</repo>
     <issue>https://github.com/ionic-team/cordova-plugin-ionic/issues</issue>
-    <js-module src="dist/common.js">
+    <js-module src="dist/ionicdeploy.js">
         <clobbers target="IonicCordova"/>
+    </js-module>
+    <js-module src="dist/common.js">
+        <runs/>
+    </js-module>
+    <js-module src="dist/definitions.js">
+        <runs/>
     </js-module>
     <js-module src="dist/guards.js" name="guards">
         <runs/>
@@ -75,7 +81,6 @@
             <runs/>
         </js-module>
     </platform>
-    <dependency id="cordova-plugin-splashscreen" version="^5.0.1"/>
     <dependency id="cordova-plugin-ionic-webview" version=">=2.1.4"/>
     <dependency id="cordova-plugin-file" version="^6.0.1"/>
     <dependency id="cordova-plugin-file-transfer" version="^1.7.1"/>

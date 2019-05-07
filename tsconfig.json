@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowUnreachableCode": false,
     "noImplicitAny": true,
-    "declaration": false,
+    "declaration": true,
     "importHelpers": false,
     "module": "commonjs",
     "outDir": "dist",
@@ -12,6 +12,11 @@
     "pretty": true,
     "strict": true,
     "target": "es5",
+    "types": [
+      "cordova",
+      "cordova-plugin-file",
+      "cordova-plugin-file-transfer"
+    ],
     "lib": [
       "es2015",
       "dom"

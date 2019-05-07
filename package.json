@@ -8,7 +8,7 @@
       "ios"
     ]
   },
-  "types": "types/IonicCordova.d.ts",
+  "main": "dist/index.js",
   "description": "Ionic Cordova SDK",
   "engines": {
     "cordovaDependencies": {
@@ -61,6 +61,7 @@
     "cordova-ios"
   ],
   "dependencies": {
+    "@ionic/typedoc-plugin-markdown": "^1.0.5",
     "@types/cordova-plugin-file-transfer": "^1.6.2",
     "mkpath": ">=1.0.0",
     "node-version-compare": ">=1.0.1",
@@ -89,8 +90,7 @@
     "ts-jest": "^22.4.2",
     "tslint": "^5.9.1",
     "tslint-ionic-rules": "0.0.14",
-    "typedoc": "^0.11.1",
-    "typedoc-plugin-markdown": "^1.1.6",
+    "typedoc": "^0.14.2",
     "typescript": "^2.6.2",
     "watch": "^1.0.2"
   },
