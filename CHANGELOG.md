@@ -1,5 +1,8 @@
 Changelog
 ======
+## 5.3.1
+* Add cordova-plugin-whitelist dependency ([#215] (https://github.com/ionic-team/cordova-plugin-ionic/pull/215))
+
 ## 5.3.0
 * Added an 'incompatibleUpdateAvailable' property to the 'CheckForUpdateResponse' ([#204] (https://github.com/ionic-team/cordova-plugin-ionic/pull/204))
 * 'ConfigurationInfo' now contains the 'BuildId' in addition to the 'SnapshotId' ([#204] (https://github.com/ionic-team/cordova-plugin-ionic/pull/204))
