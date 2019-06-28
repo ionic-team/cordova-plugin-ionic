@@ -36,8 +36,8 @@ Allows to disable deploy updates by adding this preference in the config.xml
 
 ## API Docs
 
-* [IonicCordova](docs/interfaces/_ioniccordova_d_.ipluginbaseapi.md)
-* [IonicCordova.deploy](docs/interfaces/_ioniccordova_d_.ideploypluginapi.md)
+* [IonicCordova](docs/interfaces/ipluginbaseapi.md)
+* [IonicCordova.deploy](docs/interfaces/ideploypluginapi.md)
 
 ### External modules
 
