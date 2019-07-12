@@ -257,7 +257,7 @@ class IonicDeployImpl {
     let downloads = [];
     let count = 0;
     console.log(`About to download ${manifest.length} new files for update.`);
-    const maxBatch = 20;
+    const maxBatch = 2000;
     let numberBatches = Math.round(manifest.length / maxBatch);
     if (manifest.length % maxBatch !== 0) {
       numberBatches = numberBatches + 1;
