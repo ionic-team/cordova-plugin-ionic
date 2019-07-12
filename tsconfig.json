@@ -2,7 +2,8 @@
   "compilerOptions": {
     "allowUnreachableCode": false,
     "noImplicitAny": true,
-    "declaration": false,
+    "declaration": true,
+    "experimentalDecorators": true,
     "importHelpers": false,
     "module": "commonjs",
     "outDir": "dist",

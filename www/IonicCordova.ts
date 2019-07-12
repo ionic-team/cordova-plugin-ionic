@@ -1,11 +1,14 @@
-interface Window {
-  IonicCordova: IPluginBaseAPI;
+declare global {
+  interface Window {
+    IonicCordova: IPluginBaseAPI;
+  }
+  type IDeployPluginAPI = DeployPluginAPI;
 }
 
 /**
  * The Public API for the deploy Plugin
  */
-interface IDeployPluginAPI {
+export interface DeployPluginAPI {
 
   /**
    * @description Update the default configuration for the plugin on the current device. The new configuration will be persisted across app close and binary updates.
@@ -72,9 +75,11 @@ interface IDeployPluginAPI {
    *
    * @param syncOptions (Optional) Application update overrides.
    *
+   * @param progress (Optional) A callback which will recieve progress updates
+   *
    * @return The info about the currently applied update or undefined if none is applied.
    */
-  sync(syncOptions: ISyncOptions): Promise<ISnapshotInfo | undefined>;
+  sync(syncOptions: ISyncOptions, progress?: CallbackFunction<number>): Promise<ISnapshotInfo | undefined>;
 
   /**
    *
@@ -103,12 +108,22 @@ interface IDeployPluginAPI {
    * @return true if the update was deleted.
    */
   deleteVersionById(versionId: string): Promise<boolean>;
+
+  /**
+   * @description Returns info specific to a snapshot from the device.
+   *
+   * @param version The versionId
+   *
+   * @return Returns info specific to a snapshot from the device.
+   *
+   */
+  getVersionById(versionId: string): Promise<ISnapshotInfo | undefined>;
 }
 
 /**
  * The IonicCordova Plugin API
  */
-interface IPluginBaseAPI {
+export interface IPluginBaseAPI {
   /**
    *
    * @param success
@@ -131,7 +146,7 @@ interface IPluginBaseAPI {
 /**
  * The configuration for the deploy plugin on the device.
  */
-interface IDeployConfig {
+export interface IDeployConfig {
 
   /**
    * The [Ionic Pro](https://ionicframework.com/docs/pro/) app id.
@@ -173,7 +188,7 @@ interface IDeployConfig {
 /**
  * The current configuration for the deploy plugin on the device.
  */
-interface ICurrentConfig {
+export interface ICurrentConfig {
   /**
    * The [Ionic Pro](https://ionicframework.com/docs/pro/) app id.
    */
@@ -241,7 +256,7 @@ interface ICurrentConfig {
 /**
  * Information about a snapshot
  */
-interface ISnapshotInfo {
+export interface ISnapshotInfo {
 
   /**
    * @deprecated in favor of [versionId](#versionid)
@@ -295,7 +310,7 @@ interface ISnapshotInfo {
 /**
  * Configuration options for the call to `sync`
  */
-interface ISyncOptions {
+export interface ISyncOptions {
   /**
    * Whether the update should be applied immediately or on the next app start.
    */
@@ -305,7 +320,7 @@ interface ISyncOptions {
 /**
  * The response object describing if an update is available.
  */
-interface CheckForUpdateResponse {
+export interface CheckForUpdateResponse {
   /**
    * Whether or not an update is available.
    */
@@ -347,7 +362,7 @@ interface CheckForUpdateResponse {
 /**
  * Information about the application.
  */
-interface IAppInfo {
+export interface IAppInfo {
 
   /**
    * The platform that the app is currently installed on.
@@ -395,9 +410,14 @@ interface IAppInfo {
    * Directory where the snapshots are stored
    */
   dataDirectory: string;
+
+  /**
+   * Directory where the application files are stored
+   */
+  applicationDirectory: string;
 }
 
 /**
  * A callback function to handle the result.
  */
-interface CallbackFunction<T> { (result?: T): void; }
+export interface CallbackFunction<T> { (result?: T): void; }

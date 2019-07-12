@@ -1,19 +1,11 @@
 package com.ionicframework.common;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.content.res.AssetManager;
 import android.net.Uri;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
-import android.view.Display;
-import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -23,12 +15,19 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import android.os.Environment;
 import android.util.Log;
 import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -36,9 +35,15 @@ public class IonicCordovaCommon extends CordovaPlugin {
   public static final String TAG = "IonicCordovaCommon";
   private static final String  PREFS_KEY = "ionicDeploySavedPreferences";
   private static final String  CUSTOM_PREFS_KEY = "ionicDeployCustomPreferences";
+  private AssetManager assetManager;
+
 
   private SharedPreferences prefs;
   private String uuid;
+
+  private interface FileOp {
+    void run(final JSONArray args, final CallbackContext callbackContext) throws Exception;
+  }
 
   /**
    * Sets the context of the Command. This can then be used to do things like
@@ -53,11 +58,23 @@ public class IonicCordovaCommon extends CordovaPlugin {
     // Initialize shared preferences
     Context cxt = this.cordova.getActivity().getApplicationContext();
     this.prefs = cxt.getSharedPreferences("com.ionic.common.preferences", Context.MODE_PRIVATE);
+    assetManager = cordova.getContext().getAssets();
 
     // Get or generate a plugin UUID
     this.uuid = this.prefs.getString("uuid", UUID.randomUUID().toString());
     prefs.edit().putString("uuid", this.uuid).apply();
+  }
 
+  private void threadhelper(final FileOp f, final JSONArray args, final CallbackContext callbackContext){
+    cordova.getThreadPool().execute(new Runnable() {
+      public void run() {
+        try {
+          f.run(args, callbackContext);
+        } catch ( Exception e) {
+          callbackContext.error(e.getMessage());
+        }
+      }
+    });
   }
 
   /**
@@ -77,11 +94,200 @@ public class IonicCordovaCommon extends CordovaPlugin {
       this.setPreferences(callbackContext, args.getJSONObject(0));
     } else if (action.equals("configure")){
       this.configure(callbackContext, args.getJSONObject(0));
+    } else if (action.equals("copyTo")){
+      this.copyTo(callbackContext, args.getJSONObject(0));
+    } else if (action.equals("remove")){
+      this.remove(callbackContext, args.getJSONObject(0));
+    } else if (action.equals("downloadFile")){
+      threadhelper( new FileOp( ){
+        public void run(final JSONArray passedArgs, final CallbackContext cbcontext) throws JSONException {
+          downloadFile(cbcontext, passedArgs.getJSONObject(0));
+        }
+      }, args, callbackContext);
+
     } else {
       return false;
     }
 
     return true;
+  }
+
+  private File getDirectory(String directory) {
+    Context c = cordova.getContext();
+    switch(directory) {
+      case "DOCUMENTS":
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+      case "DATA":
+        return c.getFilesDir();
+      case "CACHE":
+        return c.getCacheDir();
+      case "EXTERNAL":
+        return c.getExternalFilesDir(null);
+      case "EXTERNAL_STORAGE":
+        return Environment.getExternalStorageDirectory();
+    }
+    return null;
+  }
+
+  private void copyAssets(String assetPath, String targetDir) throws IOException {
+    String[] files = null;
+    try {
+      files = assetManager.list(assetPath);
+    } catch (IOException e) {
+      Log.e("tag", "Failed to get asset file list.", e);
+    }
+    if (files != null) for (String filename : files) {
+      InputStream in = null;
+      OutputStream out = null;
+      try {
+        if (assetManager.list(assetPath + "/" + filename).length > 0) {
+          File newDir = new File(targetDir, filename);
+          newDir.mkdir();
+          copyAssets(assetPath + "/" + filename, newDir.getPath());
+          continue;
+        }
+        in = assetManager.open(assetPath + "/" + filename);
+        File destDir = new File(targetDir);
+        if (!destDir.exists()) {
+            destDir.mkdirs();
+        }
+        File outFile = new File(targetDir, filename);
+        out = new FileOutputStream(outFile);
+        copyFile(in, out);
+      } catch(IOException e) {
+        Log.e("tag", "Failed to copy asset file: " + filename, e);
+      }
+      finally {
+        if (in != null) {
+          try {
+            in.close();
+          } catch (IOException e) {
+            // NOOP
+          }
+        }
+        if (out != null) {
+          try {
+            out.close();
+          } catch (IOException e) {
+            // NOOP
+          }
+        }
+      }
+    }
+  }
+
+  private void copyFile(InputStream in, OutputStream out) throws IOException {
+    byte[] buffer = new byte[1024];
+    int read;
+    while((read = in.read(buffer)) != -1){
+      out.write(buffer, 0, read);
+    }
+  }
+
+  /**
+   * copy a directory or file to another location
+   *
+   */
+  public void copyTo(CallbackContext callbackContext, JSONObject options) throws JSONException {
+    Log.d(TAG, "copyTo called with " + options.toString());
+    PluginResult result;
+
+    try {
+      JSONObject source = options.getJSONObject("source");
+      String target = options.getString("target");
+
+      if (source.getString("directory").equals("APPLICATION")) {
+        this.copyAssets(source.getString("path"), target);
+      } else {
+        File srcDir = this.getDirectory(source.getString("directory"));
+        File srcFile = new File(srcDir.getPath() + "/" + source.getString("path"));
+
+        if (!srcFile.exists()) {
+          result = new PluginResult(PluginResult.Status.ERROR, "source file or directory does not exist");
+          result.setKeepCallback(false);
+          callbackContext.sendPluginResult(result);
+          return;
+        }
+
+        if (srcFile.isDirectory()) {
+          FileUtils.copyDirectory(srcFile, new File(target));
+        } else {
+          FileUtils.copyFile(srcFile, new File(target));
+        }
+      }
+    } catch (Exception e) {
+      result = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
+      return;
+    }
+
+    result = new PluginResult(PluginResult.Status.OK);
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
+  }
+
+  /**
+   * recursively remove a directory or a file
+   *
+   */
+  public void remove(CallbackContext callbackContext, JSONObject options) throws JSONException {
+    Log.d(TAG, "recursiveRemove called with " + options.toString());
+    String target = options.getString("target");
+    File dest = new File(target);
+    final PluginResult result;
+
+    if (!dest.exists()) {
+      result = new PluginResult(PluginResult.Status.ERROR, "file or directory does not exist");
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
+      return;
+    }
+
+    try {
+      FileUtils.forceDelete(dest);
+    } catch (IOException e) {
+      result = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
+      return;
+    }
+
+    result = new PluginResult(PluginResult.Status.OK);
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
+  }
+
+  public void downloadFile(CallbackContext callbackContext, JSONObject options) throws JSONException {
+    Log.d(TAG, "downloadFile called with " + options.toString());
+    String url = options.getString("url");
+    String dest = options.getString("target");
+    final PluginResult result;
+
+    try {
+      URL u = new URL(url);
+      InputStream is = u.openStream();
+
+      DataInputStream dis = new DataInputStream(is);
+
+      byte[] buffer = new byte[1024];
+      int length;
+
+      FileOutputStream fos = new FileOutputStream(new File(dest));
+      while ((length = dis.read(buffer))>0) {
+        fos.write(buffer, 0, length);
+      }
+
+    } catch (Exception e) {
+      Log.e(TAG, "downloadFile error", e);
+      result = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+      result.setKeepCallback(false);
+      callbackContext.sendPluginResult(result);
+      return;
+    }
+    result = new PluginResult(PluginResult.Status.OK);
+    result.setKeepCallback(false);
+    callbackContext.sendPluginResult(result);
   }
 
   /**
@@ -289,4 +495,3 @@ public class IonicCordovaCommon extends CordovaPlugin {
   }
 
 }
-

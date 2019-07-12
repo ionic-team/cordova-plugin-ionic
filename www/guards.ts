@@ -1,3 +1,5 @@
+import { IDeployConfig } from './IonicCordova';
+
 export function isPluginConfig(o: object): o is IDeployConfig {
   const obj = <IDeployConfig>o;
   const allowedKeys = ['appId', 'channel', 'disabled', 'host', 'maxVersions', 'minBackgroundDuration', 'updateMethod'];

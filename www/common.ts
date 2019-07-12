@@ -1,7 +1,15 @@
-/// <reference path="../types/IonicCordova.d.ts" />
-/// <reference types="cordova-plugin-file" />
-/// <reference types="cordova-plugin-file-transfer" />
 /// <reference types="cordova" />
+
+import {
+  CallbackFunction,
+  CheckForUpdateResponse,
+  IAppInfo,
+  ICurrentConfig,
+  IDeployConfig,
+  IPluginBaseAPI,
+  ISnapshotInfo,
+  ISyncOptions,
+} from './IonicCordova';
 
 declare const cordova: Cordova;
 
@@ -9,7 +17,6 @@ const channel = cordova.require('cordova/channel');
 channel.createSticky('onIonicProReady');
 channel.waitForInitialization('onIonicProReady');
 
-declare const resolveLocalFileSystemURL: Window['resolveLocalFileSystemURL'] ;
 declare const Ionic: any;
 declare const WEBVIEW_SERVER_URL: string;
 declare const Capacitor: any;
@@ -114,7 +121,7 @@ class IonicDeployImpl {
   }
 
   getSnapshotCacheDir(versionId: string): string {
-    return Path.join(this.appInfo.dataDirectory, this.SNAPSHOT_CACHE, versionId);
+    return new URL(Path.join(this.appInfo.dataDirectory, this.SNAPSHOT_CACHE, versionId)).pathname;
   }
 
   getBundledAppDir(): string {
@@ -122,7 +129,7 @@ class IonicDeployImpl {
     if (typeof (Capacitor) !== 'undefined') {
       folder = 'public';
     }
-    return Path.join(cordova.file.applicationDirectory, folder);
+    return folder;
   }
 
   private async _savePrefs(prefs: ISavedPreferences): Promise<ISavedPreferences> {
@@ -349,8 +356,8 @@ class IonicDeployImpl {
       }
 
       // Reload the webview
-      const newLocation = new URL(this.getSnapshotCacheDir(prefs.currentVersionId));
-      Ionic.WebView.setServerBasePath(newLocation.pathname);
+      const newLocation = this.getSnapshotCacheDir(prefs.currentVersionId);
+      Ionic.WebView.setServerBasePath(newLocation);
       return true;
     }
 
@@ -404,8 +411,7 @@ class IonicDeployImpl {
     const timer = new Timer('CleanSnapshotDir');
     const snapshotDir = this.getSnapshotCacheDir(versionId);
     try {
-      const dirEntry = await this._fileManager.getDirectory(snapshotDir, false);
-      await (new Promise( (resolve, reject) => dirEntry.removeRecursively(resolve, reject)));
+      await this._fileManager.remove(snapshotDir);
       timer.end();
     } catch (e) {
       console.log('No directory found for snapshot no need to delete');
@@ -415,15 +421,14 @@ class IonicDeployImpl {
 
   private async _copyBaseAppDir(versionId: string) {
     const timer = new Timer('CopyBaseApp');
-    return new Promise( async (resolve, reject) => {
-      try {
-        const rootAppDirEntry = await this._fileManager.getDirectory(this.getBundledAppDir(), false);
-        const snapshotCacheDirEntry = await this._fileManager.getDirectory(this.getSnapshotCacheDir(''), true);
-        rootAppDirEntry.copyTo(snapshotCacheDirEntry, versionId, () => { timer.end(); resolve(); }, reject);
-      } catch (e) {
-        reject(e);
-      }
+    await this._fileManager.copyTo({
+      source: {
+        path: this.getBundledAppDir(),
+        directory: 'APPLICATION',
+      },
+      target: this.getSnapshotCacheDir(versionId),
     });
+    timer.end();
   }
 
   async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
@@ -434,10 +439,10 @@ class IonicDeployImpl {
     return;
   }
 
-  async getVersionById(versionId: string): Promise<ISnapshotInfo> {
+  async getVersionById(versionId: string): Promise<ISnapshotInfo | undefined> {
     const update = this._savedPreferences.updates[versionId];
     if (!update) {
-      throw Error(`No update available with versionId ${versionId}`);
+      return;
     }
     return this._convertToSnapshotInfo(update);
   }
@@ -515,19 +520,24 @@ class IonicDeployImpl {
     }
   }
 
-  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
+  async sync(syncOptions: ISyncOptions = {}, progress?: CallbackFunction<number>): Promise<ISnapshotInfo | undefined> {
     const prefs = this._savedPreferences;
 
     // TODO: Get API override if present?
     const updateMethod = syncOptions.updateMethod || prefs.updateMethod;
 
+    const wrappedProgress = progress ? (complete?: number) => {
+      progress(complete);
+    } : undefined;
+
     await this.checkForUpdate();
 
     if (prefs.availableUpdate) {
       if (prefs.availableUpdate.state === UpdateState.Available) {
-        await this.downloadUpdate();
+        await this.downloadUpdate(wrappedProgress);
       }
       if (prefs.availableUpdate.state === UpdateState.Pending) {
+        // ignore progress from this since it's trivial
         await this.extractUpdate();
       }
       if (prefs.availableUpdate.state === UpdateState.Ready && updateMethod === UpdateMethod.AUTO) {
@@ -552,80 +562,22 @@ class IonicDeployImpl {
 }
 
 class FileManager {
-
-  async getDirectory(path: string, createDirectory = true): Promise<DirectoryEntry> {
-    return new Promise<DirectoryEntry>((resolve, reject) => {
-      resolveLocalFileSystemURL(
-        path,
-        entry => entry.isDirectory ? resolve(entry as DirectoryEntry) : reject(),
-        async () => {
-          const components = path.split('/');
-          const child = components.pop() as string;
-          try {
-            const parent = (await this.getDirectory(components.join('/'), createDirectory)) as DirectoryEntry;
-            parent.getDirectory(child, {create: createDirectory}, async entry => {
-              if (entry.fullPath === path) {
-                resolve(entry);
-              } else {
-                resolve(await this.getDirectory(path, createDirectory));
-              }
-            }, reject);
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
+  async copyTo(options: { source: { directory: string; path: string; } , target: string}) {
+    return new Promise<void>( (resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'copyTo', [options]);
     });
   }
 
-  async resolvePath(): Promise<DirectoryEntry> {
-    return new Promise<DirectoryEntry>((resolve, reject) => {
-      resolveLocalFileSystemURL(cordova.file.dataDirectory, (rootDirEntry: Entry) => {
-        resolve(rootDirEntry as DirectoryEntry);
-      }, reject);
-    });
-  }
-
-  async getFile(fullPath: string): Promise<string> {
-    const normalizedURL = Ionic.WebView.convertFileSrc(fullPath);
-    const req = await fetch(normalizedURL);
-    return req.text();
-  }
-
-  async getFileEntry(path: string, fileName: string) {
-    const dirEntry = await this.getDirectory(path, false);
-    return new Promise<FileEntry>((resolve, reject) => {
-      dirEntry.getFile(fileName, {create: false, exclusive: false}, resolve, reject);
-    });
-  }
-
-  async fileExists(path: string, fileName: string) {
-    try {
-      await this.getFileEntry(path, fileName);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  async copyTo(oldPath: string, oldFileName: string, newPath: string, newFileName: string) {
-    const fileEntry = await this.getFileEntry(oldPath, oldFileName);
-    const newDirEntry = await this.getDirectory(newPath);
-    return new Promise((resolve, reject) => {
-      fileEntry.copyTo(newDirEntry, newFileName, resolve, reject);
-    });
-  }
-
-  async removeFile(path: string, filename: string) {
-    const fileEntry = await this.getFileEntry(path, filename);
-    return new Promise((resolve, reject) => {
-      fileEntry.remove(resolve, reject);
+  async remove(path: string) {
+    return new Promise<void>( (resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'remove', [{target: path}]);
     });
   }
 
   async downloadAndWriteFile(url: string, path: string) {
-    const fileT = new FileTransfer();
-    return new Promise<FileEntry>((resolve, reject) => fileT.download(url, path, resolve, reject));
+    return new Promise<void>( (resolve, reject) => {
+      cordova.exec(resolve, reject, 'IonicCordovaCommon', 'downloadFile', [{url, target: path}]);
+    });
   }
 }
 
@@ -755,9 +707,9 @@ class IonicDeploy implements IDeployPluginAPI {
     return;
   }
 
-  async getVersionById(versionId: string): Promise<ISnapshotInfo> {
+  async getVersionById(versionId: string): Promise<ISnapshotInfo | undefined> {
     if (!this.disabled) return (await this.delegate).getVersionById(versionId);
-    throw Error(`No update available with versionId ${versionId}`);
+    return;
   }
 
   async reloadApp(): Promise<boolean> {
@@ -765,8 +717,8 @@ class IonicDeploy implements IDeployPluginAPI {
     return false;
   }
 
-  async sync(syncOptions: ISyncOptions = {}): Promise<ISnapshotInfo | undefined> {
-    if (!this.disabled) return (await this.delegate).sync(syncOptions);
+  async sync(syncOptions: ISyncOptions = {}, progress?: CallbackFunction<number>): Promise<ISnapshotInfo | undefined> {
+    if (!this.disabled) return (await this.delegate).sync(syncOptions, progress);
     return;
   }
 }

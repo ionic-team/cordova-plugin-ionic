@@ -1,3 +1,5 @@
+import { ICurrentConfig } from './IonicCordova';
+
 export interface IAvailableUpdate {
   binaryVersionName: string;
   binaryVersionCode: string;
