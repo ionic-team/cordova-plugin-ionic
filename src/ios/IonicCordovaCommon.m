@@ -24,6 +24,68 @@
     [prefs synchronize];
 }
 
+- (void) remove:(CDVInvokedUrlCommand*)command {
+    NSDictionary *options = command.arguments[0];
+    NSString *path = options[@"target"];
+    NSLog(@"Got remove path: %@", path);
+    NSError *removeError = nil;
+    if (![[NSFileManager defaultManager] removeItemAtPath:path error:&removeError]) {
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [removeError localizedDescription]]  callbackId:command.callbackId];
+        return;
+    }
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+}
+
+- (void) copyTo:(CDVInvokedUrlCommand*)command {
+    NSDictionary *options = command.arguments[0];
+    NSLog(@"Got copyTo: %@", options);
+    NSString *srcDir = options[@"source"][@"directory"];
+    NSString *srcPath = options[@"source"][@"path"];
+    NSString *dest = options[@"target"];
+    
+    if (![srcDir isEqualToString:@"APPLICATION"]) {
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: @"Only Application directory is supported"]  callbackId:command.callbackId];
+        return;
+    }
+    NSMutableString *source = [NSMutableString stringWithString:[[NSBundle mainBundle] resourcePath]];
+    [source appendString:@"/"];
+    [source appendString:srcPath];
+    NSError *createDirError = nil;
+    if (![[NSFileManager defaultManager] createDirectoryAtPath:dest withIntermediateDirectories:YES attributes:nil error:&createDirError]) {
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [createDirError localizedDescription]]  callbackId:command.callbackId];
+        return;
+    }
+    [[NSFileManager defaultManager] removeItemAtPath:dest error:nil];
+    NSError *copyError = nil;
+    if (![[NSFileManager defaultManager] copyItemAtPath:source toPath:dest error:&copyError]) {
+        NSLog(@"Error copying files: %@", [copyError localizedDescription]);
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [copyError localizedDescription]]  callbackId:command.callbackId];
+        return;
+    }
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+}
+
+- (void) downloadFile:(CDVInvokedUrlCommand*)command {
+    NSDictionary *options = command.arguments[0];
+    NSString *target = options[@"target"];
+    NSString *urlStr = options[@"url"];
+    NSLog(@"Got downloadFile: %@", options);
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlStr]];
+    NSURLSession *urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+    [[urlSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (error) {
+            NSLog(@"Download Error:%@",error.description);
+            [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [error localizedDescription]]  callbackId:command.callbackId];
+        }
+        if (data) {
+            [data writeToFile:target atomically:YES];
+            NSLog(@"File is saved to %@", target);
+            [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+        }
+    }] resume];
+}
+
 - (void) getAppInfo:(CDVInvokedUrlCommand*)command {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSMutableDictionary *json = [[NSMutableDictionary alloc] init];

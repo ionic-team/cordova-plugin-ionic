@@ -62,6 +62,12 @@
  */
 - (void) configure:(CDVInvokedUrlCommand *)command;
 
+- (void) copyTo:(CDVInvokedUrlCommand *)command;
+
+- (void) remove:(CDVInvokedUrlCommand *)command;
+
+- (void) downloadFile:(CDVInvokedUrlCommand *)command;
+
 /**
  * Get cordova plugin native congiguration and state information (config.xml stuff)
  *
