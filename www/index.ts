@@ -1,6 +1,9 @@
 import {
   CallbackFunction,
+  CheckForUpdateResponse,
+  ICurrentConfig,
   IDeployConfig,
+  ISnapshotInfo,
   ISyncOptions,
 } from './IonicCordova';
 /**
@@ -22,12 +25,12 @@ export class DeployClass implements IDeployPluginAPI {
     return deploy.configure(config);
   }
 
-  async getConfiguration() {
+  async getConfiguration(): Promise<ICurrentConfig> {
     const deploy = await deviceready;
     return deploy.getConfiguration();
   }
 
-  async checkForUpdate() {
+  async checkForUpdate(): Promise<CheckForUpdateResponse> {
     const deploy = await deviceready;
     return deploy.checkForUpdate();
   }
@@ -52,7 +55,7 @@ export class DeployClass implements IDeployPluginAPI {
     return deploy.sync(options, progress);
   }
 
-  async getCurrentVersion() {
+  async getCurrentVersion(): Promise<ISnapshotInfo | undefined> {
     const deploy = await deviceready;
     return deploy.getCurrentVersion();
   }
