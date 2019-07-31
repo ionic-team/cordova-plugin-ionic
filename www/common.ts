@@ -70,7 +70,7 @@ class IonicDeployImpl {
   private _fileManager: FileManager = new FileManager();
   private SNAPSHOT_CACHE = 'ionic_built_snapshots';
   private MANIFEST_FILE = 'pro-manifest.json';
-  public PLUGIN_VERSION = '5.4.3';
+  public PLUGIN_VERSION = '5.4.4';
 
   constructor(appInfo: IAppInfo, preferences: ISavedPreferences) {
     this.appInfo = appInfo;
