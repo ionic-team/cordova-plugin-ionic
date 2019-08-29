@@ -1,5 +1,14 @@
 Changelog
 ======
+## 5.4.4
+* Fix issue where too many network requests at once could fire and cause performance issues.
+
+## 5.4.3
+* Fix issue where types caused incompatability with Ionic v3 (Typescript 2.x)
+
+## 5.4.0
+* Remove cordova-plugin-file as dependency to fix ([#213] (https://github.com/ionic-team/cordova-plugin-ionic/issues/213))
+
 ## 5.3.1
 * Add cordova-plugin-whitelist dependency ([#215] (https://github.com/ionic-team/cordova-plugin-ionic/pull/215))
 
