@@ -273,7 +273,10 @@ public class IonicCordovaCommon extends CordovaPlugin {
       byte[] buffer = new byte[1024];
       int length;
 
-      FileOutputStream fos = new FileOutputStream(new File(dest));
+      File downFile = new File(dest);
+      downFile.getParentFile().mkdirs();
+      downFile.createNewFile();
+      FileOutputStream fos = new FileOutputStream(downFile);
       while ((length = dis.read(buffer))>0) {
         fos.write(buffer, 0, length);
       }
