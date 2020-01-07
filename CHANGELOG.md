@@ -1,5 +1,8 @@
 Changelog
 ======
+## 5.4.6
+* fix(ios): create intermediate directories for downloads ([#231](https://github.com/ionic-team/cordova-plugin-ionic/pull/231))
+
 ## 5.4.5
 * fix(android): make sure parent folders exist on file creation ([#226](https://github.com/ionic-team/cordova-plugin-ionic/pull/226))
 
