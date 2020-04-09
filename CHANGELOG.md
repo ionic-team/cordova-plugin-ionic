@@ -1,5 +1,8 @@
 Changelog
 ======
+## 5.4.7
+* fix(ng): Angular Ivy support ([#236](https://github.com/ionic-team/cordova-plugin-ionic/pull/236))
+
 ## 5.4.6
 * fix(ios): create intermediate directories for downloads ([#231](https://github.com/ionic-team/cordova-plugin-ionic/pull/231))
 
