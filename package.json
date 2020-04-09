@@ -12,16 +12,16 @@
   "types": "dist/index.d.ts",
   "description": "Ionic Cordova SDK",
   "scripts": {
-    "apply-dev": "npm run build && ./apply-changes.sh",
-    "create-dev": "./create-local-app.sh",
+    "apply-dev": "npm run build && ./scripts/apply-changes.sh",
+    "create-dev": "./scripts/create-local-app.sh",
     "clean": "rimraf dist",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "precommit": "npm run lint",
     "watch": "tsc -w",
     "watch-dev": "watch 'npm run apply-dev' ./www",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && ngc -p tsconfig.ng.json && ./scripts/ng-prepare.sh",
     "sync-plugin-xml": "sync-cordova-xml2 package.json plugin.xml --output=plugin.xml",
-    "version": "npm run sync-plugin-xml && git add plugin.xml && ./update-plugin-version-code.sh",
+    "version": "npm run sync-plugin-xml && git add plugin.xml && ./scripts/update-plugin-version-code.sh",
     "prepublishOnly": "npm run build",
     "test": "echo 'We should really get unit tests running'",
     "release": "npm run build && np --any-branch",
@@ -56,6 +56,9 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@angular/compiler": "^9.1.1",
+    "@angular/compiler-cli": "^9.1.1",
+    "@angular/core": "^7.2.15",
     "@types/cordova": "0.0.34",
     "jest": "^22.4.3",
     "np": "^3.0.4",
@@ -66,8 +69,7 @@
     "tslint-ionic-rules": "0.0.14",
     "typedoc": "^0.11.1",
     "typedoc-plugin-markdown": "^1.1.6",
-    "watch": "^1.0.2",
-    "@angular/core": "^7.2.15"
+    "watch": "^1.0.2"
   },
   "jest": {
     "globals": {

@@ -18,5 +18,5 @@
       "dom"
     ]
   },
-  "include": ["www"]
+  "include": ["www/common.ts", "www/guards.ts", "www/index.ts"]
 }
