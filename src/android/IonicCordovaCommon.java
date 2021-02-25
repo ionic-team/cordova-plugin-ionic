@@ -95,9 +95,17 @@ public class IonicCordovaCommon extends CordovaPlugin {
     } else if (action.equals("configure")){
       this.configure(callbackContext, args.getJSONObject(0));
     } else if (action.equals("copyTo")){
-      this.copyTo(callbackContext, args.getJSONObject(0));
+      threadhelper( new FileOp( ){
+        public void run(final JSONArray passedArgs, final CallbackContext cbcontext) throws JSONException {
+          copyTo(callbackContext, args.getJSONObject(0));
+        }
+      }, args, callbackContext);
     } else if (action.equals("remove")){
-      this.remove(callbackContext, args.getJSONObject(0));
+      threadhelper( new FileOp( ){
+        public void run(final JSONArray passedArgs, final CallbackContext cbcontext) throws JSONException {
+          remove(callbackContext, args.getJSONObject(0));
+        }
+      }, args, callbackContext);
     } else if (action.equals("downloadFile")){
       threadhelper( new FileOp( ){
         public void run(final JSONArray passedArgs, final CallbackContext cbcontext) throws JSONException {
