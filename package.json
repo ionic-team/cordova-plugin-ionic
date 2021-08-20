@@ -87,6 +87,6 @@
     "testRegex": "tests/.*\\.(ts|js)$"
   },
   "dependencies": {
-    "typescript": "^3.5.3"
+    "typescript": "3.8.3"
   }
 }
