@@ -212,6 +212,9 @@ class IonicDeployImpl {
           buildId: checkForUpdateResp.build
         };
         await this._savePrefs(prefs);
+      }else{
+        delete prefs.availableUpdate;
+        await this._savePrefs(prefs);
       }
       return checkForUpdateResp;
     }
@@ -326,6 +329,9 @@ class IonicDeployImpl {
   }
 
   async reloadApp(): Promise<boolean> {
+    
+    await this.checkForUpdate();
+    
     const prefs = this._savedPreferences;
 
     // Save the current update if it's ready
@@ -338,6 +344,7 @@ class IonicDeployImpl {
 
     // Is there a non-binary version deployed?
     if (prefs.currentVersionId) {
+      
       // Are we already running the deployed version?
       if (await this._isRunningVersion(prefs.currentVersionId)) {
         console.log(`Already running version ${prefs.currentVersionId}`);
