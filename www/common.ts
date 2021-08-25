@@ -391,14 +391,14 @@ class IonicDeployImpl {
           `Update binaryVersionCode: ${update.binaryVersionCode}, Device binaryVersionCode ${prefs.binaryVersionCode}`
         );
 
-        await this.deleteVersionById(update.versionId);
-
         // This is no longer necessary for this function, but a previous version of the code
         // deleted `prefs.currentVersionId` near initialization so other code may rely on still
         // deleting `prefs.currentVersionId`.
         if (this.isUpdateCurrentlyInstalled(update)) {
           delete prefs.currentVersionId;
         }
+
+        await this.deleteVersionById(update.versionId);
       }
     }
   }
