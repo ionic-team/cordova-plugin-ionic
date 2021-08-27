@@ -11,6 +11,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "description": "Ionic Cordova SDK",
+  "engines": {
+    "node": "^14",
+    "npm": "^7"
+  },
   "scripts": {
     "apply-dev": "npm run build && ./scripts/apply-changes.sh",
     "create-dev": "./scripts/create-local-app.sh",
@@ -23,7 +27,7 @@
     "sync-plugin-xml": "sync-cordova-xml2 package.json plugin.xml --output=plugin.xml",
     "version": "npm run sync-plugin-xml && git add plugin.xml && ./scripts/update-plugin-version-code.sh",
     "prepublishOnly": "npm run build",
-    "test": "echo 'We should really get unit tests running'",
+    "test": "jest",
     "release": "npm run build && np --any-branch",
     "docs": "./scripts/docs.sh"
   },
@@ -60,33 +64,21 @@
     "@angular/compiler-cli": "^9.1.1",
     "@angular/core": "^7.2.15",
     "@types/cordova": "0.0.34",
-    "jest": "^22.4.3",
+    "@types/jest": "^27.0.1",
     "np": "^3.0.4",
     "rimraf": "^2.6.2",
     "sync-cordova-xml2": "0.0.2",
-    "ts-jest": "^22.4.2",
+    "ts-jest": "^27.0.5",
+    "ts-mockito": "^2.6.1",
+    "ts-mocks": "^3.0.1",
     "tslint": "^5.9.1",
     "tslint-ionic-rules": "0.0.14",
     "typedoc": "^0.11.1",
     "typedoc-plugin-markdown": "^1.1.6",
     "watch": "^1.0.2"
   },
-  "jest": {
-    "globals": {
-      "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
-      }
-    },
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "transform": {
-      ".(ts)": "./node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "tests/.*\\.(ts|js)$"
-  },
   "dependencies": {
+    "@types/jsdom": "^16.2.13",
     "typescript": "3.8.3"
   }
 }

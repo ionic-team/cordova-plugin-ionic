@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "typeRoots": ["node_modules/@types"],
+    "types": ["@types/jest", "jest", "node"]
+  },
+  "include": ["www/__tests__/**/*.test.ts"]
+}
