@@ -79,7 +79,7 @@ class IonicDeployImpl {
 
   async _handleInitialPreferenceState() {
     // make sure we're not going to redirect to a stale version
-    await this.cleanCurrentVersionIfStale();
+    await this.cleanupStaleVersions();
     const isOnline = navigator && navigator.onLine;
     if (!isOnline) {
       console.warn('The device appears to be offline. Loading last available version and skipping update checks.');
@@ -366,7 +366,7 @@ class IonicDeployImpl {
   }
 
   // compare an update to the current version using both name & code
-  private isCurrentVersion(update: IAvailableUpdate) {
+  private isUpdateForCurrentBinary(update: IAvailableUpdate) {
     const currentVersionCode = this._savedPreferences.binaryVersionCode;
     const currentVersionName = this._savedPreferences.binaryVersionName;
     console.log(`Current: versionCode: ${currentVersionCode} versionName: ${currentVersionName}`);
@@ -374,20 +374,31 @@ class IonicDeployImpl {
     return update.binaryVersionName === currentVersionName && update.binaryVersionCode === currentVersionCode;
   }
 
-  private async cleanCurrentVersionIfStale() {
+  private isUpdateCurrentlyInstalled(update: IAvailableUpdate) {
+    return this._savedPreferences.currentVersionId === update.versionId;
+  }
+
+  private async cleanupStaleVersions() {
+    const updates = this.getStoredUpdates();
     const prefs = this._savedPreferences;
-    // Is the current version built from a previous binary?
-    if (prefs.currentVersionId) {
-      if (!this.isCurrentVersion(prefs.updates[prefs.currentVersionId]) && !(await this._isRunningVersion(prefs.currentVersionId))) {
+
+    for (const update of updates) {
+      // Is the version built from a previous binary?
+      if (!this.isUpdateForCurrentBinary(update) && !(await this._isRunningVersion(update.versionId))) {
         console.log(
-          `Update ${prefs.currentVersionId} was built for different binary version removing update from device` +
-          `Update binaryVersionName: ${prefs.updates[prefs.currentVersionId].binaryVersionName}, Device binaryVersionName ${prefs.binaryVersionName}` +
-          `Update binaryVersionCode: ${prefs.updates[prefs.currentVersionId].binaryVersionCode}, Device binaryVersionCode ${prefs.binaryVersionCode}`
+          `Update ${update.versionId} was built for different binary version removing update from device` +
+          `Update binaryVersionName: ${update.binaryVersionName}, Device binaryVersionName ${prefs.binaryVersionName}` +
+          `Update binaryVersionCode: ${update.binaryVersionCode}, Device binaryVersionCode ${prefs.binaryVersionCode}`
         );
-        const versionId = prefs.currentVersionId;
-        // NOTE: deleting pref.currentVersionId here to fool deleteVersionById into deleting it
-        delete prefs.currentVersionId;
-        await this.deleteVersionById(versionId);
+
+        // This is no longer necessary for this function, but a previous version of the code
+        // deleted `prefs.currentVersionId` near initialization so other code may rely on still
+        // deleting `prefs.currentVersionId`.
+        if (this.isUpdateCurrentlyInstalled(update)) {
+          delete prefs.currentVersionId;
+        }
+
+        await this.deleteVersionById(update.versionId);
       }
     }
   }
@@ -467,10 +478,6 @@ class IonicDeployImpl {
   async deleteVersionById(versionId: string): Promise<boolean> {
     const prefs = this._savedPreferences;
 
-    if (prefs.currentVersionId === versionId) {
-      throw Error(`Can't delete version with id: ${versionId} as it is the current version.`);
-    }
-
     delete prefs.updates[versionId];
     await this._savePrefs(prefs);
 
@@ -481,41 +488,29 @@ class IonicDeployImpl {
   }
 
   private getStoredUpdates() {
-    // get an array of stored updates minus current deployed one
+    // get an array of stored updates
     const prefs = this._savedPreferences;
     const updates = [];
     for (const versionId of Object.keys(prefs.updates)) {
-      // don't clean up the current version
-      if (versionId !== prefs.currentVersionId) {
-        updates.push(prefs.updates[versionId]);
-      }
+      updates.push(prefs.updates[versionId]);
     }
     return updates;
   }
 
   private async cleanupVersions() {
+    await this.cleanupStaleVersions();
+
     const prefs = this._savedPreferences;
-
-    let updates = this.getStoredUpdates();
-    // First clean stale versions
-    for (const update of updates) {
-      if (!this.isCurrentVersion(update)) {
-        console.log(
-          `Update ${update.versionId} was built for different binary version removing update from device` +
-          `Update binaryVersionName: ${update.binaryVersionName}, Device binaryVersionName ${prefs.binaryVersionName}` +
-          `Update binaryVersionCode: ${update.binaryVersionCode}, Device binaryVersionCode ${prefs.binaryVersionCode}`
-        );
-        await this.deleteVersionById(update.versionId);
-      }
-    }
-
+    // get updates which now have no stale versions
+    // filter out the current running version
     // clean down to Max Updates stored
-    updates = this.getStoredUpdates();
-    updates = updates.sort((a, b) => a.lastUsed.localeCompare(b.lastUsed));
-    updates = updates.reverse();
-    updates = updates.slice(prefs.maxVersions);
 
-    for (const update of updates) {
+    const updatesToDelete = this.getStoredUpdates().filter((a) => !this.isUpdateCurrentlyInstalled(a))
+                    .sort((a, b) => a.lastUsed.localeCompare(b.lastUsed))
+                    .reverse()
+                    .slice(prefs.maxVersions);
+
+    for (const update of updatesToDelete) {
       await this.deleteVersionById(update.versionId);
     }
   }
