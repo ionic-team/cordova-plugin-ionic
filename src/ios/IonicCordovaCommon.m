@@ -78,6 +78,12 @@
             NSLog(@"Download Error:%@",error.description);
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [error localizedDescription]]  callbackId:command.callbackId];
         }
+        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
+        if (httpResponse.statusCode != 200) {
+            NSString *errorMsg = [NSString stringWithFormat:@"HTTP response status code: %ld", httpResponse.statusCode];
+            NSLog(@"Download Error: %@", errorMsg);
+           [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: errorMsg]  callbackId:command.callbackId];
+        }
         if (data) {
             [[NSFileManager defaultManager] createDirectoryAtPath:[target stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
             [data writeToFile:target atomically:YES];
