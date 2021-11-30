@@ -1,5 +1,15 @@
 Changelog
 ======
+## 5.5.1
+* Updated iOS live update logic to properly handle non-200 status code responses from the update server.
+
+## 5.5.0
+* Removed no longer used cordova-plugin-whitelist dependency
+* Updated gradle dependencies to use implementation rather than compile
+
+## 5.4.8
+* Fixed background update mode to handle a scenario in which a live update for an older binary is applied to a new binary
+
 ## 5.4.7
 * fix(ng): Angular Ivy support ([#236](https://github.com/ionic-team/cordova-plugin-ionic/pull/236))
 
