@@ -8,7 +8,7 @@ Changelog
 * Updated gradle dependencies to use implementation rather than compile
 
 ## 5.4.8
-* Fixed background update mode to handle scenario in which a binary update happens after the download of a live update but before the update is applied
+* Fixed background update mode to handle a scenario in which a live update for an older binary is applied to a new binary
 
 ## 5.4.7
 * fix(ng): Angular Ivy support ([#236](https://github.com/ionic-team/cordova-plugin-ionic/pull/236))
