@@ -1,5 +1,8 @@
 Changelog
 ======
+## 5.5.2
+* Fixed iOS error 28 – no space left on device
+
 ## 5.5.1
 * Updated iOS live update logic to properly handle non-200 status code responses from the update server.
 
