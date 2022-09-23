@@ -72,8 +72,7 @@
     NSLog(@"Got downloadFile: %@", options);
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlStr]];
-    NSURLSession *urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
-    [[urlSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+    [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         if (error) {
             NSLog(@"Download Error:%@",error.description);
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [error localizedDescription]]  callbackId:command.callbackId];
@@ -89,14 +88,6 @@
             [data writeToFile:target atomically:YES];
             NSLog(@"File is saved to %@", target);
             [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
-        }
-
-        // When numerous downloads are called the sessions are not always invalidated and cleared by iOS14.
-        // This leads to error 28 – no space left on device so we manually flush and invalidate to free up space
-        if(urlSession != nil) {
-            [urlSession flushWithCompletionHandler:^{
-                [urlSession finishTasksAndInvalidate];
-            }];
         }
     }] resume];
 }

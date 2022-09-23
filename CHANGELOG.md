@@ -1,5 +1,8 @@
 Changelog
 ======
+## 5.5.3
+* Fixed iOS "no space left on device"
+
 ## 5.5.2
 * Fixed iOS error 28 – no space left on device
 
