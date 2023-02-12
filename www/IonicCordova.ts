@@ -154,9 +154,9 @@ export interface IDeployConfig {
   appId?: string;
 
   /**
-   * whether or not the app should in debug mode
+   * Whether the user disabled deploy updates or not.
    */
-  debug?: boolean;
+  disabled?: boolean;
 
   /**
    * @ignore
