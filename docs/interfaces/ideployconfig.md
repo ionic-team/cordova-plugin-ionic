@@ -14,7 +14,7 @@ The configuration for the deploy plugin on the device.
 
 * [appId](ideployconfig.md#appid)
 * [channel](ideployconfig.md#channel)
-* [debug](ideployconfig.md#debug)
+* [disabled](ideployconfig.md#disabled)
 * [host](ideployconfig.md#host)
 * [maxVersions](ideployconfig.md#maxversions)
 * [minBackgroundDuration](ideployconfig.md#minbackgroundduration)
@@ -42,13 +42,13 @@ ___
 The [channel](https://ionicframework.com/docs/pro/deploy/channels) that the plugin should listen for updates on.
 
 ___
-<a id="debug"></a>
+<a id="disabled"></a>
 
-### `<Optional>` debug
+### `<Optional>` disabled
 
-**● debug**: *`undefined` \| `true` \| `false`*
+**● disabled**: *`undefined` \| `true` \| `false`*
 
-whether or not the app should in debug mode
+Whether the user disabled deploy updates or not.
 
 ___
 <a id="host"></a>

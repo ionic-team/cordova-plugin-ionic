@@ -12,7 +12,7 @@ export function isPluginConfig(o: object): o is IDeployConfig {
   return obj &&
     (obj.appId === undefined || typeof obj.appId === 'string') &&
     (obj.channel === undefined || typeof obj.channel === 'string') &&
-    (obj.debug === undefined || typeof obj.debug === 'string') &&
+    (obj.disabled === undefined || typeof obj.disabled === 'string') &&
     (obj.updateMethod === undefined || typeof obj.updateMethod === 'string') &&
     (obj.maxVersions === undefined || typeof obj.maxVersions === 'number') &&
     (obj.minBackgroundDuration === undefined || typeof obj.minBackgroundDuration === 'number') &&
