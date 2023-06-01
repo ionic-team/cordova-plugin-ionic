@@ -109,7 +109,7 @@ public class IonicCordovaCommon extends CordovaPlugin {
     } else if (action.equals("downloadFile")){
       threadhelper( new FileOp( ){
         public void run(final JSONArray passedArgs, final CallbackContext cbcontext) throws JSONException {
-          downloadFile(cbcontext, passedArgs.getJSONObject(0));
+          downloadFile(callbackContext, passedArgs.getJSONObject(0));
         }
       }, args, callbackContext);
 
